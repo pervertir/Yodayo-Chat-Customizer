@@ -7,7 +7,7 @@
                 <div class="fixed inset-0 bg-backdrop transition-opacity opacity-100"></div>
                 <div class="fixed inset-0 z-10 overflow-y-auto">
                     <div class="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
-                        <div class="no-scrollbar relative w-full overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
+                        <div class="relative w-full overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
                             id="headlessui-dialog-panel-:r1g:" data-headlessui-state="open"><button
                                 class="absolute right-4 top-4 z-20 p-2 text-primaryText"><svg
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -18,39 +18,38 @@
                                 </svg></button>
                             <div class="bg-secondaryBg p-6">
                                 <h3 class="font-bold text-primaryText" id="headlessui-dialog-title-:r1h:"
-                                    data-headlessui-state="open">Chat Settings</h3>
+                                    data-headlessui-state="open">Character Customization</h3>
                                 <div class="mt-8 text-primaryText">
                                     <div class="flex items-center gap-1">
-                                        <div class="flex items-center pb-3 font-medium text-sm">Model</div>
-                                        <div class="pb-3">
-                                            <div class="flex"><button type="button"><svg
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        aria-hidden="true" data-slot="icon"
-                                                        class="cursor-pointer h-6 w-6">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z">
-                                                        </path>
-                                                    </svg></button></div>
-                                        </div>
-                                        <div class="pb-3"><span
-                                                class="rounded-full bg-badge px-1.5 text-xs font-medium shadow-sm">new</span>
-                                        </div>
+                                        <div class="flex items-center pb-3 font-medium text-sm">Name</div>
                                     </div>
-                                    <div class="relative"><button
-                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"><span
-                                                class="block truncate">Apollo-13B</span><span
-                                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"><svg
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true"
-                                                    data-slot="icon" class="h-5 w-5 text-secondaryText">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="m8.25 4.5 7.5 7.5-7.5 7.5"></path>
-                                                </svg></span></button></div>
+                                    <div class="relative"><input
+                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">Enter
+                                        a new name for character (blank is default name)</input></div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="flex items-center pb-3 font-medium text-sm">Color</div>
+                                    </div>
+                                    <div class="relative"><input type="color" value="ffffff"
+                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="flex items-center pb-3 font-medium text-sm">Image</div>
+                                    </div>
+                                    <div class="relative"><input type="url"
+                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">Enter
+                                        a URL</input>
+                                    </div>
+                                    <div class="relative"><input type="file"
+                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">Enter
+                                        a File Path</input>
+                                    </div>
+
                                 </div>
+
                                 <hr class="my-6 border-t border-separator/10">
+
                                 <div class="flex items-center justify-between">
-                                    <p class="font-bold text-primaryText">System</p><button
+                                    <p class="font-bold text-primaryText">Background</p><button
                                         class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
@@ -63,80 +62,73 @@
                                 </div>
                                 <div class="mt-6 text-primaryText">
                                     <div class="flex items-center gap-1">
-                                        <div class="flex items-center pb-3 font-medium text-sm">Preset</div>
+                                        <div class="flex items-center pb-3 font-medium text-sm">Presets</div>
                                         <div class="pb-3">
-                                            <div class="flex"><button type="button"><svg
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        aria-hidden="true" data-slot="icon"
-                                                        class="cursor-pointer h-6 w-6">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z">
-                                                        </path>
-                                                    </svg></button></div>
+                                            <div class="relative"><input type="url"
+                                                    class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">Enter
+                                                a URL</input>
+                                            </div>
+                                            <div class="relative"><input type="file"
+                                                    class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">Enter
+                                                a File Path</input>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="relative"><button
-                                            class="relative h-10 w-full cursor-default rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"
-                                            id="headlessui-listbox-button-:r1k:" type="button" aria-haspopup="listbox"
-                                            aria-expanded="false" data-headlessui-state=""><span
-                                                class="block truncate">Select preset</span><span
-                                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"><svg
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true"
-                                                    data-slot="icon" class="h-5 w-5 text-secondaryText">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-                                                </svg></span></button></div>
-                                </div>
-                                <hr class="my-6 border-t border-separator/10">
-                                <div class="flex items-center justify-between">
-                                    <p class="font-bold text-primaryText">Parameters</p><button
-                                        class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
-                                            class="h-4 w-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"></path>
-                                        </svg>
-                                        <p>Reset</p>
-                                    </button>
-                                </div>
-                                <div class="mt-6 text-primaryText">
-                                    <div class="flex items-center gap-1">
-                                        <div class="flex items-center pb-3 font-medium text-sm">Preset</div>
-                                        <div class="pb-3">
-                                            <div class="flex"><button type="button"><svg
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        aria-hidden="true" data-slot="icon"
-                                                        class="cursor-pointer h-6 w-6">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z">
-                                                        </path>
-                                                    </svg></button></div>
+
+                                    <hr class="my-6 border-t border-separator/10">
+
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-bold text-primaryText">Chat Colors</p><button
+                                            class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                                data-slot="icon" class="h-4 w-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"></path>
+                                            </svg>
+                                            <p>Reset</p>
+                                        </button>
+                                    </div>
+                                    <div class="mt-6 text-primaryText">
+                                        <div class="flex items-center gap-1">
+                                            <div class="pb-3">
+                                                <div class="flex items-center gap-1">
+                                                    <div class="flex items-center pb-3 font-medium text-sm">Italics/
+                                                        Narration
+                                                    </div>
+                                                    <div class="relative"><input type="color" value="rgb(176 216 251)"
+                                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+                                                    </div>
+
+
+                                                    <div class="flex items-center pb-3 font-medium text-sm">
+                                                        Character Chat</div>
+                                                    <div class="relative"><input type="color" value="ffffff"
+                                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+
+                                                    <div class="flex items-center pb-3 font-medium text-sm">
+                                                        User Chat</div>
+                                                    <div class="relative"><input type="color" value="000000"
+                                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+                                                    
+                                                    <div class="flex items-center pb-3 font-medium text-sm">
+                                                        Character Chat Bg</div>
+                                                    <div class="relative"><input type="color" value="000000"
+                                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+                                                    </div>
+                                                    <div class="flex items-center pb-3 font-medium text-sm">
+                                                        User Chat Bg</div>
+                                                    <div class="relative"><input type="color" value="ffffff"
+                                                            class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"></input>
+                                                </div>
+                                            </div><button type="button"
+                                                class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-6 h-11 w-full border-transparent bg-primaryBtn text-darkText focus:ring-primaryBtn disabled:opacity-50">Save</button>
                                         </div>
                                     </div>
-                                    <div class="relative"><button
-                                            class="relative h-10 w-full cursor-default rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm"
-                                            id="headlessui-listbox-button-:r1n:" type="button" aria-haspopup="listbox"
-                                            aria-expanded="false" data-headlessui-state=""><span
-                                                class="block truncate">Select preset</span><span
-                                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"><svg
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" aria-hidden="true"
-                                                    data-slot="icon" class="h-5 w-5 text-secondaryText">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-                                                </svg></span></button></div>
-                                </div><button type="button"
-                                    class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-6 h-11 w-full border-transparent bg-primaryBtn text-darkText focus:ring-primaryBtn disabled:opacity-50">Save</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </div><button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
+                        style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px;"></button>
                 </div>
             </div>
-        </div><button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
-            style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px;"></button>
-    </div>
-</div>

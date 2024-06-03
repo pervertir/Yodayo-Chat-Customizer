@@ -5,7 +5,7 @@
 
     function createModal() {
         // Get the URL of the HTML file
-        const htmlUrl = GM_getResourceURL('html');
+        const htmlUrl = GM_getResourceURL('chat_customizer_body');
 
         // Fetch the HTML content using GM_xmlhttpRequest
         GM_xmlhttpRequest({

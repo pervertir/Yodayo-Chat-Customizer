@@ -3,8 +3,7 @@
 
     console.log('Chat Customizer script started.');
 
-    function renderHTMLFromFile(resource) {
-
+    function renderHTMLFromFile(resource, callback) {
         // Get the URL of the HTML file
         const htmlUrl = GM_getResourceURL(resource);
 
@@ -21,7 +20,7 @@
                 element.innerHTML = html;
 
                 console.log('Element Generated.', element);
-                return element;
+                callback(element);
             },
             onerror: function (error) {
                 console.error('Error loading HTML:', error);
@@ -34,18 +33,18 @@
             return; // Avoid adding the menu item multiple times
         }
 
-        const customizeMenuItem = renderHTMLFromFile('customize_chat_button') 
-
-        menu.appendChild(customizeMenuItem);
-        // console.log('Customize menu item added:', customizeMenuItem);
-
-        customizeMenuItem.addEventListener('click', () => {
-            element = renderHTMLFromFile('chat_customizer_body');
+        renderHTMLFromFile('customize_chat_button', function (customizeMenuItem) {
             // Find the reference element
             const referenceElement = document.querySelector('[data-floating-ui-portal]');
 
-            // Insert the modal after the reference element
-            referenceElement.insertAdjacentElement('afterend', element);
+            menu.appendChild(customizeMenuItem);
+
+            customizeMenuItem.addEventListener('click', () => {
+                renderHTMLFromFile('chat_customizer_body', function (chat_customizer_form) {
+                    // Insert the element after the reference element
+                    referenceElement.insertAdjacentElement('afterend', chat_customizer_form);
+                });
+            });
         });
     }
 
@@ -59,7 +58,6 @@
                         if (node.id && node.id.startsWith('headlessui-menu-items-')) {
                             console.log('Menu appeared.');
                             addCustomizeMenuItem(node);
-
                         }
                     });
                 }

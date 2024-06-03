@@ -1,8 +1,6 @@
 (async function () {
     'use strict';
 
-
-
     console.log('Chat Customizer script started.');
 
     function renderHTMLFromFile(resource, callback) {

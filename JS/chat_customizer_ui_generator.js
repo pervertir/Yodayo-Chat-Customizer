@@ -1,5 +1,7 @@
-(function () {
+(async function () {
     'use strict';
+
+
 
     console.log('Chat Customizer script started.');
 
@@ -88,9 +90,12 @@
 
             dbConnectionItem.addEventListener('click', () => {
                 console.log('DB Explorer menu item clicked.');
+                const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
+                const CHAR_ID = 'char_' + CHAT_ID;
+
 
                 renderHTMLFromFile('image_viewer_popup', function (image_viewer_popup) {
-                    console.log('Chat customizer form fetched and ready to be inserted.');
+                    console.log('Image Viewer fetched and ready to be inserted.');
 
                     // Insert the element after the reference element
                     referenceElement.insertAdjacentElement('afterend', image_viewer_popup);

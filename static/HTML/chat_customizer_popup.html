@@ -1,88 +1,130 @@
 <hr class="mx-3 border-t border-separator/10" role="none">
 <div id="headlessui-portal-root">
-    <div data-headlessui-portal="">
-        <button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
+    <div data-headlessui-portal=""><button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
             style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px;"></button>
 
-        <div class="fixed inset-0 z-50 overflow-y-auto flex justify-center items-center bg-backdrop">
-            <div class="bg-secondaryBg p-6 rounded-lg shadow-xl w-full max-w-2xl">
-                <button class="absolute right-4 top-4 z-20 p-2 text-primaryText" id="close-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        class="h-5 w-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                <h3 class="font-bold text-primaryText" id="headlessui-dialog-title-:r1h:">Character Customization</h3>
-                <div class="mt-8 text-primaryText">
-                    <div class="flex items-center gap-1 pb-3">
-                        <div class="font-medium text-sm">Name</div>
-                        <input placeholder="Enter a new name for character (blank for default)"
-                            class="h-10 w-full rounded-md bg-tertiaryBg px-2 text-sm">
-                    </div>
-                    <div class="flex items-center gap-1 pb-3">
-                        <div class="font-medium text-sm">Name Color</div>
-                        <input type="color" value="#ffffff" class="h-10 rounded-md bg-tertiaryBg">
-                    </div>
-                    <div class="flex items-center gap-1 pb-3">
-                        <div class="font-medium text-sm">Image</div>
-                        <input type="url" placeholder="Enter a URL"
-                            class="h-10 w-full rounded-md bg-tertiaryBg px-2 text-sm">
-                    </div>
-                    <div class="flex items-center gap-1 pb-3">
-                        <div class="font-bold text-primaryText">Background</div>
-                        <button class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3">
+        <div class="relative z-50" id="headlessui-dialog-:r1f:" role="dialog" aria-modal="true"
+            data-headlessui-state="open" aria-labelledby="headlessui-dialog-title-:r1h:">
+            <div class="fixed inset-0 bg-backdrop transition-opacity opacity-100"></div>
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+                <div class="flex min-h-full items-end justify-center p-4 sm:items-center sm:p-0">
+                    <div class="relative w-full overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
+                        id="headlessui-dialog-panel-:r1g:" data-headlessui-state="open"><button
+                            class="absolute right-4 top-4 z-20 p-2 text-primaryText" id="close-button"><svg
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
+                                class="h-5 w-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12">
                                 </path>
-                            </svg>
-                            <span>Reset</span>
-                        </button>
-                    </div>
-                    <div class="flex pb-3">
-                        <input type="url" placeholder="Enter a URL"
-                            class="h-10 w-full rounded-md bg-tertiaryBg px-2 text-sm">
-                    </div>
-                    <div class="flex pb-3">
-                        <input type="file" placeholder="Enter a File Path"
-                            class="h-10 w-full rounded-md bg-tertiaryBg px-2 text-sm">
-                    </div>
-                    <hr class="my-6 border-t border-separator/10">
-                    <div class="flex items-center justify-between">
-                        <div class="font-bold text-primaryText">Chat Colors</div>
-                        <button class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3">
-                                </path>
-                            </svg>
-                            <span>Reset</span>
-                        </button>
-                    </div>
-                    <div class="mt-6 content-center">
-                        <div class="flex items-center gap-1 pb-3">
-                            <div class="font-medium text-sm">Italics/ Narration</div>
-                            <input type="color" value="#b0d8fB" class="h-10 rounded-md bg-tertiaryBg">
-                        </div>
-                        <div class="flex items-center gap-1 pb-3">
-                            <div class="font-medium text-sm">Character Chat</div>
-                            <input type="color" value="#ffffff" class="h-10 rounded-md bg-tertiaryBg">
-                            <div class="font-medium text-sm">User Chat</div>
-                            <input type="color" value="#000000" class="h-10 rounded-md bg-tertiaryBg">
-                        </div>
-                        <div class="flex items-center gap-1 pb-3">
-                            <div class="font-medium text-sm">Character Chat Bg</div>
-                            <input type="color" value="#000000" class="h-10 rounded-md bg-tertiaryBg">
-                            <div class="font-medium text-sm">User Chat Bg</div>
-                            <input type="color" value="#ffffff" class="h-10 rounded-md bg-tertiaryBg">
-                        </div>
+                            </svg></button>
+                        <div class="bg-secondaryBg p-6">
+                            <h3 class="font-bold text-primaryText" id="headlessui-dialog-title-:r1h:"
+                                data-headlessui-state="open">Character Customization</h3>
+                            <div class="mt-8 text-primaryText">
+                                <div class="flex items-center gap-1 pb-1">
+                                    <div class="flex items-center pb-1 font-medium text-sm">Name</div>
+                                </div>
+                                <div class="relative pb-3"><input
+                                        placeholder="Enter a new name for character (blank for default)"
+                                        class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">
+                                </div>
+                                <div class="flex items-center gap-1 pb-3">
+                                    <div class="flex items-center font-medium text-sm">Name Color</div>
+                                    <div class="relative"><input type="color" value="#ffffff" class="relative h-10 rounded-md bg-tertiaryBg"></div>
+                                </div>
+                                <div>
+                                </div>
+                                <div class="flex items-center gap-1 pb-3">
+                                    <div class="flex items-center pb-3 font-medium text-sm">Image</div>
+                                </div>
+                                <div class="relative pb-3"><input type="url" placeholder="Enter a URL"
+                                        class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">
+                                </div>
+                                <div class="relative pb-3"><input type="file" placeholder="Enter a File Path"
+                                        class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 p-2 text-start text-sm">
+                                </div>
+
+                            </div>
+
+                            <hr class="my-6 border-t border-separator/10">
+
+                            <div class="flex items-center justify-between">
+                                <p class="font-bold text-primaryText">Background</p><button
+                                    class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
+                                        class="h-4 w-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"></path>
+                                    </svg>
+                                    <p>Reset</p>
+                                </button>
+                            </div>
+                            <div class="text-primaryText">
+                                <div class="flex pb-3">
+                                    <div class="w-full">
+                                        <div class="relative pb-2"><input type="url" placeholder="Enter a URL"
+                                                class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm ">
+                                        </div>
+                                        <div class="relative"><input type="file" placeholder="Enter a File Path"
+                                                class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 p-2 text-start text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-6 border-t border-separator/10">
+
+                                <div class="flex items-center justify-between">
+                                    <p class="font-bold text-primaryText">Chat Colors</p><button
+                                        class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                            data-slot="icon" class="h-4 w-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"></path>
+                                        </svg>
+                                        <p>Reset</p>
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-6 text-primaryText content-center">
+                                    <div class="flex">
+                                        <div class="pb-3">
+                                            <div class="flex items-center pb-3">
+                                                <div class="flex pb-3 pr-3 font-medium text-sm">Italics/ Narration</div>
+                                                <div class="relative"><input type="color" value="#b0d8fB"
+                                                        class="relative h-10 rounded-md bg-tertiaryBg"></div>
+                                            </div>
+                                
+                                            <div class="flex items-center pb-3">
+                                                <div class="flex pb-3 pr-3 font-medium text-sm">Character Chat</div>
+                                                <div class="relative pr-3"><input type="color" value="#ffffff"
+                                                        class="relative h-10 rounded-md bg-tertiaryBg"></div>
+                                                <div class="flex pb-3 pr-3 font-medium text-sm">User Chat</div>
+                                                <div class="relative"><input type="color" value="#000000"
+                                                        class="relative h-10 rounded-md bg-tertiaryBg "></div>
+                                            </div>
+                                
+                                            <div class="flex items-center pb-3">
+                                                <div class="flex pb-3 pr-3 font-medium text-sm">Character Chat Bg</div>
+                                                <div class="relative pr-3"><input type="color" value="#000000"
+                                                        class="relative h-10 rounded-md bg-tertiaryBg "></div>
+                                                <div class="flex pb-3 pr-3 font-medium text-sm">User Chat Bg</div>
+                                                <div class="relative"><input type="color" value="#ffffff"
+                                                        class="relative h-10 rounded-md bg-tertiaryBg"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <hr class="my-6 border-t border-separator/10">
+                            <button type="button"
+                                class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-6 h-11 w-full border-transparent bg-primaryBtn text-darkText focus:ring-primaryBtn disabled:opacity-50">Save</button>
+                        </div><button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
+                            style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px;"></button>
                     </div>
                 </div>
-                <hr class="my-6 border-t border-separator/10">
-                <button type="button"
-                    class="w-full h-11 bg-primaryBtn text-darkText font-bold text-lg rounded-xl border border-transparent shadow-sm disabled:opacity-50 focus:ring-2 focus:ring-offset-2 focus:outline-none focus:ring-primaryBtn mt-6">Save</button>
             </div>
         </div>
     </div>

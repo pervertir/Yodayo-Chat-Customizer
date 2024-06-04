@@ -20,7 +20,7 @@
                     resolve(response.responseText);
                 },
                 onerror: function (error) {
-                    console.error('Error loading HTML:', error);
+                    console.error('Error getting HTML:', error);
                     reject(error);
                 }
             });

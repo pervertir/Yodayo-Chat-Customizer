@@ -2,9 +2,31 @@ const DB_NAME = 'YodayoChatBgandCharDB';
 const DB_VERSION = 1;
 const BACKGROUND_OBJECT_STORE_NAME = 'Backgrounds';
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';
+
 const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
-const CHAR_ID = 'char_' + CHAT_ID;
-console.log(`Chat ID: ${CHAT_ID}`);
+const CHAR_ID = findCharacterID();
+
+console.log('Chat ID: ', CHAT_ID);
+console.log('Char ID: ', CHAR_ID);
+
+function findCharacterID() {
+    // Select the anchor element
+    const anchorElement = document.querySelector('a[href^="/tavern/characters/"]');
+
+    if (anchorElement) {
+        // Get the href attribute value
+        const href = anchorElement.getAttribute('href');
+
+        // Get the last part of the href value (character ID)
+        const charID = href.split('/').pop();
+
+        // Return the character ID
+        return charID;
+    }
+
+    return null; // Return null if the anchor element is not found
+}
+
 
 let db;
 
@@ -104,5 +126,5 @@ async function getCharacterImage(CHAR_ID) {
     });
 }
 
-// // Exporting functions
+// Exporting functions
 // export { openDatabase, saveBackgroundImage, saveCharacterImage, getBackgroundImage, getCharacterImage };

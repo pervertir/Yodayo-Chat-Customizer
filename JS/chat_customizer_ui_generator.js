@@ -21,14 +21,13 @@
 
         addMenuItem(menu, 'headlessui-menu-item-db-explorer', 'db_connect', () => {
             console.log('DB Explorer menu item clicked.');
-            const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
-            const CHAR_ID = 'char_' + CHAT_ID;
 
             renderHTMLFromFile('image_viewer_popup').then(imageViewerPopup => {
                 const referenceElement = document.querySelector('[data-floating-ui-portal]');
                 if (!referenceElement) {
-                    console.error('Reference element not found.');
-                    return;
+                    console.error('Reference element not found.', referenceElement);
+                    referenceElement = document.querySelector('#multi-select-root');
+                    // return;
                 }
 
                 referenceElement.insertAdjacentElement('afterend', imageViewerPopup);

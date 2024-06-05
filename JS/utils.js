@@ -1,3 +1,4 @@
+// utility functions
 function fetchResource(resource) {
     console.log(`Requesting resource: ${resource}`);
 
@@ -9,14 +10,18 @@ function fetchResource(resource) {
         GM_xmlhttpRequest({
             method: 'GET',
             url: htmlUrl,
-            responseType: 'text',
             onload: function (response) {
-                console.log(`Successfully fetched resource: ${resource}`);
-                resolve(response.responseText);
+                if (response.status === 200) {
+                    console.log(`Successfully fetched resource: ${resource}`);
+                    resolve(response.responseText);
+                } else {
+                    console.error(`Error fetching resource: ${resource} - Status: ${response.status}`);
+                    reject(new Error(`Failed to fetch resource. Status: ${response.status}`));
+                }
             },
             onerror: function (error) {
                 console.error('Error getting HTML:', error);
-                reject(error);
+                reject(new Error('Network error while fetching resource.'));
             }
         });
     });
@@ -35,24 +40,66 @@ async function renderHTMLFromFile(resource) {
     }
 }
 
-function addMenuItem(menu, itemId, resourceName, clickHandler) {
-    console.log(`Adding ${itemId} menu item.`);
 
-    if (menu.querySelector(`#${itemId}`)) {
+function addMenuItem(targetElement, itemId, resourceName) {
+    console.log(`Adding ${itemId} item.`);
+
+    if (targetElement.querySelector(`#${itemId}`)) {
+        console.log(`${itemId} menu item already exists. Skipping.`);
+        return Promise.resolve(null);
+    }
+
+    return renderHTMLFromFile(resourceName).then(item => {
+        item.id = itemId; // Ensure the item has the correct ID
+        targetElement.appendChild(item);
+        console.log(item, `menu item added with id ${itemId}.`);
+        return item;
+    });
+}
+
+
+function addCustomizeChatForm(targetElement, itemId, resourceName) {
+    console.log('Customize menu item clicked.');
+
+    if (document.querySelector(`#${itemId}`)) {
         console.log(`${itemId} menu item already exists. Skipping.`);
         return;
     }
 
-    renderHTMLFromFile(resourceName).then(item => {
-        const referenceElement = document.querySelector('[data-floating-ui-portal]');
+    renderHTMLFromFile(resourceName).then(chatCustomizerForm => {
+        let referenceElement = document.querySelector(targetElement);
         if (!referenceElement) {
-            console.error('Reference element not found.');
-            return;
+            console.error('Reference element not found. Trying multi-select-root', targetElement);
+            referenceElement = document.querySelector('#multi-select-root');
+            if (!referenceElement) return;
         }
 
-        menu.appendChild(item);
-        console.log(`${itemId} menu item added:`, item);
+        referenceElement.insertAdjacentElement('afterend', chatCustomizerForm);
+        console.log('Chat customizer form inserted:', chatCustomizerForm);
+    });
 
-        item.addEventListener('click', clickHandler);
+    setupChatCustomizerEventListeners();
+}
+
+
+function addImageViewer(targetElement, itemId, resourceName) {
+    console.log('Customize menu item clicked.');
+
+    if (document.querySelector(`#${itemId}`)) {
+        console.log(`${itemId} menu item already exists. Skipping.`);
+        return;
+    }
+
+    renderHTMLFromFile(resourceName).then(imageViewerBody => {
+        let referenceElement = document.querySelector(targetElement);
+        if (!referenceElement) {
+            console.error('Reference element not found. Trying multi-select-root', targetElement);
+            referenceElement = document.querySelector('#multi-select-root');
+            if (!referenceElement) return;
+        }
+
+        referenceElement.insertAdjacentElement('afterend', imageViewerBody);
+        console.log('Chat customizer form inserted:', imageViewerBody);
     });
 }
+

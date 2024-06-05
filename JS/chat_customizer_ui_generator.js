@@ -2,49 +2,38 @@
     'use strict';
 
     console.log('Chat Customizer script started.');
-
+    
     function addCustomizeMenuItems(menu) {
-        addMenuItem(menu, 'headlessui-menu-item-chat-customizer', 'customize_chat_button', () => {
-            console.log('Customize menu item clicked.');
+        Promise.all([
+            addMenuItem(menu, chat_customizer_html_element_id, customize_chat_button_html_resource_name),
+            addMenuItem(menu, db_explorer_html_element_id, db_connect_button_html_resource_name)
+        ]).then(([chatCustomizeButton, dbConnectButton]) => {
+            const target_element = '[data-floating-ui-portal]';
+            if (chatCustomizeButton) {
+                chatCustomizeButton.addEventListener('click', () => 
+                    addCustomizeChatForm(target_element, chat_customizer_body_id, chat_customizer_body_resource_name));
+                    
+            }
 
-            renderHTMLFromFile('chat_customizer_body').then(chatCustomizerForm => {
-                const referenceElement = document.querySelector('[data-floating-ui-portal]');
-                if (!referenceElement) {
-                    console.error('Reference element not found.');
-                    return;
-                }
-
-                referenceElement.insertAdjacentElement('afterend', chatCustomizerForm);
-                console.log('Chat customizer form inserted:', chatCustomizerForm);
-            });
-        });
-
-        addMenuItem(menu, 'headlessui-menu-item-db-explorer', 'db_connect', () => {
-            console.log('DB Explorer menu item clicked.');
-
-            renderHTMLFromFile('image_viewer_popup').then(imageViewerPopup => {
-                const referenceElement = document.querySelector('[data-floating-ui-portal]');
-                if (!referenceElement) {
-                    console.error('Reference element not found.', referenceElement);
-                    referenceElement = document.querySelector('#multi-select-root');
-                    // return;
-                }
-
-                referenceElement.insertAdjacentElement('afterend', imageViewerPopup);
-                console.log('Image viewer popup inserted:', imageViewerPopup);
-            });
+            if (dbConnectButton) {
+                dbConnectButton.addEventListener('click', () => 
+                    addImageViewer(target_element, db_explorer_body_id, image_viewer_popup_resource_name));
+            }
         });
     }
-
+    
     function onLoad() {
         console.log('Page loaded');
+        const CHAR_ID = findCharacterID();
+        console.log('Char ID: ', CHAR_ID);
 
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach(node => {
-                        if (node.id && node.id.startsWith('headlessui-menu-items-')) {
+                        if (node.id && node.id.startsWith('headlessui-menu-items')) {
                             console.log('Menu appeared. Node:', node);
+
                             addCustomizeMenuItems(node);
                         }
                     });
@@ -58,5 +47,6 @@
     }
 
     window.addEventListener('load', onLoad);
+
     console.log('Event listener for window load added.');
 })();

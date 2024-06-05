@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Yodayo Chat Customizer
 // @namespace    YCC
-// @version      Alpha-v2
+// @version      Alpha-v2.1
 // @description  Fully Customize Yodayo Chats
 // @author       Pervertir
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
-// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
-// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
+// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
+// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
+// @supportURL   https://github.com/pervertir/Yodayo-Chat-Customizer/issues
 
 // @match        https://yodayo.com/tavern/chat/*
 // @run-at       document-end

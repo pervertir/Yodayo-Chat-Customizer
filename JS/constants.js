@@ -1,3 +1,6 @@
+// script switch
+const scriptLoaded = false;
+
 // Selectors
 
 // Character

@@ -1,7 +1,58 @@
 (async function () {
     'use strict';
 
-    console.log('Chat Customizer script started.');
+    console.log('Chat Customizer script initialized.');
+    
+    // Function to check if the current URL matches the target pattern
+    function isTargetUrl() {
+        return location.href.startsWith('https://yodayo.com/tavern/chat/');
+    }
+
+    // Function to hide elements by ID
+    function hideElementsById(...ids) {
+        ids.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+    }
+    // Function to initialize the script
+    function initializeScript() {
+        if (isTargetUrl()) {
+            scriptLoaded = true;
+            // Place your script's main logic here
+            console.log('Yodayo Chat Customizer script is running');
+            
+            setTimeout(() => {
+                onLoad();
+            }, 2000);  // 2000 milliseconds equals 2 seconds
+
+            console.log('Event listener for window load added.');
+        }
+        else if(!isTargetUrl() && scriptLoaded === true){
+            console.log('Exited chat page, hiding menu items.');
+            hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
+
+        }
+        console.log('Not a chat page, Yodayo Chat Customizer not running...');
+    }
+
+    // Initial check when the script loads
+    initializeScript();
+
+    // Set up a MutationObserver to detect URL changes
+    const page_observer = new MutationObserver(() => {
+        if (isTargetUrl()) {
+            // If the URL matches, re-initialize the script
+            initializeScript();
+        }
+    });
+
+    // Observe changes to the document's title and URL
+    page_observer.observe(document, { subtree: true, childList: true });
+
+    
     
     function addCustomizeMenuItems(menu) {
         Promise.all([
@@ -52,7 +103,5 @@
         console.log('MutationObserver started.');
     }
 
-    window.addEventListener('load', onLoad);
-
-    console.log('Event listener for window load added.');
+    
 })();

@@ -12,7 +12,7 @@
 // @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
 // @supportURL   https://github.com/pervertir/Yodayo-Chat-Customizer/issues
 
-// @match        https://yodayo.com/tavern/chat/*
+// @match        https://yodayo.com/*
 // @run-at       document-end
 // @grant        GM_getResourceURL
 // @grant        GM_xmlhttpRequest

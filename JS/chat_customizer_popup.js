@@ -1,4 +1,4 @@
-function initializeCustomChatCloseButtonEventHandler(form){
+function initializeCloseButtonEventHandler(form){
     const closeButton = form.querySelector('#close-button');
     closeButton.addEventListener('click', () => {
         document.documentElement.style.cssText = '';
@@ -11,6 +11,36 @@ function initializeCustomChatCloseButtonEventHandler(form){
     });
 }
 
+function initializeCharacterSettingsEventHandlers(form){
+    const char_name_input = form.getElementbyId('name-input');
+    const char_name_color_input = form.getElementbyId('name-color-input');
+    const char_bg_url_input = form.getElementbyId('character-image-url-input');
+    const char_bg_file_input = form.getElementbyId('character-image-file-input');
+
+    const bg_url_input = form.getElementbyId('bg-url-input');
+    const bg_file_input = form.getElementbyId('bg-file-input');
+
+    const char_narr_input = form.getElementbyId('character-narration-color-input');
+    const char_chat_input = form.getElementbyId('character-chat-color-input');
+    const user_chat_input = form.getElementbyId('user-chat-color-input');
+    const char_chat_bg_input = form.getElementbyId('character-chat-bg-color-input');
+    const user_chat_bg_input = form.getElementbyId('user-chat-bg-color-input');
+
+    const apply_to_all = form.getElementbyId('apply-to-all');
+    const exclude_curr_chat = form.getElementbyId('exlude-current-chat')
+    
+    
+    const name = document.querySelector(char_character_name);
+
+    name_input.addEventListener('input', function () {
+        // Update the character name element with the value from the input field
+        name.textContent = name_input.value;
+    });
+
+
+    
+}
+
 // Function to handle when the form is added
 function handleFormAdded(mutationsList, observer) {
     for (let mutation of mutationsList) {
@@ -21,7 +51,8 @@ function handleFormAdded(mutationsList, observer) {
 
                 console.log('Form Found.');
                 // Attach event listener to the close button
-                initializeCustomChatCloseButtonEventHandler(form);
+                initializeCloseButtonEventHandler(form);
+                initializeCharacterSettingsEventHandlers(form);
                 // Disconnect the observer once the form is found
                 observer.disconnect();
                 break;

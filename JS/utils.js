@@ -39,10 +39,14 @@ async function renderHTMLFromFile(resource) {
     }
 }
 
+async function showNotification(text){
+    
+}
 
 async function addMenuItem(targetElement, itemId, resourceName) {
-    element = document.getElementById(itemId)
-    console.log('Trying to find: ', itemId)
+    const menu_parent = document.getElementById('headlessui-menu-button-:r5q:');
+    const element = document.getElementById(itemId);
+    console.log('Trying to find: ', itemId);
     if (element) {
         console.log(itemId,'already found.');
         return Promise.resolve(null);

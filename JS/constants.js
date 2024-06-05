@@ -22,14 +22,11 @@ const bg_img = '.bg-cover'
 const color_character_name = 'color'
 const color_character_chat_bubble_background = ''
 
-
 // New UI element ids
 const chat_customizer_html_element_id = 'headlessui-menu-item-chat-customizer';
 const db_explorer_html_element_id = 'headlessui-menu-item-db-explorer';
 const chat_customizer_body_id = 'chat-customizer-ui-popup';
 const db_explorer_body_id = "image-viewer-ui-popup";
-
-
 
 // Resource Names
 const customize_chat_button_html_resource_name = 'customize_chat_button';
@@ -38,7 +35,6 @@ const chat_customizer_body_resource_name = 'chat_customizer_body';
 const image_viewer_popup_resource_name = 'image_viewer_popup';
 
 // Database Constants
-const DB_NAME = 'YodayoChatBgandCharDB';
+const DB_NAME = 'YodayoChatCustomizerDB';
 const DB_VERSION = 1;
-const BACKGROUND_OBJECT_STORE_NAME = 'Backgrounds';
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';

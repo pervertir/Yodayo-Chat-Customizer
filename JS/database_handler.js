@@ -41,10 +41,23 @@ function openDatabase() {
 
         request.onupgradeneeded = (event) => {
             db = event.target.result;
-            db.createObjectStore(BACKGROUND_OBJECT_STORE_NAME, { keyPath: 'CHAT_ID' });
-            console.log('Created Object Store', 'backgrounds');
-            db.createObjectStore(CHARACTER_OBJECT_STORE_NAME, { keyPath: 'CHAR_ID' });
-            console.log('Created Object Store', 'characters');
+            // Create the Characters object store with CHAR_ID as the key path
+            const objectStore = db.createObjectStore('Characters', { keyPath: 'CHAR_ID' });
+
+            // Define the attributes and set default values to null
+            objectStore.createIndex('chat_ids', 'chat_ids', { unique: false });
+            objectStore.createIndex('character_image', 'character_image', { unique: false });
+            objectStore.createIndex('background_image', 'background_image', { unique: false });
+            objectStore.createIndex('character_alias', 'character_alias', { unique: false });
+            objectStore.createIndex('character_message_box_color', 'character_message_box_color', { unique: false });
+            objectStore.createIndex('character_narration_color', 'character_narration_color', { unique: false });
+            objectStore.createIndex('character_message_color', 'character_message_color', { unique: false });
+            objectStore.createIndex('character_name_color', 'character_name_color', { unique: false });
+            objectStore.createIndex('username_color', 'username_color', { unique: false });
+            objectStore.createIndex('user_message_color', 'user_message_color', { unique: false });
+            objectStore.createIndex('user_message_box_color', 'user_message_box_color', { unique: false });
+
+            console.log('Object store and indexes created');
         };
     });
 }

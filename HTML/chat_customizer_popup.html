@@ -18,23 +18,33 @@
                             </svg></button>
                         <div class="bg-secondaryBg p-6">
                             <h3 class="font-bold text-primaryText" id="headlessui-dialog-title-:r1h:"
-                                data-headlessui-state="open">Character Customization</h3>
+                                data-headlessui-state="open">Chat Customization</h3>
                             <div class="mt-8 text-primaryText">
-                                <div class="flex items-center gap-1 pb-1">
+                                <div class="flex items-center justify-between">
+                                    <p class="font-bold text-primaryText pb-3">Character Settings</p><button
+                                        class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                            aria-hidden="true" data-slot="icon" class="h-4 w-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"></path>
+                                        </svg>
+                                        <p>Reset</p>
+                                    </button>
+                                </div>
+                                <div class="flex items-center pb-3">
                                     <div class="flex items-center pb-1 font-medium text-sm">Name</div>
                                 </div>
                                 <div class="relative pb-3"><input
                                         placeholder="Enter a new name for character (blank for default)"
                                         class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">
                                 </div>
-                                <div class="flex items-center gap-1 pb-3">
-                                    <div class="flex items-center font-medium text-sm">Name Color</div>
+                                <div class="flex items-center gap-4 pb-3">
+                                    <div class="font-medium text-sm">Name Color</div>
                                     <div class="relative"><input type="color" value="#ffffff" class="relative h-10 rounded-md bg-tertiaryBg"></div>
                                 </div>
                                 <div>
                                 </div>
-                                <div class="flex items-center gap-1 pb-3">
-                                    <div class="flex items-center pb-3 font-medium text-sm">Image</div>
+                                <div class="flex items-center">
+                                    <div class="pb-1 font-medium text-sm">Image</div>
                                 </div>
                                 <div class="relative pb-3"><input type="url" placeholder="Enter a URL"
                                         class="relative h-10 w-full rounded-md bg-tertiaryBg px-2 pr-10 text-start text-sm">
@@ -48,8 +58,8 @@
                             <hr class="my-6 border-t border-separator/10">
 
                             <div class="flex items-center justify-between">
-                                <p class="font-bold text-primaryText">Background</p><button
-                                    class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                <p class="font-bold text-primaryText pb-3">Background</p><button
+                                    class="flex items-center text-xs text-secondaryText hover:text-primaryBtn"><svg
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
                                         class="h-4 w-4">
@@ -75,7 +85,7 @@
                                 <hr class="my-6 border-t border-separator/10">
 
                                 <div class="flex items-center justify-between">
-                                    <p class="font-bold text-primaryText">Chat Colors</p><button
+                                    <p class="font-bold text-primaryText pb-3">Chat Colors</p><button
                                         class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" aria-hidden="true"
@@ -89,30 +99,30 @@
                                 
                                 <div class="mt-6 text-primaryText content-center grid grid-cols-2 grid-rows-3 gap-4 px-4">
 
-                                    <div class="items-center place-content-evenly">
-                                        <div class="font-medium text-sm">Italics/ Narration</div>
+                                    <div class="flex gap-4 items-center place-content-evenly">
+                                        <div class="font-medium text-sm">Character Narration</div>
                                         <div class="flex"><input type="color" value="#b0d8fB"
                                                 class="h-10 rounded-md bg-tertiaryBg"></div>
                                     </div>
                         
-                                    <div class="items-center place-content-evenly">
+                                    <div class="flex gap-4 items-center place-content-evenly">
                                         <div class="font-medium text-sm">Character Chat</div>
                                         <div class="flex"><input type="color" value="#ffffff"
                                                 class="h-10 rounded-md bg-tertiaryBg"></div>
                                     </div>
                                     
-                                    <div class="items-center place-content-evenly">
+                                    <div class="flex gap-4 items-center place-content-evenly">
                                                 <div class="font-medium text-sm">User Chat</div>
                                         <div class="flex"><input type="color" value="#000000"
                                                 class="h-10 rounded-md bg-tertiaryBg "></div>
                                     </div>
                         
-                                    <div class="items-center place-content-evenly">
+                                    <div class="flex gap-4 items-center place-content-evenly">
                                         <div class="font-medium text-sm">Character Chat Bg</div>
                                         <div class="flex"><input type="color" value="#000000"
                                                 class="h-10 rounded-md bg-tertiaryBg "></div>
                                     </div>
-                                    <div class="items-center place-content-evenly">
+                                    <div class="flex gap-4 items-center place-content-evenly">
                                         <div class="font-medium text-sm">User Chat Bg</div>
                                         <div ><input type="color" value="#ffffff"
                                                 class="h-10 rounded-md bg-tertiaryBg"></div>

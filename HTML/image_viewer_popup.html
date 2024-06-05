@@ -37,11 +37,11 @@
 
         .header {
             padding: 10px;
-            background: #333;
+            background: #22242b;
             color: #fff;
             text-align: center;
             font-size: 24px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #2a2c35;
             position: relative;
         }
 
@@ -54,7 +54,7 @@
 
         .close-btn:hover {
             scale: 1.2;
-            color: red;
+            color: rgb(117, 0, 0);
             top: 10px;
             right: 10px;
             cursor: pointer;
@@ -66,7 +66,7 @@
             flex-wrap: nowrap;
             overflow-x: auto;
             padding: 10px;
-            background: #2a2a2a;
+            background: #17181c;
         }
 
         .gallery img {
@@ -84,17 +84,17 @@
             background: #333;
             color: #fff;
             text-align: center;
-            border-top: 1px solid #444;
+            border-top: 1px solid #22242b;
         }
     </style>
 </head>
 
 <body>
     <div class="overlay">
-        <div class="popup" id="image-viewer-ui-popup">
+        <div class="popup bg-secondaryBg p-6" id="image-viewer-ui-popup">
             <div class="header">
                 Image Browser
-                <div id="close-button">
+                <div  id="close-button">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                         fill="#ff0000">
                         <path
@@ -111,7 +111,7 @@
                 <!-- Add more images as needed -->
             </div>
             <div class="footer">
-                &copy; Yodayo Custom Image Browser
+                Yodayo Custom Image Browser
             </div>
         </div>
     </div>

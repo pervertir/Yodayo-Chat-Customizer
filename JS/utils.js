@@ -1,6 +1,5 @@
 // utility functions
 function fetchResource(resource) {
-    console.log(`Requesting resource: ${resource}`);
 
     return new Promise((resolve, reject) => {
         // Get the URL of the HTML file
@@ -41,28 +40,26 @@ async function renderHTMLFromFile(resource) {
 }
 
 
-function addMenuItem(targetElement, itemId, resourceName) {
-    console.log(`Adding ${itemId} item.`);
-
-    if (targetElement.querySelector(`#${itemId}`)) {
-        console.log(`${itemId} menu item already exists. Skipping.`);
+async function addMenuItem(targetElement, itemId, resourceName) {
+    element = document.getElementById(itemId)
+    console.log('Trying to find: ', itemId)
+    if (element) {
+        console.log(itemId,'already found.');
         return Promise.resolve(null);
     }
 
     return renderHTMLFromFile(resourceName).then(item => {
-        item.id = itemId; // Ensure the item has the correct ID
+        // item.id = itemId; // Ensure the item has the correct ID
         targetElement.appendChild(item);
-        console.log(item, `menu item added with id ${itemId}.`);
+        console.log(item, `menu item added.`);
         return item;
     });
 }
 
 
-function addCustomizeChatForm(targetElement, itemId, resourceName) {
+function addCustomizeChatForm(itemId, resourceName) {
     
-    console.log('Customize menu item clicked.');
-    
-    if (document.querySelector(`#${itemId}`)) {
+    if (document.getElementById(itemId)) {
         let form = document.querySelector('#headlessui-portal-root');
         let main = document.querySelector('body > main');
         
@@ -87,10 +84,9 @@ function addCustomizeChatForm(targetElement, itemId, resourceName) {
 }
 
 
-function addImageViewer(targetElement, itemId, resourceName) {
-    console.log('Customize menu item clicked.');
+function addImageViewer(itemId, resourceName) {
 
-    if (document.querySelector(`#${itemId}`)) {
+    if (document.getElementById(itemId)) {
         let form = document.querySelector('#image-viewer-ui-popup');
         let main = document.querySelector('body > main');
 

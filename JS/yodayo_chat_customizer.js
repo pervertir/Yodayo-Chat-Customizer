@@ -2,7 +2,7 @@
     'use strict';
 
     console.log('Chat Customizer script initialized.');
-    
+    let scriptLoaded = false;
     // Function to check if the current URL matches the target pattern
     function isTargetUrl() {
         return location.href.startsWith('https://yodayo.com/tavern/chat/');
@@ -20,39 +20,41 @@
     // Function to initialize the script
     function initializeScript() {
         if (isTargetUrl()) {
-            scriptLoaded = true;
-            // Place your script's main logic here
-            console.log('Yodayo Chat Customizer script is running');
-            
             setTimeout(() => {
+                scriptLoaded = true;
+                // Place your script's main logic here
+                console.log('Yodayo Chat Customizer script is running');
+            
                 onLoad();
             }, 2000);  // 2000 milliseconds equals 2 seconds
 
-            console.log('Event listener for window load added.');
         }
         else if(!isTargetUrl() && scriptLoaded === true){
             console.log('Exited chat page, hiding menu items.');
-            hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
-
+            observer.disconnect();
+            // hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
         }
-        console.log('Not a chat page, Yodayo Chat Customizer not running...');
     }
 
-    // Initial check when the script loads
+    // Variable to keep track of the last URL
+    let lastUrl = location.href;
     initializeScript();
-
-    // Set up a MutationObserver to detect URL changes
-    const page_observer = new MutationObserver(() => {
-        if (isTargetUrl()) {
-            // If the URL matches, re-initialize the script
-            initializeScript();
-        }
-    });
-
-    // Observe changes to the document's title and URL
-    page_observer.observe(document, { subtree: true, childList: true });
-
     
+    // Function to check for URL changes
+    function checkUrlChange() {
+        const currentUrl = location.href;
+        if (currentUrl !== lastUrl) {
+            initializeScript();
+            lastUrl = currentUrl;
+        }
+    }
+
+    // Set up a popstate event listener to handle browser navigation events
+    window.addEventListener('popstate', checkUrlChange);
+
+    // Periodically check for URL changes
+    setInterval(checkUrlChange, 1000);
+
     
     function addCustomizeMenuItems(menu) {
         Promise.all([
@@ -62,13 +64,13 @@
             const target_element = '#headlessui-portal-root';
             if (chatCustomizeButton) {
                 chatCustomizeButton.addEventListener('click', () => 
-                    addCustomizeChatForm(target_element, chat_customizer_body_id, chat_customizer_body_resource_name));
+                    addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name));
                     // setupChatCustomizerEventListeners();
             }
 
             if (dbConnectButton) {
                 dbConnectButton.addEventListener('click', () => 
-                    addImageViewer(target_element, db_explorer_body_id, image_viewer_popup_resource_name));
+                    addImageViewer(db_explorer_body_id, image_viewer_popup_resource_name));
             }
         });
     }
@@ -87,11 +89,9 @@
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach(node => {
                         if (node.id && node.id.startsWith('headlessui-menu-items')) {
-
-                            
-                            console.log('Menu appeared. Node:', node);
-                            addCustomizeMenuItems(node);
-
+                            if  (isTargetUrl()){
+                                addCustomizeMenuItems(node);
+                            }
                         }
                     });
                 }
@@ -100,7 +100,7 @@
 
         const config = { childList: true, subtree: true };
         observer.observe(document.body, config);
-        console.log('MutationObserver started.');
+
     }
 
     

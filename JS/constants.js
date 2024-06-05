@@ -42,11 +42,3 @@ const DB_NAME = 'YodayoChatBgandCharDB';
 const DB_VERSION = 1;
 const BACKGROUND_OBJECT_STORE_NAME = 'Backgrounds';
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';
-
-
-
-
-
-
-
-

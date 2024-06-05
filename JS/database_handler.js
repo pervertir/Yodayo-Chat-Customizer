@@ -3,8 +3,6 @@ const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
 
 console.log('Chat ID: ', CHAT_ID);
 
-
-
 function findCharacterID() {
     // Select the anchor element
     const anchorElement = document.querySelector('.flex.items-end.gap-2.mr-3 > a');

@@ -60,6 +60,13 @@ function addMenuItem(targetElement, itemId, resourceName) {
 
 function addCustomizeChatForm(targetElement, itemId, resourceName) {
     console.log('Customize menu item clicked.');
+    
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.paddingRight = '1px';
+    
+    const main = document.querySelector('body > main');
+    main.setAttribute('aria-hidden', 'true');
+    main.setAttribute('inert', '');    
 
     if (document.querySelector(`#${itemId}`)) {
         console.log(`${itemId} menu item already exists. Skipping.`);
@@ -68,17 +75,18 @@ function addCustomizeChatForm(targetElement, itemId, resourceName) {
 
     renderHTMLFromFile(resourceName).then(chatCustomizerForm => {
         let referenceElement = document.querySelector(targetElement);
-        if (!referenceElement) {
-            console.error('Reference element not found. Trying multi-select-root', targetElement);
-            referenceElement = document.querySelector('#multi-select-root');
-            if (!referenceElement) return;
-        }
+        document.body.appendChild(chatCustomizerForm)
+        // if (!referenceElement) {
+        //     console.error('Reference element not found. Trying multi-select-root', targetElement);
+        //     referenceElement = document.querySelector('#multi-select-root');
+        //     if (!referenceElement) return;
+        // }
 
-        referenceElement.insertAdjacentElement('afterend', chatCustomizerForm);
-        console.log('Chat customizer form inserted:', chatCustomizerForm);
+        // referenceElement.insertAdjacentElement('afterend', chatCustomizerForm);
+        // console.log('Chat customizer form inserted:', chatCustomizerForm);
     });
 
-    setupChatCustomizerEventListeners();
+
 }
 
 

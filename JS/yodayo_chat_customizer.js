@@ -24,15 +24,19 @@
     
     function onLoad() {
         console.log('Page loaded');
+        
+        setTimeout(() => {
+            const CHAR_ID = findCharacterID();
+            console.log('Char ID: ', CHAR_ID);
+        }, 2000);  // 2000 milliseconds equals 2 seconds
 
-
+        
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach(node => {
                         if (node.id && node.id.startsWith('headlessui-menu-items')) {
-                            const CHAR_ID = findCharacterID();
-                            console.log('Char ID: ', CHAR_ID);
+
                             
                             console.log('Menu appeared. Node:', node);
                             addCustomizeMenuItems(node);

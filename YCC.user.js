@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo Chat Customizer
 // @namespace    YCC
-// @version      Alpha-v2.1
+// @version      Alpha-v3
 // @description  Fully Customize Yodayo Chats
 // @author       Pervertir
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main

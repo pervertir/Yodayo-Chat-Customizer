@@ -59,31 +59,28 @@ function addMenuItem(targetElement, itemId, resourceName) {
 
 
 function addCustomizeChatForm(targetElement, itemId, resourceName) {
+    
     console.log('Customize menu item clicked.');
     
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.paddingRight = '1px';
-    
-    const main = document.querySelector('body > main');
-    main.setAttribute('aria-hidden', 'true');
-    main.setAttribute('inert', '');    
-
     if (document.querySelector(`#${itemId}`)) {
-        console.log(`${itemId} menu item already exists. Skipping.`);
+        let form = document.querySelector('#headlessui-portal-root');
+        let main = document.querySelector('body > main');
+        
+        // yodayo does this by default so I'm just mimicing it
+        document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.paddingRight = '1px';
+
+        // To allow interaction with elements below the form
+        main.setAttribute('aria-hidden', 'true');
+        main.setAttribute('inert', '');
+        
+        form.style.display = 'block';    
+
         return;
     }
 
     renderHTMLFromFile(resourceName).then(chatCustomizerForm => {
-        let referenceElement = document.querySelector(targetElement);
         document.body.appendChild(chatCustomizerForm)
-        // if (!referenceElement) {
-        //     console.error('Reference element not found. Trying multi-select-root', targetElement);
-        //     referenceElement = document.querySelector('#multi-select-root');
-        //     if (!referenceElement) return;
-        // }
-
-        // referenceElement.insertAdjacentElement('afterend', chatCustomizerForm);
-        // console.log('Chat customizer form inserted:', chatCustomizerForm);
     });
 
 
@@ -94,20 +91,24 @@ function addImageViewer(targetElement, itemId, resourceName) {
     console.log('Customize menu item clicked.');
 
     if (document.querySelector(`#${itemId}`)) {
-        console.log(`${itemId} menu item already exists. Skipping.`);
+        let form = document.querySelector('#image-viewer-ui-popup');
+        let main = document.querySelector('body > main');
+
+        // yodayo does this by default so I'm just mimicing it
+        document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.paddingRight = '1px';
+
+        // To allow interaction with elements below the form
+        main.setAttribute('inert', '');
+
+        form.style.display = 'block';
+
         return;
     }
 
     renderHTMLFromFile(resourceName).then(imageViewerBody => {
-        let referenceElement = document.querySelector(targetElement);
-        if (!referenceElement) {
-            console.error('Reference element not found. Trying multi-select-root', targetElement);
-            referenceElement = document.querySelector('#multi-select-root');
-            if (!referenceElement) return;
-        }
-
-        referenceElement.insertAdjacentElement('afterend', imageViewerBody);
-        console.log('Chat customizer form inserted:', imageViewerBody);
+        document.body.appendChild(imageViewerBody)
+        console.log('Image Viewer inserted:', imageViewerBody);
     });
 }
 

@@ -1,9 +1,12 @@
 // ==UserScript==
 // @name         Yodayo Chat Customizer
+// @version      Alpha-v4
+
 // @namespace    YCC
-// @version      Alpha-v3
+
 // @description  Fully Customize Yodayo Chats
 // @author       Pervertir
+
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
 // @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
 // @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
@@ -28,5 +31,6 @@
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\yodayo_chat_customizer.js
 
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=yodayo.com
+
 // @connect      *
 // ==/UserScript==

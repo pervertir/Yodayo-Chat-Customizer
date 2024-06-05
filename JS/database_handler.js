@@ -46,7 +46,7 @@ function openDatabase() {
 
             // Define the attributes and set default values to null
             objectStore.createIndex('character_alias', 'character_alias', { unique: false });
-            objectStore.createIndex('chat_ids', 'chat_ids', { unique: false });
+            objectStore.createIndex('chat_ids', 'chat_ids', { unique: true });
             objectStore.createIndex('exclude_chat_ids', 'exclude_chat_ids', { unique: false });
             objectStore.createIndex('character_image', 'character_image', { unique: false });
             objectStore.createIndex('background_image', 'background_image', { unique: false });

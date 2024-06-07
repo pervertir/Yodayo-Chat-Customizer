@@ -91,6 +91,7 @@
                         if (node.id && node.id.startsWith('headlessui-menu-items')) {
                             if (isTargetUrl()) {
                                 addCustomizeMenuItems(node);
+                                showInjectionNotification(notification);
                             }
                         }
                     });

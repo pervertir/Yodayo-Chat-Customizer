@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo Chat Customizer
-// @version      Alpha-v5
+// @version      Alpha-v6
 
 // @namespace    YCC
 
@@ -22,6 +22,7 @@
 // @resource     db_connect                    https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/db_connect_button.html
 // @resource     character_image_container     https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/character_image_container.html
 // @resource     image_viewer_popup            https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/image_viewer_popup.html
+// @resource     injection_notification            https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/notification.html
 
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\constants.js
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\database_handler.js

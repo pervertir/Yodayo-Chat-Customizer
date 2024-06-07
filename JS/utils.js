@@ -112,3 +112,9 @@ function addImageViewer(itemId, resourceName) {
     });
 }
 
+function showInjectionNotification(resourceName){
+    renderHTMLFromFile(resourceName).then(imageViewerBody => {
+        document.body.appendChild(imageViewerBody)
+        console.log('Notification generated.', imageViewerBody);
+    });
+}

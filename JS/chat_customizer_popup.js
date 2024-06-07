@@ -12,19 +12,31 @@ function seperateUserNameAndText() {
     });
 }
 
+// Function to handle mutations
+function handleMutations(mutationsList) {
+    for (let mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.matches('p.text-xs.font-medium.opacity-50')) {
+                        node.classList.add('username');
+                    } else if (node.matches('p.space-x-1 > span')) {
+                        node.classList.add('message');
+                    }
+                }
 
-function handleNewUserNameAndText(event) {
-    const node = event.target;
-
-    if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.matches('p.text-xs.font-medium.opacity-50')) {
-            node.classList.add('username');
-        } else if (node.matches('p.space-x-1 > span')) {
-            node.classList.add('message');
+                // If the added node has children, we need to recursively check those as well
+                node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
+                    if (child.matches('p.text-xs.font-medium.opacity-50')) {
+                        child.classList.add('username');
+                    } else if (child.matches('p.space-x-1 > span')) {
+                        child.classList.add('message');
+                    }
+                });
+            });
         }
     }
 }
-
 
 function initializeCloseButtonEventHandler(form){
     const closeButton = form.querySelector('#close-button');
@@ -67,59 +79,26 @@ function initializeCharacterSettingsEventHandlers(form){
     });
 
     user_chat_input.addEventListener('input', function(){
-        // Loop through all stylesheets
-        for (let i = 0; i < document.styleSheets.length; i++) {
-            const styleSheet = document.styleSheets[i];
+        const style = document.createElement('style');
+        style.nodeType = 'text/css';
 
-            // Check if the stylesheet is the one we want to ignore
-            if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-                continue; // Skip this stylesheet
-            }
+        // Define the CSS rule for the .username class
+        style.innerHTML = `.message { color: ${user_chat_input.value} !important; }`;
 
-            try {
-                // Loop through all rules in the stylesheet
-                for (let j = 0; j < styleSheet.cssRules.length; j++) {
-                    const rule = styleSheet.cssRules[j];
-
-                    if (rule.selectorText === '.message') {
-                        // Change the color property to red
-                        rule.style.color = user_chat_input.value;
-                    }
-                }
-            } catch (e) {
-                // Ignore errors for stylesheets we cannot access
-                console.warn('Cannot access stylesheet: ', styleSheet.href);
-                continue;
-            }
-        }
+        // Append the style element to the head of the document
+        document.head.appendChild(style);
     });
 
     user_name_color_input.addEventListener("input", function(){
-        // Loop through all stylesheets
-        for (let i = 0; i < document.styleSheets.length; i++) {
-            const styleSheet = document.styleSheets[i];
 
-            // Check if the stylesheet is the one we want to ignore
-            if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-                continue; // Skip this stylesheet
-            }
+        const style = document.createElement('style');
+        style.nodeType = 'text/css';
 
-            try {
-                // Loop through all rules in the stylesheet
-                for (let j = 0; j < styleSheet.cssRules.length; j++) {
-                    const rule = styleSheet.cssRules[j];
+        // Define the CSS rule for the .username class
+        style.innerHTML = `.username { color: ${user_name_color_input.value} !important; }`;
 
-                    if (rule.selectorText === '.username') {
-                        // Change the color property to red
-                        rule.style.color = user_user_name_color_input.value;
-                    }
-                }
-            } catch (e) {
-                // Ignore errors for stylesheets we cannot access
-                console.warn('Cannot access stylesheet: ', styleSheet.href);
-                continue;
-            }
-        }
+        // Append the style element to the head of the document
+        document.head.appendChild(style);
     });
 
     char_chat_bg_input.addEventListener('input', function(){
@@ -267,21 +246,24 @@ function handleFormAdded(mutationsList, observer) {
             if (form) {
 
                 console.log('Form Found.');
-                // Disconnect the observer once the form is found
-                observer.disconnect();
                 
                 // Add classes to existing elements
                 seperateUserNameAndText();
-                
-                // Listen for new elements being added
-                document.addEventListener('DOMNodeInserted', handleNewUserNameAndText);
 
+                // Create an observer instance linked to the callback function
+                const username_observer = new MutationObserver(handleMutations);
+
+                // Start observing the target node for configured mutations
+                username_observer.observe(document.body, { childList: true, subtree: true });
+                
                 // Attach event listener to the close button
                 initializeCloseButtonEventHandler(form);
-
+                
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(form);
                 
+                // Disconnect the observer once the form is found
+                observer.disconnect();
                 // break;
             }
         }

@@ -82,7 +82,7 @@
         });
         
         let message = `Chat Customizer Added: ${fromAdded}\nImage Viewer Added: ${imageViewerAdded}}`;
-        showInjectionNotification(notification, message);
+        showInjectionNotification(notification_resource_name, message);
     }
 
     function onLoad() {

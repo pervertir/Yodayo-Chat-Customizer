@@ -36,7 +36,7 @@ const customize_chat_button_html_resource_name = 'customize_chat_button';
 const db_connect_button_html_resource_name = 'db_connect';
 const chat_customizer_body_resource_name = 'chat_customizer_body';
 const image_viewer_popup_resource_name = 'image_viewer_popup';
-const notification = 'injection_notification';
+const notification_resource_name = 'injection_notification';
 
 // Database Constants
 const DB_NAME = 'YodayoChatCustomizerDB';

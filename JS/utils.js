@@ -115,13 +115,13 @@ function showInjectionNotification(resourceName, message){
     renderHTMLFromFile(resourceName).then(notification => {
         notification.textContent = message;
         document.body.appendChild(notification);
-        const notification = document.getElementById('notification');
+        const noti = document.getElementById('notification');
         setTimeout(() => {
-            notification.classList.add('show');
+            noti.classList.add('show');
         }, 1000); // Show the notification after 1 second
 
         setTimeout(() => {
-            notification.classList.remove('show');
+            noti.classList.remove('show');
         }, 5000); // Hide the notification after 5 seconds
         console.log('Notification generated.', notification);
     });

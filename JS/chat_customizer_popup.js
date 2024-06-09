@@ -71,12 +71,14 @@ function initializeCharacterSettingsEventHandlers(form){
     const exclude_curr_chat = form.querySelector('#exlude-current-chat')
     
 
+
     char_name_input.addEventListener('input', function () {
         
         names.forEach(name => {
             name.textContent = char_name_input.value;
         });
     });
+
 
     user_chat_input.addEventListener('input', function(){
         const style = document.createElement('style');
@@ -89,6 +91,7 @@ function initializeCharacterSettingsEventHandlers(form){
         document.head.appendChild(style);
     });
 
+
     user_name_color_input.addEventListener("input", function(){
 
         const style = document.createElement('style');
@@ -100,6 +103,7 @@ function initializeCharacterSettingsEventHandlers(form){
         // Append the style element to the head of the document
         document.head.appendChild(style);
     });
+
 
     char_chat_bg_input.addEventListener('input', function(){
 
@@ -232,8 +236,6 @@ function initializeCharacterSettingsEventHandlers(form){
         
     });
 
-
-
 }
 
 
@@ -264,7 +266,7 @@ function handleFormAdded(mutationsList, observer) {
                 
                 // Disconnect the observer once the form is found
                 observer.disconnect();
-                // break;
+                break;
             }
         }
     }

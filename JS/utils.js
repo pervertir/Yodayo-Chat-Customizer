@@ -39,9 +39,7 @@ async function renderHTMLFromFile(resource) {
     }
 }
 
-async function showNotification(text){
-    
-}
+
 
 async function addMenuItem(targetElement, itemId, resourceName) {
     const menu_parent = document.getElementById('headlessui-menu-button-:r5q:');
@@ -112,9 +110,19 @@ function addImageViewer(itemId, resourceName) {
     });
 }
 
-function showInjectionNotification(resourceName){
-    renderHTMLFromFile(resourceName).then(imageViewerBody => {
-        document.body.appendChild(imageViewerBody)
-        console.log('Notification generated.', imageViewerBody);
+function showInjectionNotification(resourceName, message){
+    console.log('Trying to notify...');
+    renderHTMLFromFile(resourceName).then(notification => {
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        const notification = document.getElementById('notification');
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 1000); // Show the notification after 1 second
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 5000); // Hide the notification after 5 seconds
+        console.log('Notification generated.', notification);
     });
 }

@@ -34,7 +34,7 @@
             }
         } else if (!isTargetUrl() && scriptLoaded) {
             console.log('Exited chat page, hiding menu items.');
-            if (observer) observer.disconnect();
+            if (observer) {observer.disconnect();}
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
             scriptLoaded = false; // Reset scriptLoaded flag
         }
@@ -115,7 +115,7 @@
     window.addEventListener('unload', () => {
         window.removeEventListener('popstate', checkUrlChange);
         clearInterval(urlCheckInterval);
-        if (observer) observer.disconnect();
+        if (observer) {observer.disconnect();}
     });
 
 })();

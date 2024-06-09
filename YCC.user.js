@@ -17,12 +17,12 @@
 // @grant        GM_getResourceURL
 // @grant        GM_xmlhttpRequest
 
-// @resource     chat_customizer_body                       https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/chat_customizer_popup.html
-// @resource     customize_chat_button                      https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/customize_chat_button.html
-// @resource     db_connect                                 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/db_connect_button.html
-// @resource     character_image_container                  https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/character_image_container.html
-// @resource     image_viewer_popup                         https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/image_viewer_popup.html
-// @resource     injection_notification_resource_name       https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/notification.html
+// @resource     chat_customizer_body        https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/chat_customizer_popup.html
+// @resource     customize_chat_button       https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/customize_chat_button.html
+// @resource     db_connect                  https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/db_connect_button.html
+// @resource     character_image_container   https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/character_image_container.html
+// @resource     image_viewer_popup          https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/image_viewer_popup.html
+// @resource     injection_notification      https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/notification.html
 
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\constants.js
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\database_handler.js

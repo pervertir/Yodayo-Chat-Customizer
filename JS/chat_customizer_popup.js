@@ -244,26 +244,25 @@ function handleFormAdded(mutationsList, observer) {
     for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
             // Check if the form is added
-            form = document.querySelector('#headlessui-portal-root')
+            const form = document.querySelector('#headlessui-portal-root');
             if (form) {
-
                 console.log('Form Found.');
-                
+
                 // Add classes to existing elements
                 seperateUserNameAndText();
 
                 // Create an observer instance linked to the callback function
-                const username_observer = new MutationObserver(handleMutations);
+                const usernameObserver = new MutationObserver(handleMutations);
 
                 // Start observing the target node for configured mutations
-                username_observer.observe(document.body, { childList: true, subtree: true });
-                
+                usernameObserver.observe(document.body, { childList: true, subtree: true });
+
                 // Attach event listener to the close button
                 initializeCloseButtonEventHandler(form);
-                
+
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(form);
-                
+
                 // Disconnect the observer once the form is found
                 observer.disconnect();
                 break;
@@ -273,7 +272,7 @@ function handleFormAdded(mutationsList, observer) {
 }
 
 // Create a new observer
-const observer = new MutationObserver(handleFormAdded);
+const formAdded_observer = new MutationObserver(handleFormAdded);
 
 // Start observing the body for changes
-observer.observe(document.body, { childList: true, subtree: true });
+formAdded_observer.observe(document.body, { childList: true, subtree: true });

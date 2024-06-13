@@ -60,29 +60,27 @@
     urlCheckInterval = setInterval(checkUrlChange, 1000);
 
     function addCustomizeMenuItems(menu) {
-        let fromAdded = false;
-        let imageViewerAdded = false;
+
         Promise.all([
             addMenuItem(menu, chat_customizer_html_element_id, customize_chat_button_html_resource_name),
             addMenuItem(menu, db_explorer_html_element_id, db_connect_button_html_resource_name)
         ]).then(([chatCustomizeButton, dbConnectButton]) => {
+
             if (chatCustomizeButton) {
-                fromAdded = true;
+
                 chatCustomizeButton.addEventListener('click', () =>
                     addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name));
             }
 
             if (dbConnectButton) {
-                imageViewerAdded = true;
+
                 dbConnectButton.addEventListener('click', () =>
                     addImageViewer(db_explorer_body_id, image_viewer_popup_resource_name));
                 }
-
                 
         });
         
-        let message = `Chat Customizer Added: ${fromAdded}\nImage Viewer Added: ${imageViewerAdded}}`;
-        showInjectionNotification(notification_resource_name, message);
+
     }
 
     function onLoad() {
@@ -91,6 +89,9 @@
         setTimeout(() => {
             const CHAR_ID = findCharacterID();
             console.log('Char ID: ', CHAR_ID);
+            if (CHAR_ID != null){
+                showInjectionNotification(notification_resource_name);
+            }
         }, 2000);  // 2000 milliseconds equals 2 seconds
         observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {

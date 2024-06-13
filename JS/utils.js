@@ -110,10 +110,9 @@ function addImageViewer(itemId, resourceName) {
     });
 }
 
-function showInjectionNotification(resourceName, message){
+function showInjectionNotification(resourceName){
     console.log('Trying to notify...');
     renderHTMLFromFile(resourceName).then(notification => {
-        notification.textContent = message;
         document.body.appendChild(notification);
         const noti = document.getElementById('notification');
         setTimeout(() => {

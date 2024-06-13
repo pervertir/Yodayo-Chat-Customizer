@@ -6,8 +6,8 @@ function seperateUserNameAndText() {
     });
 
     // Select all elements that match the structure of a message
-    const messageElements = document.querySelectorAll('p.space-x-1 > span');
-    messageElements.forEach((element) => {
+    const messageElements = document.querySelectorAll('.flex.items-end.gap-2.ml-3.flex-row-reverse > .relative.flex.w-full.items-start.justify-between.rounded-xl.border.px-3.pb-2.pt-1.text-sm.backdrop-blur-sm.md\\:w-\\[70\\%\\].bg-primaryText\\=\\[85\\%\\].text-black.border-transparent > .w-full > .mb-1.flex.items-center.justify-between.gap-4 > .space-y-1\\.5.break-words.pr-8 > p.space-x-1');
+     messageElements.forEach((element) => {
         element.classList.add('message');
     });
 }
@@ -20,17 +20,18 @@ function handleMutations(mutationsList) {
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     if (node.matches('p.text-xs.font-medium.opacity-50')) {
                         node.classList.add('username');
-                    } else if (node.matches('p.space-x-1 > span')) {
+                    } else if (node.matches('.flex.items-end.gap-2.ml-3.flex-row-reverse > .relative.flex.w-full.items-start.justify-between.rounded-xl.border.px-3.pb-2.pt-1.text-sm.backdrop-blur-sm.md\\:w-\\[70\\%\\].bg-primaryText\\=\\[85\\%\\].text-black.border-transparent > .w-full > .mb-1.flex.items-center.justify-between.gap-4 > .space-y-1\\.5.break-words.pr-8 > p.space-x-1')) {
                         node.classList.add('message');
                     }
                 }
 
-                // If the added node has children, we need to recursively check those as well
+                //If the added node has children, we need to recursively check those as well
                 node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
                     if (child.matches('p.text-xs.font-medium.opacity-50')) {
                         child.classList.add('username');
                     } else if (child.matches('p.space-x-1 > span')) {
-                        child.classList.add('message');
+                        // child.classList.add('message');
+                    
                     }
                 });
             });

@@ -90,7 +90,7 @@
             const CHAR_ID = findCharacterID();
             console.log('Char ID: ', CHAR_ID);
             if (CHAR_ID != null){
-                showInjectionNotification(notification_resource_name);
+                showInjectionNotification(notification_resource_name, CHAR_ID);
             }
         }, 2000);  // 2000 milliseconds equals 2 seconds
         observer = new MutationObserver((mutations) => {

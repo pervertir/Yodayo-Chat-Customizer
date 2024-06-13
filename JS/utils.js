@@ -29,16 +29,13 @@ function fetchResource(resource) {
 async function renderHTMLFromFile(resource) {
     try {
         const html = await fetchResource(resource);
-        const element = document.createElement('div');
-        element.innerHTML = html;
-        console.log('Element Generated.', element);
-        return element;
+        console.log('HTML fetched:', html);
+        return html;
     } catch (error) {
         console.error('Failed to render HTML from file:', error);
         throw error;
     }
 }
-
 
 
 async function addMenuItem(targetElement, itemId, resourceName) {
@@ -110,11 +107,16 @@ function addImageViewer(itemId, resourceName) {
     });
 }
 
-function showInjectionNotification(resourceName){
+function showInjectionNotification(resourceName, CHAR_ID){
     console.log('Trying to notify...');
     renderHTMLFromFile(resourceName).then(notification => {
         document.body.appendChild(notification);
         const noti = document.getElementById('notification');
+
+        // Update the paragraph content with CHAR_ID
+        const paragraph = noti.querySelector('p');
+        paragraph.textContent += `\nCharacter ID: ${CHAR_ID}`;
+
         setTimeout(() => {
             noti.classList.add('show');
         }, 1000); // Show the notification after 1 second

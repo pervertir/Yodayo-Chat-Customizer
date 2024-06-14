@@ -29,8 +29,10 @@ function fetchResource(resource) {
 async function renderHTMLFromFile(resource) {
     try {
         const html = await fetchResource(resource);
-        console.log('HTML fetched:', html);
-        return html;
+        const element = document.createElement('div');
+        element.innerHTML = html;
+        console.log('Element Generated.', element);
+        return element;
     } catch (error) {
         console.error('Failed to render HTML from file:', error);
         throw error;
@@ -38,9 +40,10 @@ async function renderHTMLFromFile(resource) {
 }
 
 
+
 async function addMenuItem(targetElement, itemId, resourceName) {
-    const menu_parent = document.getElementById('headlessui-menu-button-:r5q:');
     const element = document.getElementById(itemId);
+    
     console.log('Trying to find: ', itemId);
     if (element) {
         console.log(itemId,'already found.');
@@ -48,8 +51,10 @@ async function addMenuItem(targetElement, itemId, resourceName) {
     }
 
     return renderHTMLFromFile(resourceName).then(item => {
-        // item.id = itemId; // Ensure the item has the correct ID
-        targetElement.appendChild(item);
+        const children = Array.from(item.childNodes);
+        children.forEach(child => {
+            targetElement.appendChild(child);
+        });
         console.log(item, `menu item added.`);
         return item;
     });
@@ -115,7 +120,7 @@ function showInjectionNotification(resourceName, CHAR_ID){
 
         // Update the paragraph content with CHAR_ID
         const paragraph = noti.querySelector('p');
-        paragraph.textContent += `\nCharacter ID: ${CHAR_ID}`;
+        paragraph.textContent += `&nbsp;Character ID: ${CHAR_ID}`;
 
         setTimeout(() => {
             noti.classList.add('show');
@@ -123,7 +128,7 @@ function showInjectionNotification(resourceName, CHAR_ID){
 
         setTimeout(() => {
             noti.classList.remove('show');
-        }, 5000); // Hide the notification after 5 seconds
+        }, 3000); // Hide the notification after 5 seconds
         console.log('Notification generated.', notification);
     });
 }

@@ -34,7 +34,7 @@
             }
         } else if (!isTargetUrl() && scriptLoaded) {
             console.log('Exited chat page, hiding menu items.');
-            if (observer) {observer.disconnect();}
+            if (observer) { observer.disconnect(); }
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
             scriptLoaded = false; // Reset scriptLoaded flag
         }
@@ -76,10 +76,10 @@
 
                 dbConnectButton.addEventListener('click', () =>
                     addImageViewer(db_explorer_body_id, image_viewer_popup_resource_name));
-                }
-                
+            }
+
         });
-        
+
 
     }
 
@@ -89,7 +89,7 @@
         setTimeout(() => {
             const CHAR_ID = findCharacterID();
             console.log('Char ID: ', CHAR_ID);
-            if (CHAR_ID != null){
+            if (CHAR_ID != null) {
                 showInjectionNotification(notification_resource_name, CHAR_ID);
             }
         }, 2000);  // 2000 milliseconds equals 2 seconds
@@ -100,7 +100,7 @@
                         if (node.id && node.id.startsWith('headlessui-menu-items')) {
                             if (isTargetUrl()) {
                                 addCustomizeMenuItems(node);
-                                
+
                             }
                         }
                     });
@@ -116,7 +116,7 @@
     window.addEventListener('unload', () => {
         window.removeEventListener('popstate', checkUrlChange);
         clearInterval(urlCheckInterval);
-        if (observer) {observer.disconnect();}
+        if (observer) { observer.disconnect(); }
     });
 
 })();

@@ -65,19 +65,15 @@
             addMenuItem(menu, chat_customizer_html_element_id, customize_chat_button_html_resource_name),
             addMenuItem(menu, db_explorer_html_element_id, db_connect_button_html_resource_name)
         ]).then(([chatCustomizeButton, dbConnectButton]) => {
-
             if (chatCustomizeButton) {
-
                 chatCustomizeButton.addEventListener('click', () =>
                     addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name));
             }
 
             if (dbConnectButton) {
-
                 dbConnectButton.addEventListener('click', () =>
                     addImageViewer(db_explorer_body_id, image_viewer_popup_resource_name));
             }
-
         });
 
 

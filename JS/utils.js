@@ -40,7 +40,6 @@ async function renderHTMLFromFile(resource) {
 }
 
 
-
 async function addMenuItem(targetElement, itemId, resourceName) {
     const element = document.getElementById(itemId);
     
@@ -113,14 +112,19 @@ function addImageViewer(itemId, resourceName) {
 }
 
 function showInjectionNotification(resourceName, CHAR_ID){
-    console.log('Trying to notify...');
     renderHTMLFromFile(resourceName).then(notification => {
         document.body.appendChild(notification);
         const noti = document.getElementById('notification');
 
         // Update the paragraph content with CHAR_ID
         const paragraph = noti.querySelector('p');
-        paragraph.textContent += `&nbsp;Character ID: ${CHAR_ID}`;
+
+        if (CHAR_ID){
+            paragraph.textContent += ` Character ID: ${CHAR_ID}`;
+        }else{
+            noti.style.backgroundColor = '#990000';
+            paragraph.textContent = `Could not find Character ID, Please Refresh.`;
+        }
 
         setTimeout(() => {
             noti.classList.add('show');
@@ -128,7 +132,7 @@ function showInjectionNotification(resourceName, CHAR_ID){
 
         setTimeout(() => {
             noti.classList.remove('show');
-        }, 3000); // Hide the notification after 5 seconds
+        }, 5000); // Hide the notification after 5 seconds
         console.log('Notification generated.', notification);
     });
 }

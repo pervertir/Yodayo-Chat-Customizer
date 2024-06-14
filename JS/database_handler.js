@@ -135,6 +135,3 @@ async function getCharacterImage(CHAR_ID) {
         };
     });
 }
-
-// Exporting functions
-// export { openDatabase, saveBackgroundImage, saveCharacterImage, getBackgroundImage, getCharacterImage };

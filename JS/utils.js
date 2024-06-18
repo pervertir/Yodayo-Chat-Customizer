@@ -1,9 +1,45 @@
 // utility functions
+
+// Function to convert URL to Base64
+async function urlToBase64(url) {
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: url,
+            responseType: 'blob',
+            onload: function (response) {
+                if (response.status === 200) {
+                    const blob = response.response;
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(blob);
+                } else {
+                    reject(new Error(`HTTP error! Status: ${response.status}`));
+                }
+            },
+            onerror: function (error) {
+                console.error('Error fetching image:', error);
+                reject(error);
+            }
+        });
+    });
+}
+
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
 function fetchResource(resource) {
 
     return new Promise((resolve, reject) => {
         // Get the URL of the HTML file
-        const htmlUrl = GM_getResourceURL(resource);
+        let htmlUrl = GM_getResourceURL(resource);
 
         // Fetch the HTML content using GM_xmlhttpRequest
         GM_xmlhttpRequest({
@@ -28,8 +64,8 @@ function fetchResource(resource) {
 
 async function renderHTMLFromFile(resource) {
     try {
-        const html = await fetchResource(resource);
-        const element = document.createElement('div');
+        let html = await fetchResource(resource);
+        let element = document.createElement('div');
         element.innerHTML = html;
         console.log('Element Generated.', element);
         return element;
@@ -41,19 +77,15 @@ async function renderHTMLFromFile(resource) {
 
 
 async function addMenuItem(targetElement, itemId, resourceName) {
-    const element = document.getElementById(itemId);
+    let element = document.getElementById(itemId);
     
-    console.log('Trying to find: ', itemId);
     if (element) {
         console.log(itemId,'already found.');
         return Promise.resolve(null);
     }
 
     return renderHTMLFromFile(resourceName).then(item => {
-        const children = Array.from(item.childNodes);
-        children.forEach(child => {
-            targetElement.appendChild(child);
-        });
+        targetElement.appendChild(item);
         console.log(item, `menu item added.`);
         return item;
     });
@@ -61,7 +93,7 @@ async function addMenuItem(targetElement, itemId, resourceName) {
 
 
 function addCustomizeChatForm(itemId, resourceName) {
-    
+    console.log("Adding chat customizer form.");
     if (document.getElementById(itemId)) {
         let form = document.querySelector('#headlessui-portal-root');
         let main = document.querySelector('body > main');
@@ -106,7 +138,7 @@ function addImageViewer(itemId, resourceName) {
     }
 
     renderHTMLFromFile(resourceName).then(imageViewerBody => {
-        document.body.appendChild(imageViewerBody)
+        document.body.appendChild(imageViewerBody);
         console.log('Image Viewer inserted:', imageViewerBody);
     });
 }

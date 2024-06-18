@@ -57,7 +57,7 @@
     window.addEventListener('popstate', checkUrlChange);
 
     // Periodically check for URL changes
-    urlCheckInterval = setInterval(checkUrlChange, 1000);
+    urlCheckInterval = setInterval(checkUrlChange, 2000);
 
     function addCustomizeMenuItems(menu) {
 
@@ -88,7 +88,8 @@
             if (CHAR_ID != null) {
                 showInjectionNotification(notification_resource_name, CHAR_ID);
             }
-        }, 2000);  // 2000 milliseconds equals 2 seconds
+        }, 1500);  // 2000 milliseconds equals 2 seconds
+        
         observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {

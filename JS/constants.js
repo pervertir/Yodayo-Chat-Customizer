@@ -4,7 +4,7 @@ const theme = '.text-primaryText';
 // Selectors
 
 // Character
-const character_name = 'div.mb-1.flex.items-center.justify-between.gap-4 a.text-xs.font-medium.opacity-50';
+const character_name_selector = 'div.mb-1.flex.items-center.justify-between.gap-4 a.text-xs.font-medium.opacity-50';
 const character_chat_bubble_background = '.bg-black\/\[85\%\], .bg-black\/\[\.85\]';
 const character_dialogue = '.text-primaryText\/90'; //'p.space-x-1 >span'
 const character_narration = '.text-chipText';
@@ -23,7 +23,7 @@ const bg_img = '.bg-cover';
 
 // Character
 const color_character_name = 'color';
-const color_character_chat_bubble_background = '.bg-black\\/\\[85\\%\\], .bg-black\\/\\[\\.85\\]';
+const color_character_chat_bubble_background = '.bg-black\/\[85\%\], .bg-black\/\[\.85\]';
 
 // New UI element ids
 const chat_customizer_html_element_id = 'headlessui-menu-item-chat-customizer';
@@ -37,6 +37,7 @@ const db_connect_button_html_resource_name = 'db_connect';
 const chat_customizer_body_resource_name = 'chat_customizer_body';
 const image_viewer_popup_resource_name = 'image_viewer_popup';
 const notification_resource_name = 'injection_notification';
+const character_image_container_resource_name = 'character_image_container';
 
 // Database Constants
 const DB_NAME = 'YodayoChatCustomizerDB';

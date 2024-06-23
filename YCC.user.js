@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo Chat Customizer
-// @version      Alpha-v7
+// @version      Alpha-v8
 
 // @namespace    YCC
 

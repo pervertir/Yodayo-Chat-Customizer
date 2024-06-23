@@ -3,9 +3,26 @@
 
     console.log('Chat Customizer script initialized.');
     let scriptLoaded = false;
-    let observer = null; // Declare observer in the correct scope
     let urlCheckInterval = null;
+    let observer = null;
 
+    function waitForElement(selector, callback) {
+        console.log("Waiting for:", selector);
+        let element_observer = new MutationObserver((mutations, element_observer) => {
+            let element = document.querySelector(selector);
+            if (element) {
+                console.log(element);
+                element_observer.disconnect();
+                return callback(element);
+            }
+        });
+
+        element_observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    
     // Function to check if the current URL matches the target pattern
     function isTargetUrl() {
         return location.href.startsWith('https://yodayo.com/tavern/chat/');
@@ -14,7 +31,7 @@
     // Function to hide elements by ID
     function hideElementsById(...ids) {
         ids.forEach(id => {
-            const element = document.getElementById(id);
+            let element = document.getElementById(id);
             if (element) {
                 element.style.display = 'none';
             }
@@ -25,18 +42,17 @@
     function initializeScript() {
         if (isTargetUrl()) {
             if (!scriptLoaded) {
-                setTimeout(() => {
-                    scriptLoaded = true;
-                    // Place your script's main logic here
-                    console.log('Yodayo Chat Customizer script is running');
-                    onLoad();
-                }, 2000);  // 2000 milliseconds equals 2 seconds
+                scriptLoaded = true;
+                // Place your script's main logic here
+                console.log('Yodayo Chat Customizer script is running');
+                waitForElement(char_id_selector, onLoad);
+
             }
         } else if (!isTargetUrl() && scriptLoaded) {
             console.log('Exited chat page, hiding menu items.');
+            scriptLoaded = false; // Reset scriptLoaded flag
             if (observer) { observer.disconnect(); }
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
-            scriptLoaded = false; // Reset scriptLoaded flag
         }
     }
 
@@ -57,7 +73,7 @@
     window.addEventListener('popstate', checkUrlChange);
 
     // Periodically check for URL changes
-    urlCheckInterval = setInterval(checkUrlChange, 2000);
+    urlCheckInterval = setInterval(checkUrlChange, 1000);
 
     function addCustomizeMenuItems(menu) {
 
@@ -68,6 +84,11 @@
             if (chatCustomizeButton) {
                 chatCustomizeButton.addEventListener('click', () =>
                     addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name));
+                    // Create a new observer
+                    let formAdded_observer = new MutationObserver(handleFormAdded);
+                    // Start observing the body for changes
+                    formAdded_observer.observe(document.body, { childList: true, subtree: true });
+
             }
 
             if (dbConnectButton) {
@@ -79,18 +100,15 @@
 
     }
 
-    function onLoad() {
+    function onLoad(element) {
         console.log('Page loaded');
 
-        setTimeout(() => {
-            const CHAR_ID = findCharacterID();
-            console.log('Char ID: ', CHAR_ID);
-            if (CHAR_ID != null) {
-                showInjectionNotification(notification_resource_name, CHAR_ID);
-            }
-        }, 1500);  // 2000 milliseconds equals 2 seconds
-        
-        observer = new MutationObserver((mutations) => {
+        // const CHAR_ID = waitForElement(char_id_selector, findCharacterID);
+        const CHAR_ID = findCharacterID(element);
+        console.log('Char ID: ', CHAR_ID);
+        showInjectionNotification(notification_resource_name, CHAR_ID);
+
+        let observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach(node => {

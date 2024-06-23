@@ -145,15 +145,11 @@ function addImageViewer(itemId, resourceName) {
 
 function showInjectionNotification(resourceName, CHAR_ID){
     renderHTMLFromFile(resourceName).then(notification => {
+        
         document.body.appendChild(notification);
         const noti = document.getElementById('notification');
-
-        // Update the paragraph content with CHAR_ID
-        const paragraph = noti.querySelector('p');
-
-        if (CHAR_ID){
-            paragraph.textContent += ` Character ID: ${CHAR_ID}`;
-        }else{
+        
+        if (!CHAR_ID){
             noti.style.backgroundColor = '#990000';
             paragraph.textContent = `Could not find Character ID, Please Refresh.`;
         }

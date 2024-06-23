@@ -21,7 +21,7 @@
                                 data-headlessui-state="open">Chat Customization</h3>
                             <div class="mt-8 text-primaryText">
                                 <div class="flex items-center justify-between">
-                                    <p class="font-bold text-primaryText pb-3">Character Settings</p><button
+                                    <p class="font-bold text-primaryText pb-3">Character Settings</p><button id="character-settings-reset-button"
                                         class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                             aria-hidden="true" data-slot="icon" class="h-4 w-4">
@@ -59,8 +59,8 @@
                             <hr class="my-6 border-t border-separator/10">
 
                             <div class="flex items-center justify-between">
-                                <p class="font-bold text-primaryText pb-3">Background</p><button
-                                    class="flex items-center text-xs text-secondaryText hover:text-primaryBtn"><svg
+                                <p class="font-bold text-primaryText pb-3">Background</p><button id="background-reset-button"
+                                    class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon"
                                         class="h-4 w-4">
@@ -86,7 +86,7 @@
                                 <hr class="my-6 border-t border-separator/10">
 
                                 <div class="flex items-center justify-between">
-                                    <p class="font-bold text-primaryText pb-3">Chat Colors</p><button
+                                    <p class="font-bold text-primaryText pb-3">Chat Colors</p><button id="color-reset-button"
                                         class="flex items-center gap-1 text-xs text-secondaryText hover:text-primaryBtn"><svg
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" aria-hidden="true"
@@ -160,5 +160,7 @@
                 </div>
             </div>
         </div>
+        <button type="button" data-headlessui-focus-guard="true" aria-hidden="true"
+            style="position: fixed; top: 1px; left: 1px; width: 1px; height: 0px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; border-width: 0px;"></button>
     </div>
 </div>

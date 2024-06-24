@@ -1,3 +1,4 @@
+// chat customizer popup
 async function setBackgroundImage(imageBase64) {
     let targetDivs = document.querySelectorAll(bg_img);
     if (!targetDivs.length) {
@@ -9,6 +10,7 @@ async function setBackgroundImage(imageBase64) {
     console.log('Setting new background image');
     console.log(targetDivs);
     divElements.forEach((targetDiv) => {
+
         targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
         targetDiv.style.backgroundSize = 'cover';
         targetDiv.classList.remove('container');
@@ -27,10 +29,11 @@ async function setCharacterImage(imageBase64) {
 
         if (existingImage) {
             // Change the existing character image if different
+
             existingImage.src = `data:image;base64,${imageBase64}`;
             existingImage.style.height = imageHeight;
             console.log('Changed Character Image.');
-            
+
         } else { // If there is no existing Character image
             // Ensure that the nested divs exist
             let innerDiv = characterContainer.querySelector('div > div');
@@ -67,7 +70,7 @@ function handleMutations(mutationsList) {
                     if (node.matches('p.text-xs.font-medium.opacity-50')) {
                         console.log(node);
                         node.classList.add('username');
-                    } 
+                    }
                 }
 
                 //If the added node has children, we need to recursively check those as well
@@ -75,7 +78,7 @@ function handleMutations(mutationsList) {
                     if (child.matches('p.text-xs.font-medium.opacity-50')) {
                         console.log(node);
                         child.classList.add('username');
-                    } 
+                    }
                 });
             });
         }
@@ -91,10 +94,11 @@ function initializeCloseButtonEventHandler(form, formBody) {
         let main = document.querySelector('body > main');
         main.setAttribute('aria-hidden', 'false');
         main.removeAttribute('inert');
-        
+
         // form.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
         form.remove();
         document.removeEventListener('click', handleClickOutside);
+
     };
 
     const handleClickOutside = (event) => {
@@ -110,31 +114,37 @@ function initializeCloseButtonEventHandler(form, formBody) {
     document.addEventListener('click', handleClickOutside);
 }
 
-function initializeCharacterSettingsEventHandlers(form){
-    
-    let char_name_input = form.querySelector('#name-input');
-    let char_name_color_input = form.querySelector('#name-color-input');
-    let char_image_url_input = form.querySelector('#character-image-url-input');
-    let char_image_file_input = form.querySelector('#character-image-file-input');
+function initializeCharacterSettingsEventHandlers(form) {
 
-    let bg_url_input = form.querySelector('#bg-url-input');
-    let bg_file_input = form.querySelector('#bg-file-input');
+    var char_name_input = form.querySelector('#name-input');
+    var char_name_color_input = form.querySelector('#name-color-input');
+    var char_image_url_input = form.querySelector('#character-image-url-input');
+    var char_image_file_input = form.querySelector('#character-image-file-input');
 
-    let char_narr_input = form.querySelector('#character-narration-color-input');
-    let char_chat_input = form.querySelector('#character-chat-color-input');
-    let user_chat_input = form.querySelector('#user-chat-color-input');
-    let char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
-    let user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-    let user_name_color_input = form.querySelector('#user-name-color-input');
+    var bg_url_input = form.querySelector('#bg-url-input');
+    var bg_file_input = form.querySelector('#bg-file-input');
 
-    let apply_to_all = form.querySelector('#apply-to-all');
-    let exclude_curr_chat = form.querySelector('#exlude-current-chat');
-    
+    var char_narr_input = form.querySelector('#character-narration-color-input');
+    var char_chat_input = form.querySelector('#character-chat-color-input');
+    var user_chat_input = form.querySelector('#user-chat-color-input');
+    var char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
+    var user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
+    var user_name_color_input = form.querySelector('#user-name-color-input');
+
+    var apply_to_all = form.querySelector('#apply-to-all');
+    var exclude_curr_chat = form.querySelector('#exlude-current-chat');
+
+    var char_settings_reset = form.querySelector('#character-settings-reset-button');
+    var background_settings_reset = form.querySelector('#background-reset-button');
+    var colors_reset = form.querySelector('#color-reset-button');
+
+
 
     char_name_input.addEventListener('input', function () {
         const character_names = document.querySelectorAll(character_name_selector);
         console.log(character_names);
         character_names.forEach(name => {
+
             name.textContent = char_name_input.value;
         });
     });
@@ -157,6 +167,7 @@ function initializeCharacterSettingsEventHandlers(form){
                     let rule = styleSheet.cssRules[j];
 
                     if (rule.selectorText === 'a') {
+
                         rule.style.color = char_name_color_input.value;
                     }
                 }
@@ -169,7 +180,7 @@ function initializeCharacterSettingsEventHandlers(form){
 
     });
 
-    user_chat_input.addEventListener('input', function(){
+    user_chat_input.addEventListener('input', function () {
         // Define the regex to match selectors starting with 'bg-black' and containing '85'
         const regex = user_message;
 
@@ -180,12 +191,17 @@ function initializeCharacterSettingsEventHandlers(form){
                 return;
             }
 
-            console.log('Processing stylesheet:', styleSheet.href || 'inline');
+            if (!styleSheet.href) {
+                return;
+            }
+
+            // console.log('Processing stylesheet:', styleSheet.href || 'inline');
 
             try {
                 Array.from(styleSheet.cssRules).forEach(rule => {
                     if (rule.selectorText && regex.test(rule.selectorText)) {
                         console.log('Match found:', rule.selectorText);
+
                         rule.style.color = user_chat_input.value;
                     }
                 });
@@ -209,6 +225,7 @@ function initializeCharacterSettingsEventHandlers(form){
             document.head.appendChild(styleSheet);
         }
 
+
         // Get the CSS rule text
         const cssRuleText = `.username { color: ${color} !important; }`;
 
@@ -216,7 +233,7 @@ function initializeCharacterSettingsEventHandlers(form){
         styleSheet.innerHTML = cssRuleText;
     });
 
-    char_image_url_input.addEventListener('input', async function(){
+    char_image_url_input.addEventListener('input', async function () {
         let url = char_image_url_input.value;
         let imageBase64 = await urlToBase64(url);
         setCharacterImage(imageBase64);
@@ -245,18 +262,23 @@ function initializeCharacterSettingsEventHandlers(form){
         const regex = character_chat_bubble_background;
 
         Array.from(document.styleSheets).forEach(styleSheet => {
-            // Skip specific stylesheets
+            // Skip google fonts css
             if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-                console.log('Skipping stylesheet:', styleSheet.href);
+                // console.log('Skipping stylesheet:', styleSheet.href);
                 return;
             }
 
-            console.log('Processing stylesheet:', styleSheet.href || 'inline');
+            if (!styleSheet.href) {
+                return;
+            }
+
+            // console.log('Processing stylesheet:', styleSheet.href || 'inline');
 
             try {
                 Array.from(styleSheet.cssRules).forEach(rule => {
                     if (rule.selectorText && regex.test(rule.selectorText)) {
                         console.log('Match found:', rule.selectorText);
+
                         rule.style.backgroundColor = char_chat_bg_input.value;
                         rule.style.opacity = '85%';
                     }
@@ -269,7 +291,7 @@ function initializeCharacterSettingsEventHandlers(form){
     });
 
 
-    user_chat_bg_input.addEventListener('input', function(){
+    user_chat_bg_input.addEventListener('input', function () {
         // Define the regex to match selectors starting with 'bg-black' and containing '85'
         const regex = user_chat_bubble_background;
 
@@ -280,14 +302,19 @@ function initializeCharacterSettingsEventHandlers(form){
                 return;
             }
 
-            console.log('Processing stylesheet:', styleSheet.href || 'inline');
+            if (!styleSheet.href) {
+                return;
+            }
+
+            // console.log('Processing stylesheet:', styleSheet.href || 'inline');
 
             try {
                 Array.from(styleSheet.cssRules).forEach(rule => {
                     if (rule.selectorText && regex.test(rule.selectorText)) {
                         console.log('Match found:', rule.selectorText);
+
                         rule.style.backgroundColor = user_chat_bg_input.value;
-                        rule.style.opacity = '85%'; 
+                        rule.style.opacity = '85%';
                     }
                 });
             } catch (e) {
@@ -299,7 +326,7 @@ function initializeCharacterSettingsEventHandlers(form){
 
 
     char_narr_input.addEventListener('input', function () {
-        
+
         // Loop through all stylesheets
         for (let i = 0; i < document.styleSheets.length; i++) {
             let styleSheet = document.styleSheets[i];
@@ -316,6 +343,7 @@ function initializeCharacterSettingsEventHandlers(form){
 
                     // Check if the rule is for the .text-chipText class
                     if (rule.selectorText === '.text-chipText') {
+
                         // Change the color property to red
                         rule.style.color = char_narr_input.value;
                     }
@@ -349,6 +377,7 @@ function initializeCharacterSettingsEventHandlers(form){
                     // Check if the rule is for the .text-chipText class
                     if (rule.selectorText === '.text-primaryText\\/90') {
                         // Change the color property to red
+
                         rule.style.color = char_chat_input.value;
                     }
                 }
@@ -358,7 +387,28 @@ function initializeCharacterSettingsEventHandlers(form){
                 continue;
             }
         }
+
+    });
+
+    char_settings_reset.addEventListener('click', function () {
+        // name
+        // color
+        // image
+
+    });
+
+    background_settings_reset.addEventListener('click', function () {
+        //background
+    });
+
+    colors_reset.addEventListener('click', function () {
+        // character narration color
+        // character chat color
+        // character chat background
         
+        // user name color
+        // user chat color
+        // user chat background
     });
 
 }
@@ -370,14 +420,14 @@ function handleFormAdded(mutationsList, observer) {
     const form = document.querySelector('#chat-customizer-ui-popup');
     const formRoot = document.querySelector("#headlessui-portal-root");
     const formBody = document.querySelector('#chat-customizer-ui-popup > div');
-    
+
     for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
             if (form) {
                 console.log('Form Found.');
 
                 // Add classes to existing elements
-                addUserNameClass();  
+                addUserNameClass();
 
                 // // Create an observer instance linked to the callback function
                 let usernameObserver = new MutationObserver(handleMutations);
@@ -393,7 +443,7 @@ function handleFormAdded(mutationsList, observer) {
 
                 // Disconnect the observer once the form is found
                 observer.disconnect();
-                
+
                 break;
             }
         }

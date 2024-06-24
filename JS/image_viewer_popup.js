@@ -1,3 +1,4 @@
+// Style Browser
 function initializeImageViewerCloseButtonEventHandler(image_viewer) {
     const closeButton = image_viewer.querySelector('#close-button');
     closeButton.addEventListener('click', () => {

@@ -1,3 +1,4 @@
+// constants
 // general
 const theme = '.text-primaryText';
 

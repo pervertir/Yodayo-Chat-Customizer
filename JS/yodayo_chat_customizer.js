@@ -1,3 +1,4 @@
+// YCC Entry Point
 (async function () {
     'use strict';
 

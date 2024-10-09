@@ -1,5 +1,22 @@
 // utility functions
 
+function waitForElement(selector, callback) {
+    console.log("Waiting for:", selector);
+    let element_observer = new MutationObserver((mutations, element_observer) => {
+        let element = document.querySelector(selector);
+        if (element) {
+            console.log(element);
+            element_observer.disconnect();
+            return callback(element);
+        }
+    });
+
+    element_observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
 // Function to convert URL to Base64
 async function urlToBase64(url) {
     return new Promise((resolve, reject) => {
@@ -164,3 +181,4 @@ function showInjectionNotification(resourceName, CHAR_ID){
         console.log('Notification generated.', notification);
     });
 }
+

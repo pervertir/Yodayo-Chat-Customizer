@@ -7,6 +7,7 @@ const theme = '.text-primaryText';
 // Character
 const char_id_selector = '.flex.items-end.gap-2.mr-3 > a';
 const character_name_selector = 'div.mb-1.flex.items-center.justify-between.gap-4 a.text-xs.font-medium.opacity-50';
+const character_name_title = 'p.truncate.text-sm.font-medium'
 const character_chat_bubble_background = /^\.bg-black.*85.*/;
 const character_dialogue = '.text-primaryText\/90'; //'p.space-x-1 >span'
 const character_narration = '.text-chipText';
@@ -28,6 +29,9 @@ const bg_img = ['.bg-cover', '.bg-no-repeat'];
 const color_character_name = 'color';
 const color_character_chat_bubble_background = '.bg-black\/\[85\%\], .bg-black\/\[\.85\]';
 
+
+// Existing UI element ids
+const menu_button = 'headlessui-menu-button-:r7u:'
 // New UI element ids
 const chat_customizer_html_element_id = 'headlessui-menu-item-chat-customizer';
 const db_explorer_html_element_id = 'headlessui-menu-item-db-explorer';

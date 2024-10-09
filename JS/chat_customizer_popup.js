@@ -144,9 +144,11 @@ function initializeCharacterSettingsEventHandlers(form) {
         const character_names = document.querySelectorAll(character_name_selector);
         console.log(character_names);
         character_names.forEach(name => {
-
             name.textContent = char_name_input.value;
         });
+        name_title = document.querySelector(character_name_title);
+        console.log(name_title);
+        name_title.textContent = char_name_input.value;
     });
 
 

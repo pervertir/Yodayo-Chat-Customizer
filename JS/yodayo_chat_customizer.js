@@ -10,7 +10,7 @@
     
     // Function to check if the current URL matches the target pattern
     function isTargetUrl() {
-        return location.href.startsWith('https://yodayo.com/tavern/chat/');
+        return location.href.startsWith('https://moescape.ai/tavern/chat/');
     }
 
     // Function to hide elements by ID
@@ -18,8 +18,8 @@
         ids.forEach(id => {
             let element = document.getElementById(id);
             if (element) {
-                element.style.display = 'none';
-
+                element.remove();
+                // element.style.display = 'none';
             }
         });
         

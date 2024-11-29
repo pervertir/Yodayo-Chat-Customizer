@@ -47,6 +47,6 @@ const notification_resource_name = 'injection_notification';
 const character_image_container_resource_name = 'character_image_container';
 
 // Database Constants
-const DB_NAME = 'YodayoChatCustomizerDB';
+const DB_NAME = 'MoescapeChatCustomizerDB';
 const DB_VERSION = 1;
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';

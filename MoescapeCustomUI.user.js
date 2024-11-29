@@ -8,8 +8,8 @@
 // @author       Pervertir
 
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
-// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
-// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/YCC.user.js
+// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/MoescapeCustomUI.user.js
+// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/MoescapeCustomUI.user.js
 // @supportURL   https://github.com/pervertir/Yodayo-Chat-Customizer/issues
 
 // @match        https://moescape.ai/*

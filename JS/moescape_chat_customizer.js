@@ -43,7 +43,7 @@
             if (!scriptLoaded) {
                 scriptLoaded = true;
                 // Place your script's main logic here
-                console.log('Yodayo Chat Customizer script is running');
+                console.log('Moescape Chat Customizer script is running');
                 waitForElement(char_id_selector, onLoad);
 
             }
@@ -105,7 +105,6 @@
     function onLoad(element) {
         console.log('Page loaded');
 
-        // const CHAR_ID = waitForElement(char_id_selector, findCharacterID);
         const CHAR_ID = findCharacterID(element);
         console.log('Char ID: ', CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);

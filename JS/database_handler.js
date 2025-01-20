@@ -68,8 +68,8 @@ async function saveBackgroundImage(CHAT_ID, imageBase64) {
         await openDatabase();
     }
 
-    const transaction = db.transaction(BACKGROUND_OBJECT_STORE_NAME, 'readwrite');
-    const objectStore = transaction.objectStore(BACKGROUND_OBJECT_STORE_NAME);
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
     objectStore.put({ CHAT_ID, imageBase64 });
 }
 

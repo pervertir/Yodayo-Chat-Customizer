@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Moescape Customizer
-// @version      Alpha-v10
+// @version      Alpha-v11
 
 // @namespace    MOESCAPE
 

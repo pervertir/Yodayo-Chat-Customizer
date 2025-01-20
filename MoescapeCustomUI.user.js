@@ -29,7 +29,7 @@
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\utils.js
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\chat_customizer_popup.js
 // @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\image_viewer_popup.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\yodayo_chat_customizer.js
+// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\moescape_chat_customizer.js
 
 // @icon         https://moescape.ai/assets/images/logo.svg
 

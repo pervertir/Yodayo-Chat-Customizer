@@ -239,24 +239,44 @@ function initializeCharacterSettingsEventHandlers(form) {
         let url = char_image_url_input.value;
         let imageBase64 = await urlToBase64(url);
         setCharacterImage(imageBase64);
+        // Save to DB
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor);
+        if (!CHAR_ID) CHAR_ID = CHAT_ID;
+        saveCharacterImage(CHAR_ID, imageBase64);
     });
 
     char_image_file_input.addEventListener('change', async function () {
         let url = char_image_file_input.files[0];
         let imageBase64 = await fileToBase64(url);
         setCharacterImage(imageBase64);
+        // Save to DB
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor);
+        if (!CHAR_ID) CHAR_ID = CHAT_ID;
+        saveCharacterImage(CHAR_ID, imageBase64);
     });
 
     bg_url_input.addEventListener('input', async function () {
         let url = bg_url_input.value;
         let imageBase64 = await urlToBase64(url);
         setBackgroundImage(imageBase64);
+        // Save to DB
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor);
+        if (!CHAR_ID) CHAR_ID = CHAT_ID;
+        saveBackgroundImage(CHAR_ID, imageBase64);
     });
 
     bg_file_input.addEventListener('change', async function () {
         let url = bg_file_input.files[0];
         let imageBase64 = await fileToBase64(url);
         setBackgroundImage(imageBase64);
+        // Save to DB
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor);
+        if (!CHAR_ID) CHAR_ID = CHAT_ID;
+        saveBackgroundImage(CHAR_ID, imageBase64);
     });
 
     char_chat_bg_input.addEventListener('input', function () {
@@ -455,7 +475,35 @@ function initializeCharacterSettingsEventHandlers(form) {
 }
 
 
-// Function to handle when the form is added
+// --- Database Integration ---
+// Assumes database_handler.js is loaded and provides saveCharacterImage, saveBackgroundImage, getCharacterImage, getBackgroundImage, CHAT_ID, findCharacterID
+
+async function loadCustomizerData(form) {
+    // Get CHAR_ID from anchor or context
+    let anchor = document.querySelector(char_id_selector);
+    let CHAR_ID = findCharacterID(anchor);
+    if (!CHAR_ID) CHAR_ID = CHAT_ID;
+
+    // Load character image
+    const charImage = await getCharacterImage(CHAR_ID);
+    if (charImage) {
+        setCharacterImage(charImage);
+        let char_image_url_input = form.querySelector('#character-image-url-input');
+        if (char_image_url_input) char_image_url_input.value = '';
+        let char_image_file_input = form.querySelector('#character-image-file-input');
+        if (char_image_file_input) char_image_file_input.value = '';
+    }
+    // Load background image
+    const bgImage = await getBackgroundImage(CHAR_ID);
+    if (bgImage) {
+        setBackgroundImage(bgImage);
+        let bg_url_input = form.querySelector('#bg-url-input');
+        if (bg_url_input) bg_url_input.value = '';
+        let bg_file_input = form.querySelector('#bg-file-input');
+        if (bg_file_input) bg_file_input.value = '';
+    }
+}
+
 function handleFormAdded(mutationsList, observer) {
     // Check if the form is added
     const form = document.querySelector('#chat-customizer-ui-popup');
@@ -481,6 +529,8 @@ function handleFormAdded(mutationsList, observer) {
 
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(formRoot);
+                // Load data from DB
+                loadCustomizerData(formRoot);
 
                 // Disconnect the observer once the form is found
                 observer.disconnect();
@@ -488,6 +538,47 @@ function handleFormAdded(mutationsList, observer) {
                 break;
             }
         }
+    }
+}
+
+// Save character defaults (name, colors, etc) to DB for later reset
+async function saveCharacterDefaults(form) {
+    let anchor = document.querySelector(char_id_selector);
+    let CHAR_ID = findCharacterID(anchor);
+    if (!CHAR_ID) CHAR_ID = CHAT_ID;
+
+    // Gather current values
+    const char_name_input = form.querySelector('#name-input');
+    const char_name_color_input = form.querySelector('#name-color-input');
+    const char_narr_input = form.querySelector('#character-narration-color-input');
+    const char_chat_input = form.querySelector('#character-chat-color-input');
+    const char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
+    const user_name_color_input = form.querySelector('#user-name-color-input');
+    const user_chat_input = form.querySelector('#user-chat-color-input');
+    const user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
+
+    // Only store values that are not default (defaults can be constants)
+    const defaults = {
+        character_alias: char_name_input ? char_name_input.value : '',
+        character_name_color: char_name_color_input ? char_name_color_input.value : '',
+        character_narration_color: char_narr_input ? char_narr_input.value : '',
+        character_message_color: char_chat_input ? char_chat_input.value : '',
+        character_message_box_color: char_chat_bg_input ? char_chat_bg_input.value : '',
+        username_color: user_name_color_input ? user_name_color_input.value : '',
+        user_message_color: user_chat_input ? user_chat_input.value : '',
+        user_message_box_color: user_chat_bg_input ? user_chat_bg_input.value : ''
+    };
+
+    // Save to DB (merge with existing record)
+    if (window.db) {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get(CHAR_ID);
+        getRequest.onsuccess = function(event) {
+            let record = event.target.result || { CHAR_ID };
+            Object.assign(record, defaults);
+            objectStore.put(record);
+        };
     }
 }
 

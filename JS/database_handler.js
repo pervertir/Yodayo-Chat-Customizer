@@ -63,47 +63,66 @@ function openDatabase() {
     });
 }
 
-async function saveBackgroundImage(CHAT_ID, imageBase64) {
+async function saveBackgroundImage(CHAR_ID, imageBase64) {
     if (!db) {
         await openDatabase();
     }
-
     const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
     const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-    objectStore.put({ CHAT_ID, imageBase64 });
+    // Get existing record, update only background_image
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.background_image = imageBase64;
+        const putRequest = objectStore.put(record);
+        putRequest.onerror = function(e) {
+            console.error('Failed to save background image:', e.target.error);
+        };
+    };
+    getRequest.onerror = function(e) {
+        console.error('Failed to get record for background image:', e.target.error);
+    };
 }
 
 async function saveCharacterImage(CHAR_ID, imageBase64) {
     if (!db) {
         await openDatabase();
     }
-
     const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
     const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-    objectStore.put({ CHAR_ID, imageBase64 });
+    // Get existing record, update only character_image
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_image = imageBase64;
+        const putRequest = objectStore.put(record);
+        putRequest.onerror = function(e) {
+            console.error('Failed to save character image:', e.target.error);
+        };
+    };
+    getRequest.onerror = function(e) {
+        console.error('Failed to get record for character image:', e.target.error);
+    };
 }
 
-async function getBackgroundImage(CHAT_ID) {
+async function getBackgroundImage(CHAR_ID) {
     if (!db) {
         await openDatabase();
     }
-
-    const transaction = db.transaction(BACKGROUND_OBJECT_STORE_NAME, 'readonly');
-    const objectStore = transaction.objectStore(BACKGROUND_OBJECT_STORE_NAME);
-    const request = objectStore.get(CHAT_ID);
-
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
     return new Promise((resolve, reject) => {
         request.onsuccess = (event) => {
             const result = event.target.result;
-            if (result) {
-                resolve(result.imageBase64);
+            if (result && result.background_image) {
+                resolve(result.background_image);
             } else {
                 resolve(null);
             }
         };
-
         request.onerror = (event) => {
-            console.error('Failed to get image:', event.target.error);
+            console.error('Failed to get background image:', event.target.error);
             reject(event.target.error);
         };
     });
@@ -113,23 +132,20 @@ async function getCharacterImage(CHAR_ID) {
     if (!db) {
         await openDatabase();
     }
-
     const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
     const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
     const request = objectStore.get(CHAR_ID);
-
     return new Promise((resolve, reject) => {
         request.onsuccess = (event) => {
             const result = event.target.result;
-            if (result) {
-                resolve(result.imageBase64);
+            if (result && result.character_image) {
+                resolve(result.character_image);
             } else {
                 resolve(null);
             }
         };
-
         request.onerror = (event) => {
-            console.error('Failed to get image:', event.target.error);
+            console.error('Failed to get character image:', event.target.error);
             reject(event.target.error);
         };
     });

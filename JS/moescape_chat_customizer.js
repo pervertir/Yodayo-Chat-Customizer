@@ -10,7 +10,7 @@
     
     // Function to check if the current URL matches the target pattern
     function isTargetUrl() {
-        return location.href.startsWith('https://moescape.ai/tavern/chat/');
+        return location.href.startsWith('https://moescape.ai/tavern/chat/') || location.href.startsWith('https://yodayo.com/tavern/chat/');
     }
 
     // Function to hide elements by ID

@@ -502,6 +502,47 @@ async function loadCustomizerData(form) {
         let bg_file_input = form.querySelector('#bg-file-input');
         if (bg_file_input) bg_file_input.value = '';
     }
+
+    // Load all other settings
+    const [
+        alias,
+        nameColor,
+        narrationColor,
+        messageColor,
+        messageBoxColor,
+        usernameColor,
+        userMessageColor,
+        userMessageBoxColor
+    ] = await Promise.all([
+        getCharacterAlias(CHAR_ID),
+        getCharacterNameColor(CHAR_ID),
+        getCharacterNarrationColor(CHAR_ID),
+        getCharacterMessageColor(CHAR_ID),
+        getCharacterMessageBoxColor(CHAR_ID),
+        getUsernameColor(CHAR_ID),
+        getUserMessageColor(CHAR_ID),
+        getUserMessageBoxColor(CHAR_ID)
+    ]);
+
+    // Set values in form if present
+    if (form.querySelector('#name-input') && alias !== null) form.querySelector('#name-input').value = alias;
+    if (form.querySelector('#name-color-input') && nameColor !== null) form.querySelector('#name-color-input').value = nameColor;
+    if (form.querySelector('#character-narration-color-input') && narrationColor !== null) form.querySelector('#character-narration-color-input').value = narrationColor;
+    if (form.querySelector('#character-chat-color-input') && messageColor !== null) form.querySelector('#character-chat-color-input').value = messageColor;
+    if (form.querySelector('#character-chat-bg-color-input') && messageBoxColor !== null) form.querySelector('#character-chat-bg-color-input').value = messageBoxColor;
+    if (form.querySelector('#user-name-color-input') && usernameColor !== null) form.querySelector('#user-name-color-input').value = usernameColor;
+    if (form.querySelector('#user-chat-color-input') && userMessageColor !== null) form.querySelector('#user-chat-color-input').value = userMessageColor;
+    if (form.querySelector('#user-chat-bg-color-input') && userMessageBoxColor !== null) form.querySelector('#user-chat-bg-color-input').value = userMessageBoxColor;
+
+    // Optionally, trigger input events to update the UI with loaded values
+    if (form.querySelector('#name-input')) form.querySelector('#name-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#name-color-input')) form.querySelector('#name-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#character-narration-color-input')) form.querySelector('#character-narration-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#character-chat-color-input')) form.querySelector('#character-chat-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
 }
 
 function handleFormAdded(mutationsList, observer) {

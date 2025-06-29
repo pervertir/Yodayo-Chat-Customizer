@@ -393,24 +393,63 @@ function initializeCharacterSettingsEventHandlers(form) {
     });
 
     char_settings_reset.addEventListener('click', function () {
-        // name
-        // color
-        // image
+        // Reset character name
+        char_name_input.value = '';
+        const character_names = document.querySelectorAll(character_name_selector);
+        character_names.forEach(name => {
+            name.textContent = '';
+        });
+        let name_title = document.querySelector(character_name_title);
+        if (name_title) name_title.textContent = '';
 
+        // Reset character name color
+        char_name_color_input.value = '#ffffff';
+        let styleSheet = document.getElementById('dynamic-styles');
+        if (styleSheet) {
+            styleSheet.innerHTML = `.username { color: #ffffff !important; }`;
+        }
+
+        // Reset character image URL and file
+        char_image_url_input.value = '';
+        char_image_file_input.value = '';
+        // Optionally, reset the character image in the UI if needed
+        // ... (custom logic if you want to remove/reset the image)
     });
 
     background_settings_reset.addEventListener('click', function () {
-        //background
+        // Reset background URL and file
+        bg_url_input.value = '';
+        bg_file_input.value = '';
+        // Optionally, reset the background image in the UI if needed
+        // ... (custom logic if you want to remove/reset the background)
     });
 
     colors_reset.addEventListener('click', function () {
-        // character narration color
-        // character chat color
-        // character chat background
-        
-        // user name color
-        // user chat color
-        // user chat background
+        // Reset character narration color
+        char_narr_input.value = '#b0d8fB';
+        // Reset character chat color
+        char_chat_input.value = '#ffffff';
+        // Reset character chat background
+        char_chat_bg_input.value = '#000000';
+        // Reset user name color
+        user_name_color_input.value = '#000000';
+        let styleSheet = document.getElementById('dynamic-styles');
+        if (styleSheet) {
+            styleSheet.innerHTML = `.username { color: #000000 !important; }`;
+        }
+        // Reset user chat color
+        user_chat_input.value = '#000000';
+        // Reset user chat background
+        user_chat_bg_input.value = '#ffffff';
+
+        // Optionally, update the UI to reflect these resets
+        // Trigger input events to update the UI
+        char_narr_input.dispatchEvent(new Event('input'));
+        char_chat_input.dispatchEvent(new Event('input'));
+        char_chat_bg_input.dispatchEvent(new Event('input'));
+        user_name_color_input.dispatchEvent(new Event('input'));
+        user_chat_input.dispatchEvent(new Event('input'));
+        user_chat_bg_input.dispatchEvent(new Event('input'));
     });
 
 }

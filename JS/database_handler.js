@@ -150,3 +150,225 @@ async function getCharacterImage(CHAR_ID) {
         };
     });
 }
+
+// Save and get for each index
+async function saveCharacterAlias(CHAR_ID, alias) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_alias = alias;
+        objectStore.put(record);
+    };
+}
+async function getCharacterAlias(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.character_alias ? result.character_alias : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveCharacterNameColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_name_color = color;
+        objectStore.put(record);
+    };
+}
+async function getCharacterNameColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.character_name_color ? result.character_name_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveCharacterNarrationColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_narration_color = color;
+        objectStore.put(record);
+    };
+}
+async function getCharacterNarrationColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.character_narration_color ? result.character_narration_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveCharacterMessageColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_message_color = color;
+        objectStore.put(record);
+    };
+}
+async function getCharacterMessageColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.character_message_color ? result.character_message_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveCharacterMessageBoxColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.character_message_box_color = color;
+        objectStore.put(record);
+    };
+}
+async function getCharacterMessageBoxColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.character_message_box_color ? result.character_message_box_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveUsernameColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.username_color = color;
+        objectStore.put(record);
+    };
+}
+async function getUsernameColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.username_color ? result.username_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveUserMessageColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.user_message_color = color;
+        objectStore.put(record);
+    };
+}
+async function getUserMessageColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.user_message_color ? result.user_message_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+async function saveUserMessageBoxColor(CHAR_ID, color) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        record.user_message_box_color = color;
+        objectStore.put(record);
+    };
+}
+async function getUserMessageBoxColor(CHAR_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const request = objectStore.get(CHAR_ID);
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            const result = event.target.result;
+            resolve(result && result.user_message_box_color ? result.user_message_box_color : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+// Ensure current CHAT_ID is stored in chat_ids array for CHAR_ID
+async function ensureChatIdForCharacter(CHAR_ID, CHAT_ID) {
+    if (!db) await openDatabase();
+    const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+    const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+    const getRequest = objectStore.get(CHAR_ID);
+    getRequest.onsuccess = function(event) {
+        let record = event.target.result || { CHAR_ID };
+        if (!Array.isArray(record.chat_ids)) {
+            record.chat_ids = [];
+        }
+        if (!record.chat_ids.includes(CHAT_ID)) {
+            record.chat_ids.push(CHAT_ID);
+            objectStore.put(record);
+        }
+    };
+    getRequest.onerror = function(e) {
+        console.error('Failed to get record for chat_ids:', e.target.error);
+    };
+}

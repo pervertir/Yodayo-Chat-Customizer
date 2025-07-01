@@ -498,6 +498,7 @@ function initializeCharacterSettingsEventHandlers(form) {
 
     // Add Save button event handler
     let saveButton = form.querySelector('#save-button');
+    let applyToAllCheckbox = form.querySelector('#apply-to-all-checkbox');
     if (saveButton) {
         saveButton.addEventListener('click', async function () {
             await saveCharacterDetailsToDB(form);
@@ -529,333 +530,9 @@ function initializeCharacterSettingsEventHandlers(form) {
                 let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveBackgroundImage(CHAR_ID, bgImageBase64);
             }
-        });
-    }
-
-    // Add Delete Current Page Style button event handler
-    let deleteCurrentPageStyleButton = form.querySelector('#delete-current-page-style-button');
-    if (deleteCurrentPageStyleButton) {
-        deleteCurrentPageStyleButton.addEventListener('click', async function () {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
-            alert('Current chat style excluded for this character.');
-        });
-    }
-
-    // Add Delete All Character Styles button event handler
-    let deleteAllCharacterStylesButton = form.querySelector('#delete-all-character-styles-button');
-    if (deleteAllCharacterStylesButton) {
-        deleteAllCharacterStylesButton.addEventListener('click', async function () {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            await deleteCharacterRecord(CHAR_ID);
-            alert('All styles for this character have been deleted.');
-        });
-    }
-}
-
-// --- DOM HELPERS ---
-/**
- * Adds the 'username' class to all username elements.
- * @returns {void}
- */
-function addUserNameClass() {
-    /** @type {NodeListOf<HTMLElement>} */
-    let usernameElements = document.querySelectorAll(user_name);
-    usernameElements.forEach((element) => {
-        element.classList.add('username');
-    });
-}
-
-/**
- * Handles DOM mutations to add the 'username' class to new username elements.
- * @param {MutationRecord[]} mutationsList
- * @returns {void}
- */
-function handleMutations(mutationsList) {
-    for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    if (node.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
-                        node.classList.add('username');
-                    }
-                }
-                node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
-                    if (child.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
-                        child.classList.add('username');
-                    }
-                });
-            });
-        }
-    }
-}
-
-// --- EVENT HANDLERS ---
-/**
- * Initializes the close button event handler for the popup form.
- * @param {HTMLElement} form
- * @param {HTMLElement} formBody
- * @returns {void}
- */
-function initializeCloseButtonEventHandler(form, formBody) {
-    console.log(formBody);
-    const closeModal = () => {
-        // document.documentElement.style.cssText = '';
-
-        let main = document.querySelector('body > main');
-        main.setAttribute('aria-hidden', 'false');
-        main.removeAttribute('inert');
-
-        // form.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
-        form.remove();
-        document.removeEventListener('click', handleClickOutside);
-
-    };
-
-    const handleClickOutside = (event) => {
-        if (!formBody.contains(event.target)) {
-            closeModal();
-        }
-    };
-
-    let closeButton = form.querySelector('#close-button');
-    closeButton.addEventListener('click', closeModal);
-
-    // Add event listener to close modal on click outside
-    document.addEventListener('click', handleClickOutside);
-}
-
-/**
- * Initializes event handlers for character settings form.
- * @param {HTMLElement} form
- * @returns {void}
- */
-function initializeCharacterSettingsEventHandlers(form) {
-    let char_name_input = form.querySelector('#name-input');
-    if (!char_name_input) {
-        console.log('#name-input element not found');
-    } else {
-        char_name_input.addEventListener('input', function () {
-            setAlias(char_name_input.value);
-        });
-    }
-
-    let char_name_color_input = form.querySelector('#name-color-input');
-    if (!char_name_color_input) {
-        console.log('#name-color-input element not found');
-    } else {
-        char_name_color_input.addEventListener('input', function () {
-            setAliasColor(char_name_color_input.value);
-        });
-    }
-
-    let char_image_url_input = form.querySelector('#character-image-url-input');
-    if (!char_image_url_input) {
-        console.log('#character-image-url-input element not found');
-    } else {
-        char_image_url_input.addEventListener('input', async function () {
-            let url = char_image_url_input.value;
-            let imageBase64 = await urlToBase64(url);
-            setCharacterImage(imageBase64);
-        });
-    }
-
-    let char_image_file_input = form.querySelector('#character-image-file-input');
-    if (!char_image_file_input) {
-        console.log('#character-image-file-input element not found');
-    } else {
-        char_image_file_input.addEventListener('change', async function () {
-            let url = char_image_file_input.files[0];
-            let imageBase64 = await fileToBase64(url);
-            setCharacterImage(imageBase64);
-        });
-    }
-
-    let bg_url_input = form.querySelector('#bg-url-input');
-    if (!bg_url_input) {
-        console.log('#bg-url-input element not found');
-    } else {
-        bg_url_input.addEventListener('input', async function () {
-            let url = bg_url_input.value;
-            let imageBase64 = await urlToBase64(url);
-            setBackgroundImage(imageBase64);
-        });
-    }
-
-    let bg_file_input = form.querySelector('#bg-file-input');
-    if (!bg_file_input) {
-        console.log('#bg-file-input element not found');
-    } else {
-        bg_file_input.addEventListener('change', async function () {
-            let url = bg_file_input.files[0];
-            let imageBase64 = await fileToBase64(url);
-            setBackgroundImage(imageBase64);
-        });
-    }
-
-    let char_narr_input = form.querySelector('#character-narration-color-input');
-    if (!char_narr_input) {
-        console.log('#character-narration-color-input element not found');
-    } else {
-        char_narr_input.addEventListener('input', function () {
-            setCharacterNarrationColor(char_narr_input.value);
-        });
-    }
-
-
-    let char_chat_input = form.querySelector('#character-chat-color-input');
-    if (!char_chat_input) {
-        console.log('#character-chat-color-input element not found');
-    } else {
-        char_chat_input.addEventListener('input', function () {
-            setCharacterChatColor(char_chat_input.value);
-        });
-    }
-
-    let user_chat_input = form.querySelector('#user-chat-color-input');
-    if (!user_chat_input) {
-        console.log('#user-chat-color-input element not found');
-    } else {
-        user_chat_input.addEventListener('input', function () {
-            // Define the regex to match selectors starting with 'bg-black' and containing '85'
-            const regex = user_message;
-
-            setUserChatColor(user_chat_input.value, regex);
-        });
-    }
-
-
-    let char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
-    if (!char_chat_bg_input) {
-        console.log('#character-chat-bg-color-input element not found');
-    } else {
-        char_chat_bg_input.addEventListener('input', function () {
-            // Define the regex to match selectors starting with 'bg-black' and containing '85'
-            const regex = character_chat_bubble_background;
-
-            setCharacterChatBgColor(char_chat_bg_input.value, regex);
-        });
-    }
-
-
-    let user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-    if (!user_chat_bg_input) {
-        console.log('#user-chat-bg-color-input element not found');
-    } else {
-        user_chat_bg_input.addEventListener('input', function () {
-            // Define the regex to match selectors starting with 'bg-black' and containing '85'
-            const regex = user_chat_bubble_background;
-
-            setUserChatBgColor(user_chat_bg_input.value, regex);
-        });
-    }
-
-
-    let char_settings_reset = form.querySelector('#character-settings-reset-button');
-    if (!char_settings_reset) {
-        console.log('#character-settings-reset-button element not found');
-    } else {
-        char_settings_reset.addEventListener('click', function () {
-            // Reset character name
-            char_name_input.value = '';
-            setAlias('');
-
-            // Reset character name color
-            char_name_color_input.value = '#ffffff';
-            setAliasColor('#ffffff');
-
-            // Reset character image URL and file
-            char_image_url_input.value = '';
-            char_image_file_input.value = '';
-            // Optionally, reset the character image in the UI if needed
-            // ... (custom logic if you want to remove/reset the image)
-        });
-    }
-
-    let background_settings_reset = form.querySelector('#background-reset-button');
-    if (!background_settings_reset) {
-        console.log('#background-reset-button element not found');
-    } else {
-        background_settings_reset.addEventListener('click', function () {
-            // Reset background URL and file
-            bg_url_input.value = '';
-            bg_file_input.value = '';
-            // Optionally, reset the background image in the UI if needed
-            // ... (custom logic if you want to remove/reset the background)
-        });
-    }
-
-    let colors_reset = form.querySelector('#color-reset-button');
-    if (!colors_reset) {
-        console.log('#color-reset-button element not found');
-    } else {
-        colors_reset.addEventListener('click', function () {
-            // Reset character narration color
-            char_narr_input.value = '#b0d8fB';
-            setCharacterNarrationColor('#b0d8fB');
-            // Reset character chat color
-            char_chat_input.value = '#ffffff';
-            setCharacterChatColor('#ffffff');
-            // Reset character chat background
-            char_chat_bg_input.value = '#000000';
-            setCharacterChatBgColor('#000000', character_chat_bubble_background);
-            // Reset user name color
-            user_name_color_input.value = '#000000';
-            setUserNameColor('#000000');
-            // Reset user chat color
-            user_chat_input.value = '#000000';
-            setUserChatColor('#000000', user_message);
-            // Reset user chat background
-            user_chat_bg_input.value = '#ffffff';
-            setUserChatBgColor('#ffffff', user_chat_bubble_background);
-
-            // Optionally, update the UI to reflect these resets
-            // Trigger input events to update the UI
-            char_narr_input.dispatchEvent(new Event('input'));
-            char_chat_input.dispatchEvent(new Event('input'));
-            char_chat_bg_input.dispatchEvent(new Event('input'));
-            user_name_color_input.dispatchEvent(new Event('input'));
-            user_chat_input.dispatchEvent(new Event('input'));
-            user_chat_bg_input.dispatchEvent(new Event('input'));
-        });
-    }
-
-    // Add Save button event handler
-    let saveButton = form.querySelector('#save-button');
-    if (saveButton) {
-        saveButton.addEventListener('click', async function () {
-            await saveCharacterDetailsToDB(form);
-            // Save character image
-            let char_image_url = form.querySelector('#character-image-url-input').value;
-            let char_image_file = form.querySelector('#character-image-file-input').files[0];
-            let charImageBase64 = null;
-            if (char_image_file) {
-                charImageBase64 = await fileToBase64(char_image_file);
-            } else if (char_image_url) {
-                charImageBase64 = await urlToBase64(char_image_url);
-            }
-            if (charImageBase64) {
-                let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-                saveCharacterImage(CHAR_ID, charImageBase64);
-            }
-            // Save background image
-            let bg_url = form.querySelector('#bg-url-input').value;
-            let bg_file = form.querySelector('#bg-file-input').files[0];
-            let bgImageBase64 = null;
-            if (bg_file) {
-                bgImageBase64 = await fileToBase64(bg_file);
-            } else if (bg_url) {
-                bgImageBase64 = await urlToBase64(bg_url);
-            }
-            if (bgImageBase64) {
-                let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-                saveBackgroundImage(CHAR_ID, bgImageBase64);
+            // --- Apply to All (Universal) functionality ---
+            if (applyToAllCheckbox && applyToAllCheckbox.checked) {
+                await saveCharacterDetailsToDB(form, 'Universal');
             }
         });
     }
@@ -997,7 +674,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-colorInput').dispatchEvent(new Event('input'));
 }
 
 /**
@@ -1060,11 +737,12 @@ function handleFormAdded(mutationsList, observer) {
 /**
  * Saves the current character defaults to the database for later reset.
  * @param {HTMLElement} form
+ * @param {string} [overrideCharId] Optional CHAR_ID to override (for Universal save)
  * @returns {Promise<void>}
  */
-async function saveCharacterDetailsToDB(form) {
+async function saveCharacterDetailsToDB(form, overrideCharId) {
     let anchor = document.querySelector(char_id_selector);
-    let CHAR_ID = findCharacterID(anchor);
+    let CHAR_ID = overrideCharId || findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
 
     // Gather current values

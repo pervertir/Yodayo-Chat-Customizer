@@ -45,6 +45,7 @@ const chat_customizer_body_resource_name = 'chat_customizer_body';
 const image_viewer_popup_resource_name = 'image_viewer_popup';
 const notification_resource_name = 'injection_notification';
 const character_image_container_resource_name = 'character_image_container';
+const card_layout_resource_name = 'card_layout';
 
 // Database Constants
 const DB_NAME = 'MoescapeChatCustomizerDB';

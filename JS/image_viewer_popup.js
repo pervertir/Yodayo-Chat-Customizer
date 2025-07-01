@@ -37,11 +37,19 @@ iv_observer.observe(document.body, { childList: true, subtree: true });
 
 /**
  * Loads the card_layout.html template and renders it inside the div with id #card.
- * Assumes util functions for fetching and rendering HTML are available in utils.js.
+ * Uses renderHTMLFromFile from utils.js.
  */
 async function renderCardLayoutInDiv() {
-    // Fetch the card layout template (assuming utils.js has a fetchHtml utility)
-    const cardHtml = await fetchHtml('HTML/card_layout.html');
-    // Render the HTML into the #card div (assuming utils.js has a renderHtml utility)
-    renderHtml('#card', cardHtml);
+    const cardContainer = document.getElementById('card');
+    if (!cardContainer) {
+        console.error('No element with id #card found.');
+        return;
+    }
+    try {
+        const cardElement = await renderHTMLFromFile(card_layout_resource_name);
+        cardContainer.innerHTML = '';
+        cardContainer.appendChild(cardElement);
+    } catch (error) {
+        console.error('Failed to render card layout:', error);
+    }
 }

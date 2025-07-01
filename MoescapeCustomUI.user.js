@@ -1,35 +1,37 @@
 // ==UserScript==
 // @name         Moescape Customizer
-// @version      Alpha-v12
+// @version      Alpha-v13
 
 // @namespace    MOESCAPE
 
 // @description  Fully Customize Moescape Chats
 // @author       Pervertir
 
-// @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer/tree/main
-// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/MoescapeCustomUI.user.js
-// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/main/MoescapeCustomUI.user.js
+// @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer
+// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/MoescapeCustomUI.user.js
+// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/MoescapeCustomUI.user.js
 // @supportURL   https://github.com/pervertir/Yodayo-Chat-Customizer/issues
 
 // @match        https://moescape.ai/*
+// @match        https://yodayo.com/*
+
 // @run-at       document-end
 // @grant        GM_getResourceURL
 // @grant        GM_xmlhttpRequest
 
-// @resource     chat_customizer_body        https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/chat_customizer_popup.html
-// @resource     customize_chat_button       https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/customize_chat_button.html
-// @resource     db_connect                  https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/db_connect_button.html
-// @resource     character_image_container   https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/character_image_container.html
-// @resource     image_viewer_popup          https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/image_viewer_popup.html
-// @resource     injection_notification      https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/HTML/notification.html
+// @resource     chat_customizer_body        https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/chat_customizer_popup.html
+// @resource     customize_chat_button       https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/customize_chat_button.html
+// @resource     db_connect                  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/db_connect_button.html
+// @resource     character_image_container   https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/character_image_container.html
+// @resource     image_viewer_popup          https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/image_viewer_popup.html
+// @resource     injection_notification      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/notification.html
 
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\constants.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\database_handler.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\utils.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\chat_customizer_popup.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\image_viewer_popup.js
-// @require      file://D:\Workspace\Yodayo-Chat-Customizer\JS\moescape_chat_customizer.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/constants.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/database_handler.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/utils.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/chat_customizer_popup.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_viewer_popup.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/moescape_chat_customizer.js
 
 // @icon         https://moescape.ai/assets/images/logo.svg
 

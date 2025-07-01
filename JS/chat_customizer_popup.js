@@ -18,7 +18,7 @@ async function setBackgroundImage(imageBase64) {
 
     console.log('Setting new background image');
     console.log(targetDivs);
-    let bgURL = targetDivs[0].style.backgroundImage;
+    let bgUrl = targetDivs[0].style.backgroundImage;
     let urlMatch = bgUrl.match(/^url\\(['"]?(.*?)['"]?\\)$/);
     default_background_image = urlMatch ? urlMatch[1] : null
     divElements.forEach((targetDiv) => {

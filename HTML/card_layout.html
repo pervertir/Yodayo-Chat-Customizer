@@ -1,14 +1,15 @@
-<div class="bg-[#23242a] flex flex-row items-center justify-center rounded-lg shadow-lg p-6 w-full max-w-3xl min-w-0 border border-[#333]">
+<div class="bg-zinc-900 flex flex-row items-center justify-center rounded-lg shadow-lg p-6 w-full max-w-3xl min-w-0 border border-zinc-800">
   <!-- Left Column -->
   <div id="card-left-column" class="w-1/2 min-w-0 flex flex-col items-center relative">
-    <div id="card-image-stack" class="flex w-full aspect-square relative">
-      <!-- Background Image -->
-      <img id="card-bg-image" src="bg.png" alt="Background" class="w-full h-full object-cover rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-50">
-      <!-- Character Image (transparent background expected) -->
-      <img id="card-character-image" src="sakura.png" alt="Character" class="w-2/3 h-2/3 object-contain rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+    <div id="card-image-stack" class="flex w-full aspect-[3/4] relative">
+        <!-- Background Image -->
+        <img id="card-bg-image" src="bg.png" alt="Background" class="w-full h-full object-cover rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-50">
+        <!-- Character Image (transparent background expected) -->
+        <img id="card-character-image" src="sakura.png" alt="Character" class="w-48 h-80 
+        object-contain rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
     </div>
     <!-- Character Name -->
-    <div id="card-character-name" class="absolute w-full bottom-6 left-1/2 -translate-x-1/2 bg-[#18181c] bg-opacity-90 text-gray-100 px-4 py-1 rounded text-md font-semibold z-20 text-center pointer-events-none border border-[#444] shadow">
+    <div id="card-character-name" class="absolute w-full bottom-0 left-1/2 -translate-x-1/2 bg-zinc-800 bg-opacity-90 text-zinc-100 px-4 py-1 rounded text-md font-semibold z-20 text-center pointer-events-none border border-zinc-700 shadow">
       Character Name
     </div>
   </div>
@@ -16,32 +17,32 @@
   <div id="card-right-column" class="w-1/2 min-w-0 flex flex-col justify-center pl-8">
     <form id="card-color-form" class="space-y-4">
       <div class="flex items-center justify-between">
-        <label for="color-char-name" class="mr-2 font-medium text-gray-100">Char Name</label>
-        <input id="color-char-name" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-char-name" class="mr-2 font-medium text-sm text-primaryText">Char Name</label>
+        <input id="color-char-name" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-char-dialogues" class="mr-2 font-medium text-gray-100">Char Dialogues</label>
-        <input id="color-char-dialogues" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-char-dialogues" class="mr-2 font-medium text-sm text-primaryText">Char Dialogues</label>
+        <input id="color-char-dialogues" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-char-narration" class="mr-2 font-medium text-gray-100">Char Narration</label>
-        <input id="color-char-narration" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-char-narration" class="mr-2 font-medium text-sm text-primaryText">Char Narration</label>
+        <input id="color-char-narration" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-char-bubble-bg" class="mr-2 font-medium text-gray-100">Char Bubble Bg</label>
-        <input id="color-char-bubble-bg" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-char-bubble-bg" class="mr-2 font-medium text-sm text-primaryText">Char Bubble Bg</label>
+        <input id="color-char-bubble-bg" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-user-name" class="mr-2 font-medium text-gray-100">User Name</label>
-        <input id="color-user-name" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-user-name" class="mr-2 font-medium text-sm text-primaryText">User Name</label>
+        <input id="color-user-name" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-user-dialogue" class="mr-2 font-medium text-gray-100">User Dialogue</label>
-        <input id="color-user-dialogue" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-user-dialogue" class="mr-2 font-medium text-sm text-primaryText">User Dialogue</label>
+        <input id="color-user-dialogue" type="color" class="h-10 bg-tertiaryBg" />
       </div>
       <div class="flex items-center justify-between">
-        <label for="color-user-bubble-bg" class="mr-2 font-medium text-gray-100">User Bubble Bg</label>
-        <input id="color-user-bubble-bg" type="color" class="w-10 h-8 rounded border border-[#444] bg-[#23242a] focus:ring-2 focus:ring-[#444]" />
+        <label for="color-user-bubble-bg" class="mr-2 font-medium text-sm text-primaryText">User Bubble Bg</label>
+        <input id="color-user-bubble-bg" type="color" class="h-10 bg-tertiaryBg" />
       </div>
     </form>
   </div>

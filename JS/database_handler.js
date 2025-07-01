@@ -13,7 +13,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [character_alias]
  * @property {string} [character_name_color]
  * @property {string} [character_image]
- * @property {string} [default_background_image] // Base64 string for the default character image
+ * @property {string} [default_background_image] // URL for the default character background image
  * @property {string} [character_narration_color]
  * @property {string} [character_message_color]
  * @property {string} [character_message_box_color]

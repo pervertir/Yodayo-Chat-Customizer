@@ -49,7 +49,7 @@ async function renderAllCardsInDiv() {
         const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
         cardContainer.innerHTML = '';
         for (const record of records) {
-            const cardElement = await renderHTMLFromFile('HTML/card_layout.html');
+            const cardElement = await renderHTMLFromFile(card_layout_resource_name);
             // Set background image
             const bgImg = cardElement.querySelector('#card-bg-image');
             if (bgImg && record.background_image) {

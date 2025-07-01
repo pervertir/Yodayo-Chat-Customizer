@@ -503,6 +503,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         console.log('#save-button element not found');
     } else {
         saveButton.addEventListener('click', async function () {
+            // Save all character defaults (name, colors, etc.)
             await saveCharacterDefaults(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
@@ -814,6 +815,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         console.log('#save-button element not found');
     } else {
         saveButton.addEventListener('click', async function () {
+            // Save all character defaults (name, colors, etc.)
             await saveCharacterDefaults(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
@@ -1022,16 +1024,30 @@ async function saveCharacterDefaults(form) {
     const user_chat_input = form.querySelector('#user-chat-color-input');
     const user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
 
-    // Only store values that are not default (defaults can be constants)
+    // Store null if input is missing or empty, otherwise store the value
+    const getOrNull = (input) => (input && input.value !== '' ? input.value : null);
+
+    /**
+     * @type {{
+     *   character_alias: string|null,
+     *   character_name_color: string|null,
+     *   character_narration_color: string|null,
+     *   character_message_color: string|null,
+     *   character_message_box_color: string|null,
+     *   username_color: string|null,
+     *   user_message_color: string|null,
+     *   user_message_box_color: string|null
+     * }}
+     */
     const defaults = {
-        character_alias: char_name_input ? char_name_input.value : '',
-        character_name_color: char_name_color_input ? char_name_color_input.value : '',
-        character_narration_color: char_narr_input ? char_narr_input.value : '',
-        character_message_color: char_chat_input ? char_chat_input.value : '',
-        character_message_box_color: char_chat_bg_input ? char_chat_bg_input.value : '',
-        username_color: user_name_color_input ? user_name_color_input.value : '',
-        user_message_color: user_chat_input ? user_chat_input.value : '',
-        user_message_box_color: user_chat_bg_input ? user_chat_bg_input.value : ''
+        character_alias: getOrNull(char_name_input),
+        character_name_color: getOrNull(char_name_color_input),
+        character_narration_color: getOrNull(char_narr_input),
+        character_message_color: getOrNull(char_chat_input),
+        character_message_box_color: getOrNull(char_chat_bg_input),
+        username_color: getOrNull(user_name_color_input),
+        user_message_color: getOrNull(user_chat_input),
+        user_message_box_color: getOrNull(user_chat_bg_input)
     };
 
     // Save to DB (merge with existing record)

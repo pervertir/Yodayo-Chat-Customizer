@@ -18,7 +18,7 @@
     let scriptLoaded = false;
     let urlCheckInterval = null;
     let menuItemsAdded = false;
-    // var observer = null;
+    let observer = null;
     
     /**
      * Checks if the current URL matches the target chat page pattern.
@@ -143,7 +143,7 @@
         console.log('Char ID: ', CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
         if (!menuItemsAdded){ 
-            var observer = new MutationObserver((mutations) => {
+            observer = new MutationObserver((mutations) => {
                 if (isTargetUrl()) {
                     for (const mutation of mutations) {
                         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -164,7 +164,7 @@
 
         if (menuItemsAdded) {
             showElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
-        } 
+        }  
   
     }
 

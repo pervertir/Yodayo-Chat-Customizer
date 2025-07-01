@@ -504,7 +504,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     } else {
         saveButton.addEventListener('click', async function () {
             // Save all character defaults (name, colors, etc.)
-            await saveCharacterDefaults(form);
+            await saveCharacterDetailsToDB(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
             let char_image_file = form.querySelector('#character-image-file-input').files[0];
@@ -816,7 +816,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     } else {
         saveButton.addEventListener('click', async function () {
             // Save all character defaults (name, colors, etc.)
-            await saveCharacterDefaults(form);
+            await saveCharacterDetailsToDB(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
             let char_image_file = form.querySelector('#character-image-file-input').files[0];
@@ -1009,7 +1009,7 @@ function handleFormAdded(mutationsList, observer) {
  * @param {HTMLElement} form
  * @returns {Promise<void>}
  */
-async function saveCharacterDefaults(form) {
+async function saveCharacterDetailsToDB(form) {
     let anchor = document.querySelector(char_id_selector);
     let CHAR_ID = findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
@@ -1025,41 +1025,17 @@ async function saveCharacterDefaults(form) {
     const user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
 
     // Store null if input is missing or empty, otherwise store the value
-    const getOrNull = (input) => (input && input.value !== '' ? input.value : 'null');
+    const getOrNull = (input) => (input && input.value !== '' ? input.value : null);
 
-    /**
-     * @type {{
-     *   character_alias: string|null,
-     *   character_name_color: string|null,
-     *   character_narration_color: string|null,
-     *   character_message_color: string|null,
-     *   character_message_box_color: string|null,
-     *   username_color: string|null,
-     *   user_message_color: string|null,
-     *   user_message_box_color: string|null
-     * }}
-     */
-    const defaults = {
-        character_alias: getOrNull(char_name_input),
-        character_name_color: getOrNull(char_name_color_input),
-        character_narration_color: getOrNull(char_narr_input),
-        character_message_color: getOrNull(char_chat_input),
-        character_message_box_color: getOrNull(char_chat_bg_input),
-        username_color: getOrNull(user_name_color_input),
-        user_message_color: getOrNull(user_chat_input),
-        user_message_box_color: getOrNull(user_chat_bg_input)
-    };
-
-    // Save to DB (merge with existing record)
-    if (window.db) {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        getRequest.onsuccess = function (event) {
-            let record = event.target.result || { CHAR_ID };
-            Object.assign(record, defaults);
-            objectStore.put(record);
-        };
-    }
+    await Promise.all([
+        saveCharacterAlias(CHAR_ID, getOrNull(char_name_input)),
+        saveCharacterNameColor(CHAR_ID, getOrNull(char_name_color_input)),
+        saveCharacterNarrationColor(CHAR_ID, getOrNull(char_narr_input)),
+        saveCharacterMessageColor(CHAR_ID, getOrNull(char_chat_input)),
+        saveCharacterMessageBoxColor(CHAR_ID, getOrNull(char_chat_bg_input)),
+        saveUsernameColor(CHAR_ID, getOrNull(user_name_color_input)),
+        saveUserMessageColor(CHAR_ID, getOrNull(user_chat_input)),
+        saveUserMessageBoxColor(CHAR_ID, getOrNull(user_chat_bg_input))
+    ]);
 }
 

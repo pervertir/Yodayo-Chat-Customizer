@@ -91,7 +91,7 @@ function openDatabase() {
  * @template {keyof CharacterRecord} K
  * @param {string} CHAR_ID
  * @param {K} field
- * @param {CharacterRecord[K]} value
+ * @param {CharacterRecord[K] | null} value // Accept string | null
  * @returns {Promise<void>}
  */
 async function saveCharacterField(CHAR_ID, field, value) {
@@ -134,65 +134,85 @@ async function getCharacterField(CHAR_ID, field) {
 }
 
 // Refactored save/get functions using helpers
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} imageBase64
+ * @returns {Promise<void>}
+ */
 async function saveBackgroundImage(CHAR_ID, imageBase64) {
     return saveCharacterField(CHAR_ID, 'background_image', imageBase64);
 }
-async function getBackgroundImage(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'background_image');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} imageBase64
+ * @returns {Promise<void>}
+ */
 async function saveCharacterImage(CHAR_ID, imageBase64) {
     return saveCharacterField(CHAR_ID, 'character_image', imageBase64);
 }
-async function getCharacterImage(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_image');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} alias
+ * @returns {Promise<void>}
+ */
 async function saveCharacterAlias(CHAR_ID, alias) {
     return saveCharacterField(CHAR_ID, 'character_alias', alias);
 }
-async function getCharacterAlias(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_alias');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveCharacterNameColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'character_name_color', color);
 }
-async function getCharacterNameColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_name_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveCharacterNarrationColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'character_narration_color', color);
 }
-async function getCharacterNarrationColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_narration_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveCharacterMessageColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'character_message_color', color);
 }
-async function getCharacterMessageColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_message_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveCharacterMessageBoxColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'character_message_box_color', color);
 }
-async function getCharacterMessageBoxColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'character_message_box_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveUsernameColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'username_color', color);
 }
-async function getUsernameColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'username_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveUserMessageColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'user_message_color', color);
 }
-async function getUserMessageColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'user_message_color');
-}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} color
+ * @returns {Promise<void>}
+ */
 async function saveUserMessageBoxColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'user_message_box_color', color);
-}
-async function getUserMessageBoxColor(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'user_message_box_color');
 }
 
 /**

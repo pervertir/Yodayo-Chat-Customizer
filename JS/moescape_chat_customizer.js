@@ -149,6 +149,10 @@
         window.addEventListener('keydown', function(e) {
             if (e.altKey && e.key === '/') {
                 addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name);
+                // Create a new observer
+                let formAdded_observer = new MutationObserver(handleFormAdded);
+                // Start observing the body for changes
+                formAdded_observer.observe(document.body, { childList: true, subtree: true });
             }
         });
         if (!menuItemsAdded){ 

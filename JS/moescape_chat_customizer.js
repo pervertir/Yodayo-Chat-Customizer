@@ -134,13 +134,16 @@
     /**
      * Callback for when the main chat element is loaded.
      * @param {HTMLElement} element - The chat DOM element.
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    function onLoad(element) {
+    async function onLoad(element) {
         console.log('Page loaded');
 
-        const CHAR_ID = findCharacterID(element);
+        let CHAR_ID = findCharacterID(element);
         console.log('Char ID: ', CHAR_ID);
+        let anchor = document.querySelector(char_id_selector);
+        if (!CHAR_ID) CHAR_ID = CHAT_ID;
+        await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
         if (!menuItemsAdded){ 
             observer = new MutationObserver((mutations) => {

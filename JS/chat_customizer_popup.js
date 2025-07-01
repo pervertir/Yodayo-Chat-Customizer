@@ -860,18 +860,10 @@ function initializeCharacterSettingsEventHandlers(form) {
  * @returns {Promise<void>}
  */
 async function loadCustomizedUI(CHAR_ID) {
-    // Load and set character image
-    const charImage = await getCharacterImage(CHAR_ID);
-    if (charImage) {
-        setCharacterImage(charImage);
-    }
-    // Load and set background image
-    const bgImage = await getBackgroundImage(CHAR_ID);
-    if (bgImage) {
-        setBackgroundImage(bgImage);
-    }
-    // Load and set all other UI properties
+    // Load all customizer fields using getCharacterField
     const [
+        charImage,
+        bgImage,
         alias,
         nameColor,
         narrationColor,
@@ -881,15 +873,19 @@ async function loadCustomizedUI(CHAR_ID) {
         userMessageColor,
         userMessageBoxColor
     ] = await Promise.all([
-        getCharacterAlias(CHAR_ID),
-        getCharacterNameColor(CHAR_ID),
-        getCharacterNarrationColor(CHAR_ID),
-        getCharacterMessageColor(CHAR_ID),
-        getCharacterMessageBoxColor(CHAR_ID),
-        getUsernameColor(CHAR_ID),
-        getUserMessageColor(CHAR_ID),
-        getUserMessageBoxColor(CHAR_ID)
+        getCharacterField(CHAR_ID, 'character_image'),
+        getCharacterField(CHAR_ID, 'background_image'),
+        getCharacterField(CHAR_ID, 'character_alias'),
+        getCharacterField(CHAR_ID, 'character_name_color'),
+        getCharacterField(CHAR_ID, 'character_narration_color'),
+        getCharacterField(CHAR_ID, 'character_message_color'),
+        getCharacterField(CHAR_ID, 'character_message_box_color'),
+        getCharacterField(CHAR_ID, 'username_color'),
+        getCharacterField(CHAR_ID, 'user_message_color'),
+        getCharacterField(CHAR_ID, 'user_message_box_color')
     ]);
+    if (charImage) setCharacterImage(charImage);
+    if (bgImage) setBackgroundImage(bgImage);
     if (alias !== null) setAlias(alias);
     if (nameColor !== null) setAliasColor(nameColor);
     if (narrationColor !== null) setCharacterNarrationColor(narrationColor);
@@ -956,7 +952,7 @@ async function loadCustomizerData(form) {
     let anchor = document.querySelector(char_id_selector);
     let CHAR_ID = findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
-    await loadCustomizedUI(CHAR_ID);
+    // await loadCustomizedUI(CHAR_ID);
     await populateCustomizerPopup(form, CHAR_ID);
 }
 

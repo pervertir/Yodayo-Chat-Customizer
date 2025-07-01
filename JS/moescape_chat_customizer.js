@@ -145,10 +145,10 @@
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
-        // Add Alt + / keyboard shortcut to open chat customizer popup
+        // Add Alt + Shift + / keyboard shortcut to open chat customizer popup
         window.addEventListener('keydown', function(e) {
             // Fix: use e.code for '/' key and check for focus on input/textarea
-            if (e.altKey && e.shiftKey && (e.key === '?' || e.code === 'Slash')) {
+            if (e.altKey && e.shiftKey && (e.key === '/' || e.code === 'Slash')) {
                 // Prevent default if not in input/textarea
                 if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable)) {
                     return;

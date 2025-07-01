@@ -415,14 +415,14 @@ function initializeCharacterSettingsEventHandlers(form) {
 
 
     let user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-    if (!user_chat_bg_color_input) {
+    if (!user_chat_bg_input) {
         console.log('#user-chat-bg-color-input element not found');
     } else {
-        user_chat_bg_color_input.addEventListener('input', function () {
+        user_chat_bg_input.addEventListener('input', function () {
             // Define the regex to match selectors starting with 'bg-black' and containing '85'
             const regex = user_chat_bubble_background;
 
-            setUserChatBgColor(user_chat_bg_color_input.value, regex);
+            setUserChatBgColor(user_chat_bg_input.value, regex);
         });
     }
 

@@ -127,24 +127,25 @@ function setCharacterNarrationColor(color) {
  * @param {string} color
  * @returns {void}
  */
-function setCharacterChatColor(color) {
-    for (let i = 0; i < document.styleSheets.length; i++) {
-        const styleSheet = document.styleSheets[i];
+function setCharacterChatColor(color, regex) {
+    Array.from(document.styleSheets).forEach((styleSheet) => {
         if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            continue;
+            return;
+        }
+        if (!styleSheet.href) {
+            return;
         }
         try {
-            for (let j = 0; j < styleSheet.cssRules.length; j++) {
-                const rule = styleSheet.cssRules[j];
-                if (rule.selectorText === character_dialogue) {
+            Array.from(styleSheet.cssRules).forEach((rule) => {
+                if (rule.selectorText && regex.test(rule.selectorText)) {
                     rule.style.color = color;
                 }
-            }
+            });
         } catch (e) {
-            console.warn('Cannot access stylesheet: ', styleSheet.href);
-            continue;
+            console.warn('Cannot access stylesheet:', styleSheet.href);
+            console.warn(e);
         }
-    }
+    });
 }
 
 /**

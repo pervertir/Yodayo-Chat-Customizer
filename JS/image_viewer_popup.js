@@ -105,3 +105,4 @@ async function renderCardLayoutInDiv() {
         console.error('Failed to render card layout:', error);
     }
 }
+

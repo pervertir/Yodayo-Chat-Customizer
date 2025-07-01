@@ -60,7 +60,7 @@
             cursor: pointer;
         }
 
-        .gallery {
+        .cards {
             flex: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -87,16 +87,15 @@
             <div class="header">
                 All Chat Settings
                 <div id="close-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#ff0000">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="http://www.w3.org/2000/svg 0 -960 960 960"
+                        width="24px" fill="#ff0000">
                         <path
                             d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
                     </svg>
                 </div>
             </div>
-            <div class="gallery">
-                <div id="card"></div>
-                <!-- Add more images as needed -->
+            <div class="cards" id="cards">
+                <!-- Cards will be inserted here -->
             </div>
             <div class="footer">
                 Yodayo Custom Image Browser

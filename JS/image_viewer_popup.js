@@ -36,7 +36,7 @@ function handleImageViewerAdded(mutationsList, iv_observer) {
  * Each card uses the character's background, character image, and color settings from db.
  */
 async function renderAllCardsInDiv() {
-    const cardContainer = document.getElementById('card');
+    const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
         console.error('No element with id #card found.');
         return;
@@ -92,7 +92,7 @@ iv_observer.observe(document.body, { childList: true, subtree: true });
  * Uses renderHTMLFromFile from utils.js.
  */
 async function renderCardLayoutInDiv() {
-    const cardContainer = document.getElementById('card');
+    const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
         console.error('No element with id #card found.');
         return;

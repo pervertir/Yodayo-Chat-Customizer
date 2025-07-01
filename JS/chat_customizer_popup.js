@@ -1025,7 +1025,7 @@ async function saveCharacterDefaults(form) {
     const user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
 
     // Store null if input is missing or empty, otherwise store the value
-    const getOrNull = (input) => (input && input.value !== '' ? input.value : null);
+    const getOrNull = (input) => (input && input.value !== '' ? input.value : 'null');
 
     /**
      * @type {{

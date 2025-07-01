@@ -147,7 +147,12 @@
         showInjectionNotification(notification_resource_name, CHAR_ID);
         // Add Alt + / keyboard shortcut to open chat customizer popup
         window.addEventListener('keydown', function(e) {
-            if (e.altKey && e.key === '/') {
+            // Fix: use e.code for '/' key and check for focus on input/textarea
+            if (e.altKey && (e.key === '/' || e.code === 'Slash')) {
+                // Prevent default if not in input/textarea
+                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable)) {
+                    return;
+                }
                 addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name);
                 // Create a new observer
                 let formAdded_observer = new MutationObserver(handleFormAdded);

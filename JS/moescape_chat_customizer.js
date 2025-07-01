@@ -145,6 +145,12 @@
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
+        // Add Alt + / keyboard shortcut to open chat customizer popup
+        window.addEventListener('keydown', function(e) {
+            if (e.altKey && e.key === '/') {
+                addCustomizeChatForm(chat_customizer_body_id, chat_customizer_body_resource_name);
+            }
+        });
         if (!menuItemsAdded){ 
             observer = new MutationObserver((mutations) => {
                 if (isTargetUrl()) {

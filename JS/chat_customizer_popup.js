@@ -18,11 +18,11 @@ async function setBackgroundImage(imageBase64) {
 
     console.log('Setting new background image');
     console.log(targetDivs);
-    let bgUrl = targetDivs[0].style.backgroundImage;
+    let bgUrl = divElements[0].style.backgroundImage;
     let urlMatch = bgUrl.match(/^url\\(['"]?(.*?)['"]?\\)$/);
     default_background_image = urlMatch ? urlMatch[1] : null
+    console.log(default_background_image);
     divElements.forEach((targetDiv) => {
-        console.log(default_background_image);
         targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
         targetDiv.style.backgroundSize = 'contain';
         targetDiv.classList.remove('container');

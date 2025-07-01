@@ -1,0 +1,50 @@
+
+<div class="bg-white flex items-center justify-center rounded-lg shadow-lg p-6 w-full max-w-3xl flex">
+    <!-- Left Column -->
+    <div id="card-left-column" class="w-1/2 flex flex-col items-center relative" style="height: 18rem;">
+      <div id="card-image-stack" class="flex w-full h-full">
+        <!-- Background Image -->
+        <img id="card-bg-image" src="bg.png" alt="Background" class="w-full h-60 object-cover justify-center rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+        <!-- Character Image (transparent background expected) -->
+        <img id="card-character-image" src="sakura.png" alt="Character" class="w-40 h-50 object-contain 
+        rounded-lg shadow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+      </div>
+      <!-- Character Name -->
+      <div id="card-character-name" class="absolute w-full bottom-6 left-1/2 -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-1 rounded text-md font-semibold z-20">
+        Character Name
+      </div>
+    </div>
+    <!-- Right Column -->
+    <div id="card-right-column" class="w-1/2 flex flex-col justify-center pl-8">
+      <form id="card-color-form" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label for="color-char-name" class="mr-2 font-medium">Char Name</label>
+          <input id="color-char-name" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-char-dialogues" class="mr-2 font-medium">Char Dialogues</label>
+          <input id="color-char-dialogues" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-char-narration" class="mr-2 font-medium">Char Narration</label>
+          <input id="color-char-narration" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-char-bubble-bg" class="mr-2 font-medium">Char Bubble Bg</label>
+          <input id="color-char-bubble-bg" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-user-name" class="mr-2 font-medium">User Name</label>
+          <input id="color-user-name" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-user-dialogue" class="mr-2 font-medium">User Dialogue</label>
+          <input id="color-user-dialogue" type="color" class="w-10 h-8 rounded" />
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="color-user-bubble-bg" class="mr-2 font-medium">User Bubble Bg</label>
+          <input id="color-user-bubble-bg" type="color" class="w-10 h-8 rounded" />
+        </div>
+      </form>
+    </div>
+</div>

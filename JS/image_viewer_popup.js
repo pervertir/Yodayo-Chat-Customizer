@@ -34,3 +34,14 @@ const iv_observer = new MutationObserver(handleImageViewerAdded);
 
 // Start observing the body for changes
 iv_observer.observe(document.body, { childList: true, subtree: true });
+
+/**
+ * Loads the card_layout.html template and renders it inside the div with id #card.
+ * Assumes util functions for fetching and rendering HTML are available in utils.js.
+ */
+async function renderCardLayoutInDiv() {
+    // Fetch the card layout template (assuming utils.js has a fetchHtml utility)
+    const cardHtml = await fetchHtml('HTML/card_layout.html');
+    // Render the HTML into the #card div (assuming utils.js has a renderHtml utility)
+    renderHtml('#card', cardHtml);
+}

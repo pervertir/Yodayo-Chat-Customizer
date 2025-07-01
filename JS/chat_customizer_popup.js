@@ -497,13 +497,9 @@ function initializeCharacterSettingsEventHandlers(form) {
     }
 
     // Add Save button event handler
-    
     let saveButton = form.querySelector('#save-button');
-    if (!saveButton) {
-        console.log('#save-button element not found');
-    } else {
+    if (saveButton) {
         saveButton.addEventListener('click', async function () {
-            // Save all character defaults (name, colors, etc.)
             await saveCharacterDetailsToDB(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
@@ -516,8 +512,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
             if (charImageBase64) {
                 let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor);
-                if (!CHAR_ID) CHAR_ID = CHAT_ID;
+                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveCharacterImage(CHAR_ID, charImageBase64);
             }
             // Save background image
@@ -531,10 +526,31 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
             if (bgImageBase64) {
                 let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor);
-                if (!CHAR_ID) CHAR_ID = CHAT_ID;
+                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveBackgroundImage(CHAR_ID, bgImageBase64);
             }
+        });
+    }
+
+    // Add Delete Current Page Style button event handler
+    let deleteCurrentPageStyleButton = form.querySelector('#delete-current-page-style-button');
+    if (deleteCurrentPageStyleButton) {
+        deleteCurrentPageStyleButton.addEventListener('click', async function () {
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+            await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
+            alert('Current chat style excluded for this character.');
+        });
+    }
+
+    // Add Delete All Character Styles button event handler
+    let deleteAllCharacterStylesButton = form.querySelector('#delete-all-character-styles-button');
+    if (deleteAllCharacterStylesButton) {
+        deleteAllCharacterStylesButton.addEventListener('click', async function () {
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+            await deleteCharacterRecord(CHAR_ID);
+            alert('All styles for this character have been deleted.');
         });
     }
 }
@@ -809,13 +825,9 @@ function initializeCharacterSettingsEventHandlers(form) {
     }
 
     // Add Save button event handler
-    
     let saveButton = form.querySelector('#save-button');
-    if (!saveButton) {
-        console.log('#save-button element not found');
-    } else {
+    if (saveButton) {
         saveButton.addEventListener('click', async function () {
-            // Save all character defaults (name, colors, etc.)
             await saveCharacterDetailsToDB(form);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
@@ -828,8 +840,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
             if (charImageBase64) {
                 let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor);
-                if (!CHAR_ID) CHAR_ID = CHAT_ID;
+                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveCharacterImage(CHAR_ID, charImageBase64);
             }
             // Save background image
@@ -843,10 +854,31 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
             if (bgImageBase64) {
                 let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor);
-                if (!CHAR_ID) CHAR_ID = CHAT_ID;
+                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveBackgroundImage(CHAR_ID, bgImageBase64);
             }
+        });
+    }
+
+    // Add Delete Current Page Style button event handler
+    let deleteCurrentPageStyleButton = form.querySelector('#delete-current-page-style-button');
+    if (deleteCurrentPageStyleButton) {
+        deleteCurrentPageStyleButton.addEventListener('click', async function () {
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+            await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
+            alert('Current chat style excluded for this character.');
+        });
+    }
+
+    // Add Delete All Character Styles button event handler
+    let deleteAllCharacterStylesButton = form.querySelector('#delete-all-character-styles-button');
+    if (deleteAllCharacterStylesButton) {
+        deleteAllCharacterStylesButton.addEventListener('click', async function () {
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+            await deleteCharacterRecord(CHAR_ID);
+            alert('All styles for this character have been deleted.');
         });
     }
 }
@@ -856,44 +888,69 @@ function initializeCharacterSettingsEventHandlers(form) {
 
 /**
  * Loads all customizer settings and applies them to the actual UI (not the popup form).
+ * If CHAR_ID is not found, but Universal is, loads universal colors only.
+ * If CHAR_ID is found, loads all fields from CHAR_ID, but falls back to Universal for missing color fields.
  * @param {string} CHAR_ID
  * @returns {Promise<void>}
  */
 async function loadCustomizedUI(CHAR_ID) {
-    // Load all customizer fields using getCharacterField
-    const [
-        charImage,
-        bgImage,
-        alias,
-        nameColor,
-        narrationColor,
-        messageColor,
-        messageBoxColor,
-        usernameColor,
-        userMessageColor,
-        userMessageBoxColor
-    ] = await Promise.all([
-        getCharacterField(CHAR_ID, 'character_image'),
-        getCharacterField(CHAR_ID, 'background_image'),
-        getCharacterField(CHAR_ID, 'character_alias'),
-        getCharacterField(CHAR_ID, 'character_name_color'),
-        getCharacterField(CHAR_ID, 'character_narration_color'),
-        getCharacterField(CHAR_ID, 'character_message_color'),
-        getCharacterField(CHAR_ID, 'character_message_box_color'),
-        getCharacterField(CHAR_ID, 'username_color'),
-        getCharacterField(CHAR_ID, 'user_message_color'),
-        getCharacterField(CHAR_ID, 'user_message_box_color')
-    ]);
-    if (charImage) setCharacterImage(charImage);
-    if (bgImage) setBackgroundImage(bgImage);
-    if (alias !== null) setAlias(alias);
-    if (nameColor !== null) setAliasColor(nameColor);
-    if (narrationColor !== null) setCharacterNarrationColor(narrationColor);
-    if (messageColor !== null) setCharacterChatColor(messageColor);
-    if (usernameColor !== null) setUserNameColor(usernameColor);
-    if (userMessageColor !== null) setUserChatColor(userMessageColor, user_message);
-    if (messageBoxColor !== null) setCharacterChatBgColor(messageBoxColor, character_chat_bubble_background);
-    if (userMessageBoxColor !== null) setUserChatBgColor(userMessageBoxColor, user_chat_bubble_background);
+    // Try to load the character record
+    const charRecord = await getCharacterRecord(CHAR_ID);
+    let colorSource = null;
+    let imageSource = null;
+    let bgSource = null;
+    let aliasSource = null;
+    if (charRecord) {
+        // If char record exists, use its images/bg/alias, and prefer its colors, but fallback to universal for missing colors
+        imageSource = charRecord.character_image || null;
+        bgSource = charRecord.background_image || null;
+        aliasSource = charRecord.character_alias || null;
+        // Get universal colors for fallback
+        const universalColors = await getUniversalColorSettings();
+        colorSource = {
+            character_name_color: charRecord.character_name_color ?? (universalColors && universalColors.character_name_color),
+            character_narration_color: charRecord.character_narration_color ?? (universalColors && universalColors.character_narration_color),
+            character_message_color: charRecord.character_message_color ?? (universalColors && universalColors.character_message_color),
+            character_message_box_color: charRecord.character_message_box_color ?? (universalColors && universalColors.character_message_box_color),
+            username_color: charRecord.username_color ?? (universalColors && universalColors.username_color),
+            user_message_color: charRecord.user_message_color ?? (universalColors && universalColors.user_message_color),
+            user_message_box_color: charRecord.user_message_box_color ?? (universalColors && universalColors.user_message_box_color)
+        };
+    } else {
+        // If no char record, try universal
+        const universalColors = await getUniversalColorSettings();
+        colorSource = universalColors || {};
+    }
+    // Set images/bg/alias if present
+    if (imageSource) setCharacterImage(imageSource);
+    if (bgSource) setBackgroundImage(bgSource);
+    if (aliasSource !== null) setAlias(aliasSource);
+    // Set colors if present
+    if (colorSource.character_name_color) setAliasColor(colorSource.character_name_color);
+    if (colorSource.character_narration_color) setCharacterNarrationColor(colorSource.character_narration_color);
+    if (colorSource.character_message_color) setCharacterChatColor(colorSource.character_message_color);
+    if (colorSource.username_color) setUserNameColor(colorSource.username_color);
+    if (colorSource.user_message_color) setUserChatColor(colorSource.user_message_color, user_message);
+    if (colorSource.character_message_box_color) setCharacterChatBgColor(colorSource.character_message_box_color, character_chat_bubble_background);
+    if (colorSource.user_message_box_color) setUserChatBgColor(colorSource.user_message_box_color, user_chat_bubble_background);
+}
+
+/**
+ * Loads the full character record from the database.
+ * @param {string} CHAR_ID
+ * @returns {Promise<CharacterRecord|null>}
+ */
+async function getCharacterRecord(CHAR_ID) {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get(CHAR_ID);
+        getRequest.onsuccess = function(event) {
+            resolve(event.target.result || null);
+        };
+        getRequest.onerror = function(e) { reject(e.target.error); };
+    });
 }
 
 /**

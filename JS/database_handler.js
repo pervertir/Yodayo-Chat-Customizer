@@ -216,44 +216,6 @@ async function saveUserMessageBoxColor(CHAR_ID, color) {
 }
 
 /**
- * @param {string} CHAR_ID
- * @param {string} CHAT_ID
- * @returns {Promise<void>}
- */
-async function ensureChatIdForCharacter(CHAR_ID, CHAT_ID) {
-    if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        getRequest.onsuccess = function(event) {
-            /** @type {CharacterRecord} */
-            let record = event.target.result || { CHAR_ID };
-            // Only proceed if apply_to_all is true
-            if (record.apply_to_all === true) {
-                if (!Array.isArray(record.chat_ids)) {
-                    record.chat_ids = [];
-                }
-                if (!record.chat_ids.includes(CHAT_ID)) {
-                    record.chat_ids.push(CHAT_ID);
-                    const putRequest = objectStore.put(record);
-                    putRequest.onsuccess = function() { resolve(); };
-                    putRequest.onerror = function(e) { reject(e.target.error); };
-                } else {
-                    resolve();
-                }
-            } else {
-                // If not apply_to_all, do nothing
-                resolve();
-            }
-        };
-        getRequest.onerror = function(e) {
-            reject(e.target.error);
-        };
-    });
-}
-
-/**
  * Adds a chat ID to exclude_chat_ids and ensures it is removed from chat_ids.
  * @param {string} CHAR_ID
  * @param {string} CHAT_ID
@@ -282,6 +244,89 @@ async function excludeChatIdForCharacter(CHAR_ID, CHAT_ID) {
             const putRequest = objectStore.put(record);
             putRequest.onsuccess = function() { resolve(); };
             putRequest.onerror = function(e) { reject(e.target.error); };
+        };
+        getRequest.onerror = function(e) { reject(e.target.error); };
+    });
+}
+
+/**
+ * Deletes the entire character record from the database.
+ * @param {string} CHAR_ID
+ * @returns {Promise<void>}
+ */
+async function deleteCharacterRecord(CHAR_ID) {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const deleteRequest = objectStore.delete(CHAR_ID);
+        deleteRequest.onsuccess = function() { resolve(); };
+        deleteRequest.onerror = function(e) { reject(e.target.error); };
+    });
+}
+
+/**
+ * Saves universal color settings (applies to all characters/chats).
+ * Only color fields are stored, not image/bg/character name.
+ * @param {Object} colorSettings - An object with color fields (see below).
+ * @returns {Promise<void>}
+ *
+ * Example colorSettings:
+ * {
+ *   character_name_color: string|null,
+ *   character_narration_color: string|null,
+ *   character_message_color: string|null,
+ *   character_message_box_color: string|null,
+ *   username_color: string|null,
+ *   user_message_color: string|null,
+ *   user_message_box_color: string|null
+ * }
+ */
+async function saveUniversalColorSettings(colorSettings) {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        // Only store color fields
+        const universalRecord = { CHAR_ID: 'Universal', ...colorSettings };
+        const putRequest = objectStore.put(universalRecord);
+        putRequest.onsuccess = function() { resolve(); };
+        putRequest.onerror = function(e) { reject(e.target.error); };
+    });
+}
+
+/**
+ * Loads universal color settings (returns only color fields, not image/bg/name).
+ * @returns {Promise<Object|null>} An object with color fields or null if not set.
+ */
+async function getUniversalColorSettings() {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get('Universal');
+        getRequest.onsuccess = function(event) {
+            const record = event.target.result;
+            if (!record) return resolve(null);
+            // Only return color fields
+            const {
+                character_name_color,
+                character_narration_color,
+                character_message_color,
+                character_message_box_color,
+                username_color,
+                user_message_color,
+                user_message_box_color
+            } = record;
+            resolve({
+                character_name_color,
+                character_narration_color,
+                character_message_color,
+                character_message_box_color,
+                username_color,
+                user_message_color,
+                user_message_box_color
+            });
         };
         getRequest.onerror = function(e) { reject(e.target.error); };
     });

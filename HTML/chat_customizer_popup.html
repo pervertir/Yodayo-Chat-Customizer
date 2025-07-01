@@ -149,22 +149,24 @@
                                         class="flex h-7 w-7 shrink-0 cursor-pointer appearance-none justify-center rounded bg-tertiaryBg checked:before:flex checked:before:items-center checked:before:justify-center checked:before:text-primaryText checked:before:content-[url(/assets/images/checkmark.svg)]"
                                         id="exclude-current-chat" type="checkbox" checked=""><label
                                         class="inline-flex items-center text-sm font-semibold text-primaryText">Set as Character Theme</label></div>
-                            
+                                <span class="text-xs text-secondaryText font-medium">[If both unchecked, theme will be applied to current chat only!]</span>
                             </div>
                                 
                             <hr class="my-6 border-t border-separator/10">
                             <button type="button"
                                 id="save-button"
                                 class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-6 h-11 w-full border-transparent bg-primaryBtn text-darkText focus:ring-primaryBtn disabled:opacity-50">Save</button>
-                            <button type="button"
-                                id="delete-current-page-style-button"
-                                class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-3 h-11 w-full border-transparent bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:opacity-50">Delete <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
-                                  </svg>
-                                  </button>
-                            <button type="button"
-                                id="delete-all-character-styles-button"
-                                class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-3 h-11 w-full border-transparent bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:opacity-50">Delete (All)</button>
+                            <div class="flex items-center gap-2 transition-opacity justify-evenly">
+                                <button type="button"
+                                    id="delete-current-page-style-button"
+                                    class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-3 h-11 w-full border-transparent bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:opacity-50">Delete <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+                                    </svg>
+                                    </button>
+                                <button type="button"
+                                    id="delete-all-character-styles-button"
+                                    class="inline-flex justify-center items-center rounded-xl border px-4 text-lg font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 mt-3 h-11 w-full border-transparent bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:opacity-50">Delete (All)</button>
+                            </div>
                         </div>
                     </div>
                 </div>

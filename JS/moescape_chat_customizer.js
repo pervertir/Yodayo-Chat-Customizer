@@ -1,3 +1,15 @@
+/**
+ * Moescape/Yodayo Chat Customizer Entry Point
+ *
+ * This script injects custom UI and menu items into the chat pages of Moescape and Yodayo.
+ * It observes URL changes and DOM mutations to dynamically add or remove custom elements.
+ *
+ * @file JS entry point for the Yodayo/Moescape Chat Customizer userscript.
+ * @author 
+ * @version 1.0.0
+ * @license MIT
+ */
+
 // YCC Entry Point
 (async function () {
     'use strict';
@@ -5,39 +17,49 @@
     console.log('Chat Customizer script initialized.');
     let scriptLoaded = false;
     let urlCheckInterval = null;
-    var menuItemsAdded = false;
+    let menuItemsAdded = false;
     // var observer = null;
     
-    // Function to check if the current URL matches the target pattern
+    /**
+     * Checks if the current URL matches the target chat page pattern.
+     * @returns {boolean} True if on a supported chat page, false otherwise.
+     */
     function isTargetUrl() {
         return location.href.startsWith('https://moescape.ai/tavern/chat/') || location.href.startsWith('https://yodayo.com/tavern/chat/');
     }
 
-    // Function to hide elements by ID
+    /**
+     * Hides and removes elements by their DOM IDs.
+     * @param {...string} ids - The IDs of elements to hide/remove.
+     * @returns {void}
+     */
     function hideElementsById(...ids) {
-        ids.forEach(id => {
-            let element = document.getElementById(id);
+        ids.forEach((id) => {
+            const element = document.getElementById(id);
             if (element) {
                 element.remove();
-                // element.style.display = 'none';
             }
         });
-        
     }
 
-    // Function to hide elements by ID
+    /**
+     * Shows elements by their DOM IDs (sets display to 'block').
+     * @param {...string} ids - The IDs of elements to show.
+     * @returns {void}
+     */
     function showElementsById(...ids) {
-        ids.forEach(id => {
-            let element = document.getElementById(id);
+        ids.forEach((id) => {
+            const element = document.getElementById(id);
             if (element) {
                 element.style.display = 'block';
-
             }
         });
-
     }
 
-    // Function to initialize the script
+    /**
+     * Initializes the script, sets up observers and menu items if on a target URL.
+     * @returns {void}
+     */
     function initializeScript() {
         if (isTargetUrl()) {
             if (!scriptLoaded) {
@@ -59,7 +81,10 @@
     let lastUrl = location.href;
     initializeScript();
 
-    // Function to check for URL changes
+    /**
+     * Checks for URL changes and re-initializes the script if needed.
+     * @returns {void}
+     */
     function checkUrlChange() {
         const currentUrl = location.href;
         if (currentUrl !== lastUrl) {
@@ -74,6 +99,11 @@
     // Periodically check for URL changes
     urlCheckInterval = setInterval(checkUrlChange, 1000);
 
+    /**
+     * Adds custom menu items to the provided menu element.
+     * @param {HTMLElement} menu - The menu DOM element to add items to.
+     * @returns {void}
+     */
     function addCustomizeMenuItems(menu) {
         addMenuItem(menu, chat_customizer_html_element_id, customize_chat_button_html_resource_name)
             .then(chatCustomizeButton => {
@@ -101,7 +131,11 @@
             });
     }
 
-
+    /**
+     * Callback for when the main chat element is loaded.
+     * @param {HTMLElement} element - The chat DOM element.
+     * @returns {void}
+     */
     function onLoad(element) {
         console.log('Page loaded');
 

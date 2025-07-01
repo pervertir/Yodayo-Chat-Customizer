@@ -415,14 +415,14 @@ function initializeCharacterSettingsEventHandlers(form) {
 
 
     let user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-    if (!user_chat_bg_input) {
+    if (!user_chat_bg_color_input) {
         console.log('#user-chat-bg-color-input element not found');
     } else {
-        user_chat_bg_input.addEventListener('input', function () {
+        user_chat_bg_color_input.addEventListener('input', function () {
             // Define the regex to match selectors starting with 'bg-black' and containing '85'
             const regex = user_chat_bubble_background;
 
-            setUserChatBgColor(user_chat_bg_input.value, regex);
+            setUserChatBgColor(user_chat_bg_color_input.value, regex);
         });
     }
 
@@ -499,9 +499,16 @@ function initializeCharacterSettingsEventHandlers(form) {
     // Add Save button event handler
     let saveButton = form.querySelector('#save-button');
     let applyToAllCheckbox = form.querySelector('#apply-to-all-checkbox');
+    let charThemeCheckbox = form.querySelector('#character-theme-checkbox');
     if (saveButton) {
         saveButton.addEventListener('click', async function () {
-            await saveCharacterDetailsToDB(form);
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+            // If character-theme-checkbox is unchecked, use CHAT_ID
+            if (charThemeCheckbox && !charThemeCheckbox.checked) {
+                CHAR_ID = CHAT_ID;
+            }
+            await saveCharacterDetailsToDB(form, CHAR_ID);
             // Save character image
             let char_image_url = form.querySelector('#character-image-url-input').value;
             let char_image_file = form.querySelector('#character-image-file-input').files[0];
@@ -512,8 +519,6 @@ function initializeCharacterSettingsEventHandlers(form) {
                 charImageBase64 = await urlToBase64(char_image_url);
             }
             if (charImageBase64) {
-                let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveCharacterImage(CHAR_ID, charImageBase64);
             }
             // Save background image
@@ -526,8 +531,6 @@ function initializeCharacterSettingsEventHandlers(form) {
                 bgImageBase64 = await urlToBase64(bg_url);
             }
             if (bgImageBase64) {
-                let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
                 saveBackgroundImage(CHAR_ID, bgImageBase64);
             }
             // --- Apply to All (Universal) functionality ---
@@ -545,6 +548,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
             alert('Current chat style excluded for this character.');
+            location.reload();
         });
     }
 
@@ -556,6 +560,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await deleteCharacterRecord(CHAR_ID);
             alert('All styles for this character have been deleted.');
+            location.reload();
         });
     }
 }
@@ -623,10 +628,10 @@ async function getCharacterRecord(CHAR_ID) {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const getRequest = objectStore.get(CHAR_ID);
-        getRequest.onsuccess = function(event) {
+        getRequest.onsuccess = function (event) {
             resolve(event.target.result || null);
         };
-        getRequest.onerror = function(e) { reject(e.target.error); };
+        getRequest.onerror = function (e) { reject(e.target.error); };
     });
 }
 
@@ -637,7 +642,8 @@ async function getCharacterRecord(CHAR_ID) {
  * @returns {Promise<void>}
  */
 async function populateCustomizerPopup(form, CHAR_ID) {
-    // Load all other settings
+    // Use getCharacterField for each field
+    const getField = async (field) => await getCharacterField(CHAR_ID, field);
     const [
         alias,
         nameColor,
@@ -648,14 +654,14 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         userMessageColor,
         userMessageBoxColor
     ] = await Promise.all([
-        getCharacterAlias(CHAR_ID),
-        getCharacterNameColor(CHAR_ID),
-        getCharacterNarrationColor(CHAR_ID),
-        getCharacterMessageColor(CHAR_ID),
-        getCharacterMessageBoxColor(CHAR_ID),
-        getUsernameColor(CHAR_ID),
-        getUserMessageColor(CHAR_ID),
-        getUserMessageBoxColor(CHAR_ID)
+        getField('character_alias'),
+        getField('character_name_color'),
+        getField('character_narration_color'),
+        getField('character_message_color'),
+        getField('character_message_box_color'),
+        getField('username_color'),
+        getField('user_message_color'),
+        getField('user_message_box_color')
     ]);
     // Set values in form if present
     if (form.querySelector('#name-input') && alias !== null) form.querySelector('#name-input').value = alias;
@@ -671,10 +677,24 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     if (form.querySelector('#name-color-input')) form.querySelector('#name-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#character-narration-color-input')) form.querySelector('#character-narration-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#character-chat-color-input')) form.querySelector('#character-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
+    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-colorInput').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-colorInput').dispatchEvent(new Event('input'));
+
+    // Add event listener for character-theme-checkbox
+    const charThemeCheckbox = form.querySelector('#character-theme-checkbox');
+    if (charThemeCheckbox) {
+        charThemeCheckbox.addEventListener('change', function () {
+            let anchor = document.querySelector(char_id_selector);
+            let CHAR_ID = findCharacterID(anchor);
+            if (!charThemeCheckbox.checked) {
+                // Replace char id with chat id
+                CHAR_ID = CHAT_ID;
+            }
+            // populateCustomizerPopup(form, CHAR_ID);
+        });
+    }
 }
 
 /**
@@ -721,7 +741,7 @@ function handleFormAdded(mutationsList, observer) {
 
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(formRoot);
-                
+
                 // Load data from DB
                 loadCustomizerData(formRoot);
 

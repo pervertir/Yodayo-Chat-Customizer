@@ -677,10 +677,10 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     if (form.querySelector('#name-color-input')) form.querySelector('#name-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#character-narration-color-input')) form.querySelector('#character-narration-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#character-chat-color-input')) form.querySelector('#character-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-colorInput').dispatchEvent(new Event('input'));
+    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
     if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-colorInput').dispatchEvent(new Event('input'));
+    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
 
     // Add event listener for character-theme-checkbox
     const charThemeCheckbox = form.querySelector('#character-theme-checkbox');

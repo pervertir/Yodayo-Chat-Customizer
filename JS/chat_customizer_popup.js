@@ -136,7 +136,7 @@ function setCharacterChatColor(color) {
         try {
             for (let j = 0; j < styleSheet.cssRules.length; j++) {
                 const rule = styleSheet.cssRules[j];
-                if (rule.selectorText === '.text-primaryText\/90') {
+                if (rule.selectorText === character_dialogue) {
                     rule.style.color = color;
                 }
             }

@@ -13,6 +13,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [character_alias]
  * @property {string} [character_name_color]
  * @property {string} [character_image]
+ * @property {string} [default_character_image] // Base64 string for the default character image
  * @property {string} [character_narration_color]
  * @property {string} [character_message_color]
  * @property {string} [character_message_box_color]
@@ -75,6 +76,7 @@ function openDatabase() {
             objectStore.createIndex('character_alias', 'character_alias', { unique: false });
             objectStore.createIndex('character_name_color', 'character_name_color', { unique: false });
             objectStore.createIndex('character_image', 'character_image', { unique: false });
+            objectStore.createIndex('default_character_image', 'default_character_image', { unique: false }); // Added index for default_character_image
             objectStore.createIndex('character_narration_color', 'character_narration_color', { unique: false });
             objectStore.createIndex('character_message_color', 'character_message_color', { unique: false });
             objectStore.createIndex('character_message_box_color', 'character_message_box_color', { unique: false });
@@ -213,6 +215,21 @@ async function saveUserMessageColor(CHAR_ID, color) {
  */
 async function saveUserMessageBoxColor(CHAR_ID, color) {
     return saveCharacterField(CHAR_ID, 'user_message_box_color', color);
+}
+/**
+ * @param {string} CHAR_ID
+ * @param {string|null} imageBase64
+ * @returns {Promise<void>}
+ */
+async function saveDefaultBackgroundImage(CHAR_ID, imageBase64) {
+    return saveCharacterField(CHAR_ID, 'default_character_image', imageBase64);
+}
+/**
+ * @param {string} CHAR_ID
+ * @returns {Promise<string|null>}
+ */
+async function getDefaultBackgroundImage(CHAR_ID) {
+    return getCharacterField(CHAR_ID, 'default_character_image');
 }
 
 /**

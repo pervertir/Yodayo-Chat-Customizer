@@ -49,6 +49,6 @@ const character_image_container_resource_name = 'character_image_container';
 const card_layout_resource_name = 'card_layout';
 
 // Database Constants
-const DB_NAME = 'MoescapeChatCustomizerDB';
+const DB_NAME = 'MYChatCustomizerDB';
 const DB_VERSION = 1;
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';

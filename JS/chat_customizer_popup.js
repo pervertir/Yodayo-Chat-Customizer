@@ -1,5 +1,5 @@
 // chat customizer popup
-
+let default_background_image = null;
 // --- UI SETTERS ---
 /**
  * Sets the background image for target divs.
@@ -19,8 +19,10 @@ async function setBackgroundImage(imageBase64) {
     console.log('Setting new background image');
     console.log(targetDivs);
     divElements.forEach((targetDiv) => {
+        default_background_image = targetDiv.style.backgroundImage;
+        console.log(default_background_image);
         targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
-        targetDiv.style.backgroundSize = 'cover';
+        targetDiv.style.backgroundSize = 'contain';
         targetDiv.classList.remove('container');
     });
 }
@@ -63,7 +65,7 @@ async function setCharacterImage(imageBase64) {
  * @param {string} alias
  * @returns {void}
  */
-function setAlias(alias) {
+function setCharacterAlias(alias) {
     const character_names = document.querySelectorAll(character_name_selector);
     character_names.forEach((name) => {
         name.textContent = alias;
@@ -77,7 +79,7 @@ function setAlias(alias) {
  * @param {string} color
  * @returns {void}
  */
-function setAliasColor(color) {
+function setCharacterAliasColor(color) {
     for (let i = 0; i < document.styleSheets.length; i++) {
         const styleSheet = document.styleSheets[i];
         if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
@@ -127,7 +129,7 @@ function setCharacterNarrationColor(color) {
  * @param {string} color
  * @returns {void}
  */
-function setCharacterChatColor(color, regex) {
+function setCharacterDialogueColor(color, regex) {
     Array.from(document.styleSheets).forEach((styleSheet) => {
         if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
             return;
@@ -313,7 +315,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         console.log('#name-input element not found');
     } else {
         char_name_input.addEventListener('input', function () {
-            setAlias(char_name_input.value);
+            setCharacterAlias(char_name_input.value);
         });
     }
 
@@ -322,7 +324,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         console.log('#name-color-input element not found');
     } else {
         char_name_color_input.addEventListener('input', function () {
-            setAliasColor(char_name_color_input.value);
+            setCharacterAliasColor(char_name_color_input.value);
         });
     }
 
@@ -385,7 +387,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         console.log('#character-chat-color-input element not found');
     } else {
         char_chat_input.addEventListener('input', function () {
-            setCharacterChatColor(char_chat_input.value);
+            setCharacterDialogueColor(char_chat_input.value, character_dialogue);
         });
     }
 
@@ -435,11 +437,11 @@ function initializeCharacterSettingsEventHandlers(form) {
         char_settings_reset.addEventListener('click', function () {
             // Reset character name
             char_name_input.value = '';
-            setAlias('');
+            setCharacterAlias('');
 
             // Reset character name color
             char_name_color_input.value = '#ffffff';
-            setAliasColor('#ffffff');
+            setCharacterAliasColor('#ffffff');
 
             // Reset character image URL and file
             char_image_url_input.value = '';
@@ -472,7 +474,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             setCharacterNarrationColor('#b0d8fB');
             // Reset character chat color
             char_chat_input.value = '#ffffff';
-            setCharacterChatColor('#ffffff');
+            setCharacterDialogueColor('#ffffff');
             // Reset character chat background
             char_chat_bg_input.value = '#000000';
             setCharacterChatBgColor('#000000', character_chat_bubble_background);
@@ -607,11 +609,11 @@ async function loadCustomizedUI(CHAR_ID) {
     // Set images/bg/alias if present
     if (imageSource) setCharacterImage(imageSource);
     if (bgSource) setBackgroundImage(bgSource);
-    if (aliasSource !== null) setAlias(aliasSource);
+    if (aliasSource !== null) setCharacterAlias(aliasSource);
     // Set colors if present
-    if (colorSource.character_name_color) setAliasColor(colorSource.character_name_color);
+    if (colorSource.character_name_color) setCharacterAliasColor(colorSource.character_name_color);
     if (colorSource.character_narration_color) setCharacterNarrationColor(colorSource.character_narration_color);
-    if (colorSource.character_message_color) setCharacterChatColor(colorSource.character_message_color);
+    if (colorSource.character_message_color) setCharacterDialogueColor(colorSource.character_message_color);
     if (colorSource.username_color) setUserNameColor(colorSource.username_color);
     if (colorSource.user_message_color) setUserChatColor(colorSource.user_message_color, user_message);
     if (colorSource.character_message_box_color) setCharacterChatBgColor(colorSource.character_message_box_color, character_chat_bubble_background);
@@ -787,7 +789,8 @@ async function saveCharacterDetailsToDB(form, overrideCharId) {
         saveCharacterMessageBoxColor(CHAR_ID, getOrNull(char_chat_bg_input)),
         saveUsernameColor(CHAR_ID, getOrNull(user_name_color_input)),
         saveUserMessageColor(CHAR_ID, getOrNull(user_chat_input)),
-        saveUserMessageBoxColor(CHAR_ID, getOrNull(user_chat_bg_input))
+        saveUserMessageBoxColor(CHAR_ID, getOrNull(user_chat_bg_input)),
+        saveDefaultBackgroundImage(CHAR_ID, getOrNull(default_background_image)),
     ]);
 }
 

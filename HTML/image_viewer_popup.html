@@ -1,43 +1,83 @@
-<div
-  class="flex min-h-screen min-w-screen items-end justify-center p-4 sm:items-center sm:p-0"
-  id="image-viewer-ui-popup"
->
-  <div
-    class="relative min-w-full h-auto overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
-  >
+<div id="headlessui-portal-root">
+  <div data-headlessui-portal="">
+    <button
+      type="button"
+      data-headlessui-focus-guard="true"
+      aria-hidden="true"
+      style="
+        position: fixed;
+        top: 1px;
+        left: 1px;
+        width: 1px;
+        height: 0px;
+        padding: 0px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0px, 0px, 0px, 0px);
+        white-space: nowrap;
+        border-width: 0px;
+      "
+    ></button>
+
     <div
-      class="p-2 bg-secondaryBg text-white text-center text-xl border-b border-[#22242b]"
+      class="relative z-50"
+      id="headlessui-dialog-:r1f:"
+      role="dialog"
+      aria-modal="true"
+      data-headlessui-state="open"
+      aria-labelledby="headlessui-dialog-title-:r1h:"
     >
-      All Chat Settings
       <div
-        id="close-button"
-        class="absolute top-2 right-2 cursor-pointer hover:scale-110 hover:text-primaryText"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24px"
-          viewBox="0 0 24 24"
-          width="24px"
-          fill="#ff0000"
+        class="fixed inset-0 bg-backdrop transition-opacity opacity-100"
+      ></div>
+      <div class="fixed inset-0 z-10 overflow-y-auto">
+        <!-- This is the main container for the image viewer popup -->
+        <div
+          class="flex min-h-screen min-w-screen items-end justify-center p-4 sm:items-center sm:p-0"
+          id="image-viewer-ui-popup"
         >
-          <path
-            d="M6 18L18 6M6 6l12 12"
-            stroke="red"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+          <div
+            class="relative min-w-full h-auto overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
+          >
+            <div
+              class="p-2 bg-secondaryBg text-white text-center text-xl border-b border-[#22242b]"
+            >
+              All Chat Settings
+              <div
+                id="close-button"
+                class="absolute top-2 right-2 cursor-pointer hover:scale-110 hover:text-primaryText"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 0 24 24"
+                  width="24px"
+                  fill="#ff0000"
+                >
+                  <path
+                    d="M6 18L18 6M6 6l12 12"
+                    stroke="red"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div
+              class="flex-1 grid grid-cols-3 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
+              id="cards"
+            >
+              <!-- Cards will be inserted here -->
+            </div>
+            <div
+              class="p-2 bg-secondaryBg text-secondaryText text-center border-t border-[#22242b]"
+            >
+              Moescape/ Yodayo User Data DB
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div
-      class="flex-1 grid grid-cols-3 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
-      id="cards"
-    >
-      <!-- Cards will be inserted here -->
-    </div>
-    <div class="p-2 bg-secondaryBg text-secondaryText text-center border-t border-[#22242b]">
-      Moescape/ Yodayo User Data DB
     </div>
   </div>
 </div>

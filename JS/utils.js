@@ -160,15 +160,18 @@ function addImageViewer(itemId, resourceName) {
     });
 }
 
-function showInjectionNotification(resourceName, CHAR_ID){
+function showInjectionNotification(resourceName, CHAR_ID, message="") {
     renderHTMLFromFile(resourceName).then(notification => {
-        
         document.body.appendChild(notification);
         const noti = document.getElementById('notification');
-        
-        if (!CHAR_ID){
-            noti.style.backgroundColor = '#990000';
-            paragraph.textContent = `Could not find Character ID, Please Refresh.`;
+        const paragraph = noti.querySelector('p');
+
+        if (!CHAR_ID && !message) {
+            noti.classList.remove('bg-green-500');
+            noti.classList.add('bg-red-800');
+            paragraph.textContent = 'Could not find Character ID, Please Refresh.';
+        } else if (message) {
+            paragraph.textContent = message;
         }
 
         setTimeout(() => {

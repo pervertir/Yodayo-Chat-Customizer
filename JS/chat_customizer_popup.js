@@ -540,6 +540,8 @@ function initializeCharacterSettingsEventHandlers(form) {
             if (applyToAllCheckbox && applyToAllCheckbox.checked) {
                 await saveCharacterDetailsToDB(form, 'Universal');
             }
+
+            showInjectionNotification(notification_resource_name, null , 'Settings saved successfully!');
         });
     }
 
@@ -550,8 +552,8 @@ function initializeCharacterSettingsEventHandlers(form) {
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
-            alert('Current chat style excluded for this character.');
             location.reload();
+            alert('Current chat style excluded for this character.');
         });
     }
 
@@ -562,8 +564,8 @@ function initializeCharacterSettingsEventHandlers(form) {
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await deleteCharacterRecord(CHAR_ID);
-            alert('All styles for this character have been deleted.');
             location.reload();
+            alert('All styles for this character have been deleted.');
         });
     }
 }

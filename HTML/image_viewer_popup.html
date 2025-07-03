@@ -1,17 +1,17 @@
 <div
-  class="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center"
+  class="fixed inset-0 bg-primaryBg bg-opacity-80 flex justify-center items-center"
   id="image-viewer-ui-popup"
 >
   <div
-    class="relative w-[90vw] h-[90vh] bg-white rounded-lg overflow-hidden flex flex-col"
+    class="relative w-[80vw] h-[80vh] bg-white rounded-lg overflow-hidden flex flex-col"
   >
     <div
-      class="p-2 bg-[#22242b] text-white text-center text-2xl border-b border-[#2a2c35] relative"
+      class="p-2 bg-secondaryBg text-white text-center text-2xl border-b border-[#22242b] relative"
     >
       All Chat Settings
       <div
         id="close-button"
-        class="absolute top-2 right-2 cursor-pointer hover:scale-110 hover:text-red-700"
+        class="absolute top-2 right-2 cursor-pointer hover:scale-110 hover:text-primaryText"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -31,12 +31,12 @@
       </div>
     </div>
     <div
-      class="flex-1 grid grid-cols-4 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-[#17181c]"
+      class="flex-1 grid grid-cols-4 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
       id="cards"
     >
       <!-- Cards will be inserted here -->
     </div>
-    <div class="p-2 bg-[#333] text-white text-center border-t border-[#22242b]">
+    <div class="p-2 bg-secondaryBg text-secondaryText text-center border-t border-[#22242b]">
       Yodayo Custom Image Browser
     </div>
   </div>

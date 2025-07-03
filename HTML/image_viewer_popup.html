@@ -1,12 +1,12 @@
 <div
-  class="fixed inset-0 bg-primaryBg bg-opacity-80 flex justify-center items-center"
+  class="flex min-h-screen min-w-screen items-end justify-center p-4 sm:items-center sm:p-0"
   id="image-viewer-ui-popup"
 >
   <div
-    class="relative w-[80vw] h-[80vh] bg-white rounded-lg overflow-hidden flex flex-col"
+    class="relative w-full h-full overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
   >
     <div
-      class="p-2 bg-secondaryBg text-white text-center text-2xl border-b border-[#22242b] relative"
+      class="p-2 bg-secondaryBg text-white text-center text-xl border border-[#22242b]"
     >
       All Chat Settings
       <div
@@ -22,7 +22,7 @@
         >
           <path
             d="M6 18L18 6M6 6l12 12"
-            stroke="currentColor"
+            stroke="red"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -31,7 +31,7 @@
       </div>
     </div>
     <div
-      class="flex-1 grid grid-cols-4 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
+      class="flex-1 grid grid-cols-3 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
       id="cards"
     >
       <!-- Cards will be inserted here -->

@@ -1,3 +1,9 @@
+// Create a new observer
+const iv_observer = new MutationObserver(handleImageViewerAdded);
+
+// Start observing the body for changes
+iv_observer.observe(document.body, { childList: true, subtree: true });
+
 // Style Browser
 function initializeImageViewerCloseButtonEventHandler(image_viewer) {
     const closeButton = image_viewer.querySelector('#close-button');
@@ -9,7 +15,9 @@ function initializeImageViewerCloseButtonEventHandler(image_viewer) {
         main.removeAttribute('inert');
 
         // form.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
-        image_viewer.remove();
+        // image_viewer.remove();
+        let image_viewer_overlay = image_viewer.parentElement.parentElement;
+        image_viewer_overlay.remove();
         document.removeEventListener('click', handleClickOutside);
 
     };
@@ -58,7 +66,7 @@ async function renderAllCardsInDiv() {
     const tx = db.transaction('Characters', 'readonly');
     const store = tx.objectStore('Characters');
     const request = store.getAll();
-    request.onsuccess = async function(event) {
+    request.onsuccess = async function (event) {
         const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
         cardContainer.innerHTML = '';
         for (const record of records) {
@@ -89,16 +97,12 @@ async function renderAllCardsInDiv() {
             cardContainer.appendChild(cardElement);
         }
     };
-    request.onerror = function(e) {
+    request.onerror = function (e) {
         console.error('Failed to load character records:', e.target.error);
     };
 }
 
-// Create a new observer
-const iv_observer = new MutationObserver(handleImageViewerAdded);
 
-// Start observing the body for changes
-iv_observer.observe(document.body, { childList: true, subtree: true });
 
 /**
  * Loads the card_layout.html template and renders it inside the div with id #card.
@@ -107,7 +111,7 @@ iv_observer.observe(document.body, { childList: true, subtree: true });
 async function renderCardLayoutInDiv() {
     const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
-        console.error('No element with id #card found.');
+        console.error('No element with id #cards found.');
         return;
     }
     try {

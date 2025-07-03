@@ -1,106 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Chat Settings</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .popup {
-            position: relative;
-            width: 90%;
-            height: 90%;
-            background: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            padding: 10px;
-            background: #22242b;
-            color: #fff;
-            text-align: center;
-            font-size: 24px;
-            border-bottom: 1px solid #2a2c35;
-            position: relative;
-        }
-
-        #close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-        }
-
-        #close-button:hover {
-            scale: 1.2;
-            color: rgb(117, 0, 0);
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-        }
-
-        .cards {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px;
-            background: #17181c;
-        }
-
-        .footer {
-            padding: 10px;
-            background: #333;
-            color: #fff;
-            text-align: center;
-            border-top: 1px solid #22242b;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="overlay" id="image-viewer-ui-popup">
-        <div class="popup">
-            <div class="header">
-                All Chat Settings
-                <div id="close-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#ff0000">
-                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </div>
-            </div>
-            <div class="cards" id="cards">
-                <!-- Cards will be inserted here -->
-            </div>
-            <div class="footer">
-                Yodayo Custom Image Browser
-            </div>
-        </div>
+<div
+  class="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center"
+  id="image-viewer-ui-popup"
+>
+  <div
+    class="relative w-[90vw] h-[90vh] bg-white rounded-lg overflow-hidden flex flex-col"
+  >
+    <div
+      class="p-2 bg-[#22242b] text-white text-center text-2xl border-b border-[#2a2c35] relative"
+    >
+      All Chat Settings
+      <div
+        id="close-button"
+        class="absolute top-2 right-2 cursor-pointer hover:scale-110 hover:text-red-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24px"
+          viewBox="0 0 24 24"
+          width="24px"
+          fill="#ff0000"
+        >
+          <path
+            d="M6 18L18 6M6 6l12 12"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
     </div>
-</body>
-
-</html>
+    <div
+      class="flex-1 grid grid-cols-4 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-[#17181c]"
+      id="cards"
+    >
+      <!-- Cards will be inserted here -->
+    </div>
+    <div class="p-2 bg-[#333] text-white text-center border-t border-[#22242b]">
+      Yodayo Custom Image Browser
+    </div>
+  </div>
+</div>

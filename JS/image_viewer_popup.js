@@ -100,6 +100,7 @@ async function renderCardLayoutInDiv() {
     try {
         const cardElement = await renderHTMLFromFile(card_layout_resource_name);
         cardContainer.innerHTML = '';
+        cardContainer.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'gap-4', 'min-h-[80vh]', 'min-w-[80vw]', 'w-full', 'h-[80vh]');
         cardContainer.appendChild(cardElement);
     } catch (error) {
         console.error('Failed to render card layout:', error);

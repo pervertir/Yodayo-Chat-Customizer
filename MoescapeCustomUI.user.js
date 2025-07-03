@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      Alpha-v15
+// @version      Alpha-v16
 
 // @namespace    MOESCAPE
 

@@ -33,8 +33,9 @@
       <div class="fixed inset-0 z-10 overflow-y-auto">
         <!-- This is the main container for the image viewer popup -->
         <div
-          class="flex min-h-screen min-w-screen items-end justify-center p-4 sm:items-center sm:p-0"
+          class="relative w-full overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
           id="image-viewer-ui-popup"
+          data-headlessui-state="open"
         >
           <div
             class="relative min-w-full h-auto overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"

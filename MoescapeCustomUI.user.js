@@ -4,7 +4,7 @@
 
 // @namespace    MOESCAPE
 
-// @description  Fully Customize Moescape Chats
+// @description  Fully Customize Yodayo/ Moescape Chats
 // @author       Pervertir
 
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer

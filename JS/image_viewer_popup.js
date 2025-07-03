@@ -1,14 +1,27 @@
 // Style Browser
 function initializeImageViewerCloseButtonEventHandler(image_viewer) {
     const closeButton = image_viewer.querySelector('#close-button');
-    closeButton.addEventListener('click', () => {
-        document.documentElement.style.cssText = '';
+    const closeModal = () => {
+        // document.documentElement.style.cssText = '';
 
-        const main = document.querySelector('body > main');
+        let main = document.querySelector('body > main');
+        main.setAttribute('aria-hidden', 'false');
         main.removeAttribute('inert');
 
-        image_viewer.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
-    });
+        // form.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
+        image_viewer.remove();
+        document.removeEventListener('click', handleClickOutside);
+
+    };
+
+    const handleClickOutside = (event) => {
+        if (!image_viewer.contains(event.target)) {
+            closeModal();
+        }
+    };
+
+    closeButton.addEventListener('click', closeModal);
+    document.addEventListener('click', handleClickOutside);
 }
 
 // Function to handle when the image viewer is added

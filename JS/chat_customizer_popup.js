@@ -22,7 +22,7 @@ async function setBackgroundImage(imageBase64) {
         default_background_image = targetDiv.style.backgroundImage;
         console.log(default_background_image);
         targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
-        targetDiv.style.backgroundSize = 'contain';
+        targetDiv.style.backgroundSize = 'cover';
         targetDiv.classList.remove('container');
     });
 }

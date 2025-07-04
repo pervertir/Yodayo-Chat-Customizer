@@ -19,7 +19,7 @@ function initializeImageViewerCloseButtonEventHandler(image_viewer) {
         let image_viewer_overlay = image_viewer.parentElement.parentElement;
         image_viewer_overlay.remove();
         document.removeEventListener('click', handleClickOutside);
-
+        iv_observer.observe(document.body, { childList: true, subtree: true });
     };
 
     const handleClickOutside = (event) => {

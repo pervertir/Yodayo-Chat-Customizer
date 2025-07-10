@@ -1,4 +1,12 @@
 // Cache for DOM elements and state
+/** @typedef {Object} ImageViewerCacheType
+ * @property {MutationObserver|null} observer
+ * @property {HTMLElement|null} currentViewer
+ * @property {HTMLElement|null} mainElement
+ * @property {boolean} isInitialized
+ */
+
+/** @type {ImageViewerCacheType} */
 const ImageViewerCache = {
     observer: null,
     currentViewer: null,
@@ -6,7 +14,10 @@ const ImageViewerCache = {
     isInitialized: false
 };
 
-// Initialize the image viewer observer
+/**
+ * Initialize the image viewer observer
+ * @returns {void}
+ */
 function initializeImageViewerObserver() {
     if (ImageViewerCache.observer) {
         ImageViewerCache.observer.disconnect();
@@ -16,7 +27,10 @@ function initializeImageViewerObserver() {
     ImageViewerCache.observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Cache main element on first access
+/**
+ * Cache main element on first access
+ * @returns {HTMLElement|null}
+ */
 function getMainElement() {
     if (!ImageViewerCache.mainElement) {
         ImageViewerCache.mainElement = document.querySelector('body > main');
@@ -24,7 +38,10 @@ function getMainElement() {
     return ImageViewerCache.mainElement;
 }
 
-// Optimized close modal function
+/**
+ * Optimized close modal function
+ * @returns {void}
+ */
 function closeImageViewerModal() {
     if (!ImageViewerCache.currentViewer) return;
 
@@ -37,9 +54,12 @@ function closeImageViewerModal() {
 
         // Target the correct overlay based on the actual DOM structure
         // The overlay has id="image-viewer-overlay" and is a sibling to our currentViewer
+        /** @type {HTMLElement|null} */
         const overlay = document.getElementById('image-viewer-overlay');
+        /** @type {HTMLElement|null} */
         const dialogContainer = document.getElementById('headlessui-dialog-:r1f:') ||
-            ImageViewerCache.currentViewer.closest('[role="dialog"]');
+            (ImageViewerCache.currentViewer && ImageViewerCache.currentViewer.closest('[role="dialog"]'));
+        /** @type {HTMLElement|null} */
         const portalRoot = document.getElementById('headlessui-portal-root');
 
         // Remove the entire modal structure - prefer the most specific container first
@@ -50,7 +70,8 @@ function closeImageViewerModal() {
         } else if (overlay) {
             // Fallback: remove overlay and try to find parent container
             overlay.remove();
-            const container = ImageViewerCache.currentViewer.closest('.fixed');
+            /** @type {HTMLElement|null} */
+            const container = ImageViewerCache.currentViewer && ImageViewerCache.currentViewer.closest('.fixed');
             if (container) {
                 container.remove();
             }
@@ -71,17 +92,26 @@ function closeImageViewerModal() {
     }
 }
 
-// Handle click outside modal
+/**
+ * Handle click outside modal
+ * @param {Event} event
+ * @returns {void}
+ */
 function handleClickOutside(event) {
-    if (ImageViewerCache.currentViewer && !ImageViewerCache.currentViewer.contains(event.target)) {
+    if (ImageViewerCache.currentViewer && !ImageViewerCache.currentViewer.contains(/** @type {Node} */ (event.target))) {
         closeImageViewerModal();
     }
 }
 
-// Initialize event handlers for image viewer
+/**
+ * Initialize event handlers for image viewer
+ * @param {HTMLElement} imageViewer
+ * @returns {void}
+ */
 function initializeImageViewerCloseButtonEventHandler(imageViewer) {
     ImageViewerCache.currentViewer = imageViewer;
 
+    /** @type {HTMLElement|null} */
     const closeButton = imageViewer.querySelector('#close-button');
     if (!closeButton) {
         console.error('Close button not found in image viewer');
@@ -97,10 +127,16 @@ function initializeImageViewerCloseButtonEventHandler(imageViewer) {
     }, 100);
 }
 
-// Function to handle when the image viewer is added
+/**
+ * Function to handle when the image viewer is added
+ * @param {MutationRecord[]} mutationsList
+ * @param {MutationObserver} observer
+ * @returns {void}
+ */
 function handleImageViewerAdded(mutationsList, observer) {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
+            /** @type {HTMLElement|null} */
             const imageViewer = document.querySelector('#image-viewer-ui-popup');
             if (imageViewer && !ImageViewerCache.isInitialized) {
                 console.log('Image Viewer found.');
@@ -122,50 +158,96 @@ function handleImageViewerAdded(mutationsList, observer) {
 initializeImageViewerObserver();
 
 /**
- * Loads all character records from the db and renders a card for each in the #card div.
+ * Loads all character records from the db and renders a card for each in the #cards div.
  * Each card uses the character's background, character image, and color settings from db.
+ * @returns {Promise<void>}
  */
 async function renderAllCardsInDiv() {
+    /** @type {HTMLElement|null} */
     const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
-        console.error('No element with id #card found.');
+        console.error('No element with id #cards found.');
         return;
     }
     if (!window.db) await openDatabase();
+    
     const tx = db.transaction('Characters', 'readonly');
     const store = tx.objectStore('Characters');
     const request = store.getAll();
+    
     request.onsuccess = async function (event) {
+        /** @type {CharacterRecord[]} */
         const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
         cardContainer.innerHTML = '';
+        
         for (const record of records) {
+            /** @type {HTMLElement} */
             const cardElement = await renderHTMLFromFile(card_layout_resource_name);
+            
             // Set background image
+            /** @type {HTMLImageElement|null} */
             const bgImg = cardElement.querySelector('#card-bg-image');
-            if (bgImg && record.background_image) {
-                bgImg.src = record.background_image.startsWith('data:') ? record.background_image : `data:image/png;base64,${record.background_image}`;
+            if (bgImg) {
+                if (record.background_image) {
+                    bgImg.src = record.background_image.startsWith('data:') ? record.background_image : `data:image/png;base64,${record.background_image}`;
+                } else if (record.default_background_image) {
+                    // Use default background image if custom background is not available (always https:// URL)
+                    bgImg.src = record.default_background_image;
+                }
             }
+            
             // Set character image
+            /** @type {HTMLImageElement|null} */
             const charImg = cardElement.querySelector('#card-character-image');
-            if (charImg && record.character_image) {
-                charImg.src = record.character_image.startsWith('data:') ? record.character_image : `data:image/png;base64,${record.character_image}`;
+            if (charImg) {
+                if (record.character_image) {
+                    charImg.src = record.character_image.startsWith('data:') ? record.character_image : `data:image/png;base64,${record.character_image}`;
+                } else {
+                    // Don't render the image if character image is not available
+                    charImg.style.display = 'none';
+                }
             }
+            
             // Set character name
+            /** @type {HTMLElement|null} */
             const charName = cardElement.querySelector('#card-character-name');
             if (charName && record.character_alias) {
                 charName.textContent = record.character_alias;
             }
+            
             // Set color pickers
-            if (record.character_name_color) cardElement.querySelector('#color-char-name').value = record.character_name_color;
-            if (record.character_message_color) cardElement.querySelector('#color-char-dialogues').value = record.character_message_color;
-            if (record.character_narration_color) cardElement.querySelector('#color-char-narration').value = record.character_narration_color;
-            if (record.character_message_box_color) cardElement.querySelector('#color-char-bubble-bg').value = record.character_message_box_color;
-            if (record.username_color) cardElement.querySelector('#color-user-name').value = record.username_color;
-            if (record.user_message_color) cardElement.querySelector('#color-user-dialogue').value = record.user_message_color;
-            if (record.user_message_box_color) cardElement.querySelector('#color-user-bubble-bg').value = record.user_message_box_color;
+            /** @type {HTMLInputElement|null} */
+            const colorCharName = cardElement.querySelector('#color-char-name');
+            if (record.character_name_color && colorCharName) colorCharName.value = record.character_name_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorCharDialogues = cardElement.querySelector('#color-char-dialogues');
+            if (record.character_message_color && colorCharDialogues) colorCharDialogues.value = record.character_message_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorCharNarration = cardElement.querySelector('#color-char-narration');
+            if (record.character_narration_color && colorCharNarration) colorCharNarration.value = record.character_narration_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorCharBubbleBg = cardElement.querySelector('#color-char-bubble-bg');
+            if (record.character_message_box_color && colorCharBubbleBg) colorCharBubbleBg.value = record.character_message_box_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorUserName = cardElement.querySelector('#color-user-name');
+            if (record.username_color && colorUserName) colorUserName.value = record.username_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorUserDialogue = cardElement.querySelector('#color-user-dialogue');
+            if (record.user_message_color && colorUserDialogue) colorUserDialogue.value = record.user_message_color;
+            
+            /** @type {HTMLInputElement|null} */
+            const colorUserBubbleBg = cardElement.querySelector('#color-user-bubble-bg');
+            if (record.user_message_box_color && colorUserBubbleBg) colorUserBubbleBg.value = record.user_message_box_color;
+            
             cardContainer.appendChild(cardElement);
         }
     };
+    
     request.onerror = function (e) {
         console.error('Failed to load character records:', e.target.error);
     };

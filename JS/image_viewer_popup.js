@@ -98,7 +98,7 @@ function closeImageViewerModal() {
  * @returns {void}
  */
 function handleClickOutside(event) {
-    if (ImageViewerCache.currentViewer && !ImageViewerCache.currentViewer.contains(/** @type {Node} */ (event.target))) {
+    if (ImageViewerCache.currentViewer && !ImageViewerCache.currentViewer.contains(/** @type {Node} */(event.target))) {
         closeImageViewerModal();
     }
 }
@@ -170,20 +170,20 @@ async function renderAllCardsInDiv() {
         return;
     }
     if (!window.db) await openDatabase();
-    
+
     const tx = db.transaction('Characters', 'readonly');
     const store = tx.objectStore('Characters');
     const request = store.getAll();
-    
+
     request.onsuccess = async function (event) {
         /** @type {CharacterRecord[]} */
         const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
         cardContainer.innerHTML = '';
-        
+
         for (const record of records) {
             /** @type {HTMLElement} */
             const cardElement = await renderHTMLFromFile(card_layout_resource_name);
-            
+
             // Set background image
             /** @type {HTMLImageElement|null} */
             const bgImg = cardElement.querySelector('#card-bg-image');
@@ -195,7 +195,7 @@ async function renderAllCardsInDiv() {
                     bgImg.src = record.default_background_image;
                 }
             }
-            
+
             // Set character image
             /** @type {HTMLImageElement|null} */
             const charImg = cardElement.querySelector('#card-character-image');
@@ -207,47 +207,47 @@ async function renderAllCardsInDiv() {
                     charImg.style.display = 'none';
                 }
             }
-            
+
             // Set character name
             /** @type {HTMLElement|null} */
             const charName = cardElement.querySelector('#card-character-name');
             if (charName && record.character_alias) {
                 charName.textContent = record.character_alias;
             }
-            
-            // Set color pickers
+
+            // Set color pickers with fallback defaults
             /** @type {HTMLInputElement|null} */
             const colorCharName = cardElement.querySelector('#color-char-name');
-            if (record.character_name_color && colorCharName) colorCharName.value = record.character_name_color;
-            
+            if (colorCharName) colorCharName.value = record.character_name_color || '#ffffff';
+
             /** @type {HTMLInputElement|null} */
             const colorCharDialogues = cardElement.querySelector('#color-char-dialogues');
-            if (record.character_message_color && colorCharDialogues) colorCharDialogues.value = record.character_message_color;
-            
+            if (colorCharDialogues) colorCharDialogues.value = record.character_message_color || '#ffffff';
+
             /** @type {HTMLInputElement|null} */
             const colorCharNarration = cardElement.querySelector('#color-char-narration');
-            if (record.character_narration_color && colorCharNarration) colorCharNarration.value = record.character_narration_color;
-            
+            if (colorCharNarration) colorCharNarration.value = record.character_narration_color || '#b0d8fd';
+
             /** @type {HTMLInputElement|null} */
             const colorCharBubbleBg = cardElement.querySelector('#color-char-bubble-bg');
-            if (record.character_message_box_color && colorCharBubbleBg) colorCharBubbleBg.value = record.character_message_box_color;
-            
+            if (colorCharBubbleBg) colorCharBubbleBg.value = record.character_message_box_color || '#000000';
+
             /** @type {HTMLInputElement|null} */
             const colorUserName = cardElement.querySelector('#color-user-name');
-            if (record.username_color && colorUserName) colorUserName.value = record.username_color;
-            
+            if (colorUserName) colorUserName.value = record.username_color || '#000000';
+
             /** @type {HTMLInputElement|null} */
             const colorUserDialogue = cardElement.querySelector('#color-user-dialogue');
-            if (record.user_message_color && colorUserDialogue) colorUserDialogue.value = record.user_message_color;
-            
+            if (colorUserDialogue) colorUserDialogue.value = record.user_message_color || '#000000';
+
             /** @type {HTMLInputElement|null} */
             const colorUserBubbleBg = cardElement.querySelector('#color-user-bubble-bg');
-            if (record.user_message_box_color && colorUserBubbleBg) colorUserBubbleBg.value = record.user_message_box_color;
-            
+            if (colorUserBubbleBg) colorUserBubbleBg.value = record.user_message_box_color || '#ffffff';
+
             cardContainer.appendChild(cardElement);
         }
     };
-    
+
     request.onerror = function (e) {
         console.error('Failed to load character records:', e.target.error);
     };

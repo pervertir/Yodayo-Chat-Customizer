@@ -52,29 +52,15 @@ function closeImageViewerModal() {
             main.removeAttribute('inert');
         }
 
-        // Target the correct overlay based on the actual DOM structure
-        // The overlay has id="image-viewer-overlay" and is a sibling to our currentViewer
-        /** @type {HTMLElement|null} */
-        const overlay = document.getElementById('image-viewer-overlay');
-        /** @type {HTMLElement|null} */
-        const dialogContainer = document.getElementById('headlessui-dialog-:r1f:') ||
-            (ImageViewerCache.currentViewer && ImageViewerCache.currentViewer.closest('[role="dialog"]'));
+        // Reset document styles that were set when opening the modal
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.paddingRight = '';
+
+        // Remove the modal by removing the portal root element
         /** @type {HTMLElement|null} */
         const portalRoot = document.getElementById('headlessui-portal-root');
-
-        // Remove the entire modal structure - prefer the most specific container first
-        if (dialogContainer) {
-            dialogContainer.remove();
-        } else if (portalRoot) {
+        if (portalRoot) {
             portalRoot.remove();
-        } else if (overlay) {
-            // Fallback: remove overlay and try to find parent container
-            overlay.remove();
-            /** @type {HTMLElement|null} */
-            const container = ImageViewerCache.currentViewer && ImageViewerCache.currentViewer.closest('.fixed');
-            if (container) {
-                container.remove();
-            }
         }
 
         // Clean up event listeners

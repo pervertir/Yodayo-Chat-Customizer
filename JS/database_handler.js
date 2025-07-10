@@ -351,6 +351,7 @@ async function getUniversalColorSettings() {
 
 /**
  * Saves multiple character fields in a single transaction for better performance.
+ * Only updates the provided fields, preserving existing data.
  * @param {string} CHAR_ID
  * @param {Partial<CharacterRecord>} fields - Object containing the fields to update
  * @returns {Promise<void>}
@@ -366,9 +367,13 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
             /** @type {CharacterRecord} */
             let record = event.target.result || { CHAR_ID };
             
-            // Update all fields at once
+            // Only update fields that have actual values (not null/undefined)
             Object.keys(fields).forEach(field => {
-                record[field] = fields[field];
+                const value = fields[field];
+                if (value !== null && value !== undefined) {
+                    record[field] = value;
+                }
+                // Don't overwrite existing values with null/undefined
             });
             
             const putRequest = objectStore.put(record);

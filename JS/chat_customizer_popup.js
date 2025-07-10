@@ -409,6 +409,16 @@ function initializeCharacterSettingsEventHandlers(form) {
                 setUserNameColor(target.value);
                 updateTemp('username_color', target.value);
                 break;
+            case 'character-theme-checkbox':
+                // Handle character theme checkbox toggle
+                let anchor = document.querySelector(char_id_selector);
+                let CHAR_ID = findCharacterID(anchor);
+                if (!target.checked) {
+                    CHAR_ID = CHAT_ID;
+                }
+                // Could repopulate form here if needed
+                // populateCustomizerPopup(form, CHAR_ID);
+                break;
         }
     });
 
@@ -611,20 +621,6 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     setValueAndDispatch(formElements.userNameColorInput, usernameColor);
     setValueAndDispatch(formElements.userChatColorInput, userMessageColor);
     setValueAndDispatch(formElements.userChatBgColorInput, userMessageBoxColor);
-
-    // Add event listener for character-theme-checkbox
-    const charThemeCheckbox = form.querySelector('#character-theme-checkbox');
-    if (charThemeCheckbox) {
-        charThemeCheckbox.addEventListener('change', function () {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor);
-            if (!charThemeCheckbox.checked) {
-                // Replace char id with chat id
-                CHAR_ID = CHAT_ID;
-            }
-            // populateCustomizerPopup(form, CHAR_ID);
-        });
-    }
 }
 
 /**
@@ -727,21 +723,25 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     let CHAR_ID = overrideCharId || findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
     
-    // Batch save all fields in a single transaction
-    const fieldsToSave = {
-        character_alias: temp_form_data.character_alias ?? null,
-        character_name_color: temp_form_data.character_name_color ?? null,
-        character_narration_color: temp_form_data.character_narration_color ?? null,
-        character_message_color: temp_form_data.character_message_color ?? null,
-        character_message_box_color: temp_form_data.character_message_box_color ?? null,
-        username_color: temp_form_data.username_color ?? null,
-        user_message_color: temp_form_data.user_message_color ?? null,
-        user_message_box_color: temp_form_data.user_message_box_color ?? null,
-        background_image: temp_form_data.background_image ?? null,
-        character_image: temp_form_data.character_image ?? null
-    };
+    // Only include fields that actually exist in temp_form_data (have been modified)
+    const fieldsToSave = {};
     
-    await saveCharacterFieldsBatch(CHAR_ID, fieldsToSave);
+    // Only add fields that exist in temp_form_data
+    if ('character_alias' in temp_form_data) fieldsToSave.character_alias = temp_form_data.character_alias;
+    if ('character_name_color' in temp_form_data) fieldsToSave.character_name_color = temp_form_data.character_name_color;
+    if ('character_narration_color' in temp_form_data) fieldsToSave.character_narration_color = temp_form_data.character_narration_color;
+    if ('character_message_color' in temp_form_data) fieldsToSave.character_message_color = temp_form_data.character_message_color;
+    if ('character_message_box_color' in temp_form_data) fieldsToSave.character_message_box_color = temp_form_data.character_message_box_color;
+    if ('username_color' in temp_form_data) fieldsToSave.username_color = temp_form_data.username_color;
+    if ('user_message_color' in temp_form_data) fieldsToSave.user_message_color = temp_form_data.user_message_color;
+    if ('user_message_box_color' in temp_form_data) fieldsToSave.user_message_box_color = temp_form_data.user_message_box_color;
+    if ('background_image' in temp_form_data) fieldsToSave.background_image = temp_form_data.background_image;
+    if ('character_image' in temp_form_data) fieldsToSave.character_image = temp_form_data.character_image;
+    
+    // Only save if there are actually fields to update
+    if (Object.keys(fieldsToSave).length > 0) {
+        await saveCharacterFieldsBatch(CHAR_ID, fieldsToSave);
+    }
 }
 
 // --- PERFORMANCE OPTIMIZATIONS ---

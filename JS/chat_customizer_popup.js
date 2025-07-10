@@ -26,10 +26,10 @@ function captureOriginalBackgroundImage() {
 // --- UI SETTERS ---
 /**
  * Sets the background image for target divs.
- * @param {string} imageBase64 - The base64-encoded image string.
+ * @param {string} imageData - The image data (base64-encoded string or URL).
  * @returns {Promise<void>}
  */
-async function setBackgroundImage(imageBase64) {
+async function setBackgroundImage(imageData) {
     /** @type {NodeListOf<HTMLDivElement>} */
     let targetDivs = document.querySelectorAll(bg_img);
     if (!targetDivs.length) {
@@ -42,8 +42,12 @@ async function setBackgroundImage(imageBase64) {
     console.log('Setting new background image');
     console.log(targetDivs);
 
+    // Check if the data is a URL or base64
+    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
+    const backgroundImageUrl = isUrl ? `url('${imageData}')` : `url('data:image;base64,${imageData}')`;
+
     divElements.forEach((targetDiv) => {
-        targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
+        targetDiv.style.backgroundImage = backgroundImageUrl;
         targetDiv.style.backgroundSize = 'cover';
         targetDiv.classList.remove('container');
     });
@@ -51,18 +55,23 @@ async function setBackgroundImage(imageBase64) {
 
 /**
  * Sets the character image in the character container.
- * @param {string} imageBase64 - The base64-encoded image string.
+ * @param {string} imageData - The image data (base64-encoded string or URL).
  * @returns {Promise<void>}
  */
-async function setCharacterImage(imageBase64) {
+async function setCharacterImage(imageData) {
     /** @type {HTMLElement|null} */
     let characterContainer = document.querySelector('.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2');
     if (characterContainer) {
         /** @type {HTMLImageElement|null} */
         let existingImage = characterContainer.querySelector('div > div > img');
         let imageHeight = "90vh";
+        
+        // Check if the data is a URL or base64
+        const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
+        const imageSrc = isUrl ? imageData : `data:image;base64,${imageData}`;
+        
         if (existingImage) {
-            existingImage.src = `data:image;base64,${imageBase64}`;
+            existingImage.src = imageSrc;
             existingImage.style.height = imageHeight;
             console.log('Changed Character Image.');
         } else {
@@ -71,7 +80,7 @@ async function setCharacterImage(imageBase64) {
                 renderHTMLFromFile(character_image_container_resource_name).then(character_image_container => {
                     /** @type {HTMLImageElement} */
                     let image = character_image_container.querySelector('img');
-                    image.src = `data:image;base64,${imageBase64}`;
+                    image.src = imageSrc;
                     image.style.height = imageHeight;
                     characterContainer.appendChild(character_image_container);
                 });
@@ -380,14 +389,18 @@ function initializeCharacterSettingsEventHandlers(form) {
                 updateTemp('character_alias', target.value);
                 break;
             case 'character-image-url-input':
-                const imageBase64 = await urlToBase64(target.value);
-                setCharacterImage(imageBase64);
-                updateTemp('character_image', target.value);
+                if (target.value) {
+                    const imageBase64 = await urlToBase64(target.value);
+                    setCharacterImage(imageBase64);
+                    updateTemp('character_image', target.value);
+                }
                 break;
             case 'bg-url-input':
-                const bgBase64 = await urlToBase64(target.value);
-                setBackgroundImage(bgBase64);
-                updateTemp('background_image', target.value);
+                if (target.value) {
+                    const bgBase64 = await urlToBase64(target.value);
+                    setBackgroundImage(bgBase64);
+                    updateTemp('background_image', target.value);
+                }
                 break;
         }
     });
@@ -533,8 +546,41 @@ async function loadCustomizedUI(CHAR_ID) {
         colorSource = universalColors || {};
     }
     // Set images/bg/alias if present
-    if (imageSource) setCharacterImage(imageSource);
-    if (bgSource) setBackgroundImage(bgSource);
+    if (imageSource) {
+        // Check if it's a URL or base64 data
+        const isImageUrl = imageSource.startsWith('http://') || imageSource.startsWith('https://');
+        if (isImageUrl) {
+            // Convert URL to base64 first
+            try {
+                const imageBase64 = await urlToBase64(imageSource);
+                setCharacterImage(imageBase64);
+            } catch (error) {
+                console.error('Failed to load character image from URL:', error);
+                // Fallback: set the URL directly
+                setCharacterImage(imageSource);
+            }
+        } else {
+            setCharacterImage(imageSource);
+        }
+    }
+    
+    if (bgSource) {
+        // Check if it's a URL or base64 data
+        const isBgUrl = bgSource.startsWith('http://') || bgSource.startsWith('https://');
+        if (isBgUrl) {
+            // Convert URL to base64 first
+            try {
+                const bgBase64 = await urlToBase64(bgSource);
+                setBackgroundImage(bgBase64);
+            } catch (error) {
+                console.error('Failed to load background image from URL:', error);
+                // Fallback: set the URL directly
+                setBackgroundImage(bgSource);
+            }
+        } else {
+            setBackgroundImage(bgSource);
+        }
+    }
     if (aliasSource !== null) setCharacterAlias(aliasSource);
     // Set colors if present
     if (colorSource.character_name_color) setCharacterAliasColor(colorSource.character_name_color);

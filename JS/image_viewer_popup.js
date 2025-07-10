@@ -11,7 +11,7 @@ function initializeImageViewerObserver() {
     if (ImageViewerCache.observer) {
         ImageViewerCache.observer.disconnect();
     }
-    
+
     ImageViewerCache.observer = new MutationObserver(handleImageViewerAdded);
     ImageViewerCache.observer.observe(document.body, { childList: true, subtree: true });
 }
@@ -35,19 +35,37 @@ function closeImageViewerModal() {
             main.removeAttribute('inert');
         }
 
-        const overlay = ImageViewerCache.currentViewer.closest('.fixed');
-        if (overlay) {
+        // Target the correct overlay based on the actual DOM structure
+        // The overlay has id="image-viewer-overlay" and is a sibling to our currentViewer
+        const overlay = document.getElementById('image-viewer-overlay');
+        const dialogContainer = document.getElementById('headlessui-dialog-:r1f:') ||
+            ImageViewerCache.currentViewer.closest('[role="dialog"]');
+        const portalRoot = document.getElementById('headlessui-portal-root');
+
+        // Remove the entire modal structure - prefer the most specific container first
+        if (dialogContainer) {
+            dialogContainer.remove();
+        } else if (portalRoot) {
+            portalRoot.remove();
+        } else if (overlay) {
+            // Fallback: remove overlay and try to find parent container
             overlay.remove();
+            const container = ImageViewerCache.currentViewer.closest('.fixed');
+            if (container) {
+                container.remove();
+            }
         }
 
         // Clean up event listeners
         document.removeEventListener('click', handleClickOutside);
-        
-        // Reset cache
+
+        // Reset cache - this is crucial for reopening
         ImageViewerCache.currentViewer = null;
-        
+        ImageViewerCache.isInitialized = false; // Reset this flag so it can be initialized again
+
         // Restart observer
         initializeImageViewerObserver();
+
     } catch (error) {
         console.error('Error closing image viewer modal:', error);
     }
@@ -63,7 +81,7 @@ function handleClickOutside(event) {
 // Initialize event handlers for image viewer
 function initializeImageViewerCloseButtonEventHandler(imageViewer) {
     ImageViewerCache.currentViewer = imageViewer;
-    
+
     const closeButton = imageViewer.querySelector('#close-button');
     if (!closeButton) {
         console.error('Close button not found in image viewer');
@@ -72,7 +90,7 @@ function initializeImageViewerCloseButtonEventHandler(imageViewer) {
 
     // Use event delegation for better performance
     closeButton.addEventListener('click', closeImageViewerModal);
-    
+
     // Add click outside handler with a small delay to avoid immediate closing
     setTimeout(() => {
         document.addEventListener('click', handleClickOutside);
@@ -87,11 +105,11 @@ function handleImageViewerAdded(mutationsList, observer) {
             if (imageViewer && !ImageViewerCache.isInitialized) {
                 console.log('Image Viewer found.');
                 ImageViewerCache.isInitialized = true;
-                
+
                 // Initialize handlers and render cards
                 initializeImageViewerCloseButtonEventHandler(imageViewer);
                 renderAllCardsInDiv();
-                
+
                 // Disconnect observer
                 observer.disconnect();
                 break;
@@ -103,162 +121,52 @@ function handleImageViewerAdded(mutationsList, observer) {
 // Start observing on script load
 initializeImageViewerObserver();
 
-// Cache for card rendering
-const CardRenderCache = {
-    cardContainer: null,
-    cardTemplate: null
-};
-
-// Helper function to set image source with fallback
-function setImageSource(imgElement, imageData) {
-    if (!imgElement || !imageData) return;
-    
-    try {
-        imgElement.src = imageData.startsWith('data:') 
-            ? imageData 
-            : `data:image/png;base64,${imageData}`;
-    } catch (error) {
-        console.error('Error setting image source:', error);
-    }
-}
-
-// Helper function to set color picker value
-function setColorValue(element, color) {
-    if (element && color) {
-        element.value = color;
-    }
-}
-
-// Helper function to populate a single card with character data
-function populateCardWithCharacterData(cardElement, record) {
-    try {
-        // Set background image
-        setImageSource(cardElement.querySelector('#card-bg-image'), record.background_image);
-        
-        // Set character image
-        setImageSource(cardElement.querySelector('#card-character-image'), record.character_image);
-        
-        // Set character name
-        const charName = cardElement.querySelector('#card-character-name');
-        if (charName && record.character_alias) {
-            charName.textContent = record.character_alias;
-        }
-        
-        // Set color pickers using batch approach
-        const colorMappings = [
-            ['#color-char-name', record.character_name_color],
-            ['#color-char-dialogues', record.character_message_color],
-            ['#color-char-narration', record.character_narration_color],
-            ['#color-char-bubble-bg', record.character_message_box_color],
-            ['#color-user-name', record.username_color],
-            ['#color-user-dialogue', record.user_message_color],
-            ['#color-user-bubble-bg', record.user_message_box_color]
-        ];
-        
-        colorMappings.forEach(([selector, color]) => {
-            setColorValue(cardElement.querySelector(selector), color);
-        });
-        
-    } catch (error) {
-        console.error('Error populating card with character data:', error);
-    }
-}
-
-// Get or cache card container
-function getCardContainer() {
-    if (!CardRenderCache.cardContainer) {
-        CardRenderCache.cardContainer = document.getElementById('cards');
-    }
-    return CardRenderCache.cardContainer;
-}
-
 /**
- * Loads all character records from the db and renders a card for each in the #cards div.
+ * Loads all character records from the db and renders a card for each in the #card div.
  * Each card uses the character's background, character image, and color settings from db.
- * Optimized for performance with caching and batch operations.
  */
 async function renderAllCardsInDiv() {
-    const cardContainer = getCardContainer();
+    const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
-        console.error('No element with id #cards found.');
+        console.error('No element with id #card found.');
         return;
     }
-
-    try {
-        // Ensure database is open
-        if (!window.db) {
-            await openDatabase();
-        }
-
-        // Get all character records
-        const records = await new Promise((resolve, reject) => {
-            const tx = db.transaction('Characters', 'readonly');
-            const store = tx.objectStore('Characters');
-            const request = store.getAll();
-            
-            request.onsuccess = (event) => {
-                const allRecords = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
-                resolve(allRecords);
-            };
-            
-            request.onerror = (event) => {
-                reject(new Error('Failed to load character records: ' + event.target.error));
-            };
-        });
-
-        // Clear container once
+    if (!window.db) await openDatabase();
+    const tx = db.transaction('Characters', 'readonly');
+    const store = tx.objectStore('Characters');
+    const request = store.getAll();
+    request.onsuccess = async function (event) {
+        const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
         cardContainer.innerHTML = '';
-
-        // Create document fragment for batch DOM insertion
-        const fragment = document.createDocumentFragment();
-
-        // Render all cards
         for (const record of records) {
-            try {
-                const cardElement = await renderHTMLFromFile(card_layout_resource_name);
-                populateCardWithCharacterData(cardElement, record);
-                fragment.appendChild(cardElement);
-            } catch (error) {
-                console.error('Error rendering card for character:', record.character_alias || record.CHAR_ID, error);
+            const cardElement = await renderHTMLFromFile(card_layout_resource_name);
+            // Set background image
+            const bgImg = cardElement.querySelector('#card-bg-image');
+            if (bgImg && record.background_image) {
+                bgImg.src = record.background_image.startsWith('data:') ? record.background_image : `data:image/png;base64,${record.background_image}`;
             }
+            // Set character image
+            const charImg = cardElement.querySelector('#card-character-image');
+            if (charImg && record.character_image) {
+                charImg.src = record.character_image.startsWith('data:') ? record.character_image : `data:image/png;base64,${record.character_image}`;
+            }
+            // Set character name
+            const charName = cardElement.querySelector('#card-character-name');
+            if (charName && record.character_alias) {
+                charName.textContent = record.character_alias;
+            }
+            // Set color pickers
+            if (record.character_name_color) cardElement.querySelector('#color-char-name').value = record.character_name_color;
+            if (record.character_message_color) cardElement.querySelector('#color-char-dialogues').value = record.character_message_color;
+            if (record.character_narration_color) cardElement.querySelector('#color-char-narration').value = record.character_narration_color;
+            if (record.character_message_box_color) cardElement.querySelector('#color-char-bubble-bg').value = record.character_message_box_color;
+            if (record.username_color) cardElement.querySelector('#color-user-name').value = record.username_color;
+            if (record.user_message_color) cardElement.querySelector('#color-user-dialogue').value = record.user_message_color;
+            if (record.user_message_box_color) cardElement.querySelector('#color-user-bubble-bg').value = record.user_message_box_color;
+            cardContainer.appendChild(cardElement);
         }
-
-        // Single DOM operation to append all cards
-        cardContainer.appendChild(fragment);
-
-    } catch (error) {
-        console.error('Failed to render cards:', error);
-        // Show user-friendly error message
-        const cardContainer = getCardContainer();
-        if (cardContainer) {
-            cardContainer.innerHTML = '<div class="text-red-500 p-4">Failed to load character cards. Please try refreshing.</div>';
-        }
-    }
+    };
+    request.onerror = function (e) {
+        console.error('Failed to load character records:', e.target.error);
+    };
 }
-
-/**
- * Loads the card_layout.html template and renders it inside the div with id #cards.
- * Uses renderHTMLFromFile from utils.js.
- * Optimized with error handling and caching.
- */
-async function renderCardLayoutInDiv() {
-    const cardContainer = getCardContainer();
-    if (!cardContainer) {
-        console.error('No element with id #cards found.');
-        return;
-    }
-
-    try {
-        const cardElement = await renderHTMLFromFile(card_layout_resource_name);
-        
-        // Clear and setup container
-        cardContainer.innerHTML = '';
-        cardContainer.className = 'flex flex-col items-center justify-center gap-4 min-h-[80vh] min-w-[80vw] w-full h-[80vh]';
-        cardContainer.appendChild(cardElement);
-        
-    } catch (error) {
-        console.error('Failed to render card layout:', error);
-        cardContainer.innerHTML = '<div class="text-red-500 p-4">Failed to load card layout. Please try refreshing.</div>';
-    }
-}
-

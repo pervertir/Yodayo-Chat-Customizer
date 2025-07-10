@@ -17,18 +17,24 @@ function waitForElement(selector, callback) {
     });
 }
 
-// Function to convert URL to Base64
+// Function to convert URL to Base64 with improved error handling
 async function urlToBase64(url) {
+    if (!url || typeof url !== 'string') {
+        throw new Error('Invalid URL provided');
+    }
+    
     return new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
             method: 'GET',
             url: url,
             responseType: 'blob',
+            timeout: 10000, // Add timeout for better UX
             onload: function (response) {
                 if (response.status === 200) {
                     const blob = response.response;
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = () => reject(new Error('Failed to read image data'));
                     reader.readAsDataURL(blob);
                 } else {
                     reject(new Error(`HTTP error! Status: ${response.status}`));
@@ -36,7 +42,10 @@ async function urlToBase64(url) {
             },
             onerror: function (error) {
                 console.error('Error fetching image:', error);
-                reject(error);
+                reject(new Error('Network error while fetching image'));
+            },
+            ontimeout: function() {
+                reject(new Error('Request timeout while fetching image'));
             }
         });
     });

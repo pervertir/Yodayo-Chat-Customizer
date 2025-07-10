@@ -96,8 +96,8 @@
     // Set up a popstate event listener to handle browser navigation events
     window.addEventListener('popstate', checkUrlChange);
 
-    // Periodically check for URL changes
-    urlCheckInterval = setInterval(checkUrlChange, 1000);
+    // Periodically check for URL changes (reduced frequency for better performance)
+    urlCheckInterval = setInterval(checkUrlChange, 2000); // Changed from 1000ms to 2000ms
 
     /**
      * Adds custom menu items to the provided menu element.

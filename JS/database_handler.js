@@ -348,3 +348,33 @@ async function getUniversalColorSettings() {
         getRequest.onerror = function(e) { reject(e.target.error); };
     });
 }
+
+/**
+ * Saves multiple character fields in a single transaction for better performance.
+ * @param {string} CHAR_ID
+ * @param {Partial<CharacterRecord>} fields - Object containing the fields to update
+ * @returns {Promise<void>}
+ */
+async function saveCharacterFieldsBatch(CHAR_ID, fields) {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get(CHAR_ID);
+        
+        getRequest.onsuccess = function(event) {
+            /** @type {CharacterRecord} */
+            let record = event.target.result || { CHAR_ID };
+            
+            // Update all fields at once
+            Object.keys(fields).forEach(field => {
+                record[field] = fields[field];
+            });
+            
+            const putRequest = objectStore.put(record);
+            putRequest.onsuccess = function() { resolve(); };
+            putRequest.onerror = function(e) { reject(e.target.error); };
+        };
+        getRequest.onerror = function(e) { reject(e.target.error); };
+    });
+}

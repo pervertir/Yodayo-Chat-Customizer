@@ -126,18 +126,19 @@ function setCharacterNarrationColor(color) {
 }
 
 /**
- * Sets the character chat color in the UI.
+ * Sets the character chat color in the UI using optimized CSS injection.
  * @param {string} color
+ * @param {RegExp} regex
  * @returns {void}
  */
 function setCharacterDialogueColor(color, regex) {
-    Array.from(document.styleSheets).forEach((styleSheet) => {
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            return;
-        }
-        if (!styleSheet.href) {
-            return;
-        }
+    // Use dynamic stylesheet for better performance
+    applyDynamicStyle('*[class*="text-primaryText"]', { color });
+    
+    // Fallback: iterate through cached stylesheets only if needed
+    const styleSheets = getCachedStyleSheets();
+    styleSheets.forEach((styleSheet) => {
+        if (!styleSheet.href) return;
         try {
             Array.from(styleSheet.cssRules).forEach((rule) => {
                 if (rule.selectorText && regex.test(rule.selectorText)) {
@@ -146,25 +147,24 @@ function setCharacterDialogueColor(color, regex) {
             });
         } catch (e) {
             console.warn('Cannot access stylesheet:', styleSheet.href);
-            console.warn(e);
         }
     });
 }
 
 /**
- * Sets the user chat color in the UI.
+ * Sets the user chat color in the UI using optimized CSS injection.
  * @param {string} color
  * @param {RegExp} regex
  * @returns {void}
  */
 function setUserChatColor(color, regex) {
-    Array.from(document.styleSheets).forEach((styleSheet) => {
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            return;
-        }
-        if (!styleSheet.href) {
-            return;
-        }
+    // Use dynamic stylesheet for better performance
+    applyDynamicStyle('*[class*="text-black"]', { color });
+    
+    // Fallback: iterate through cached stylesheets only if needed
+    const styleSheets = getCachedStyleSheets();
+    styleSheets.forEach((styleSheet) => {
+        if (!styleSheet.href) return;
         try {
             Array.from(styleSheet.cssRules).forEach((rule) => {
                 if (rule.selectorText && regex.test(rule.selectorText)) {
@@ -173,7 +173,6 @@ function setUserChatColor(color, regex) {
             });
         } catch (e) {
             console.warn('Cannot access stylesheet:', styleSheet.href);
-            console.warn(e);
         }
     });
 }
@@ -306,7 +305,7 @@ function initializeCloseButtonEventHandler(form, formBody) {
 }
 
 /**
- * Initializes event handlers for character settings form.
+ * Initializes event handlers for character settings form using optimized approach.
  * @param {HTMLElement} form
  * @returns {void}
  */
@@ -318,173 +317,122 @@ function initializeCharacterSettingsEventHandlers(form) {
     function resetTempFormData() {
         temp_form_data = {};
     }
-    let char_name_input = form.querySelector('#name-input');
-    if (!char_name_input) {
-        console.log('#name-input element not found');
-    } else {
-        char_name_input.addEventListener('input', function () {
-            setCharacterAlias(char_name_input.value);
-            updateTemp('character_alias', char_name_input.value);
-        });
-    }
 
-    let char_name_color_input = form.querySelector('#name-color-input');
-    if (!char_name_color_input) {
-        console.log('#name-color-input element not found');
-    } else {
-        char_name_color_input.addEventListener('change', function () {
-            setCharacterAliasColor(char_name_color_input.value);
-            updateTemp('character_name_color', char_name_color_input.value);
-        });
-    }
+    // Cache all form elements at once
+    const formElements = {
+        char_name_input: form.querySelector('#name-input'),
+        char_name_color_input: form.querySelector('#name-color-input'),
+        char_image_url_input: form.querySelector('#character-image-url-input'),
+        char_image_file_input: form.querySelector('#character-image-file-input'),
+        bg_url_input: form.querySelector('#bg-url-input'),
+        bg_file_input: form.querySelector('#bg-file-input'),
+        char_narr_input: form.querySelector('#character-narration-color-input'),
+        char_chat_input: form.querySelector('#character-chat-color-input'),
+        user_chat_input: form.querySelector('#user-chat-color-input'),
+        char_chat_bg_input: form.querySelector('#character-chat-bg-color-input'),
+        user_chat_bg_input: form.querySelector('#user-chat-bg-color-input'),
+        user_name_color_input: form.querySelector('#user-name-color-input'),
+        saveButton: form.querySelector('#save-button'),
+        applyToAllCheckbox: form.querySelector('#apply-to-all-checkbox'),
+        charThemeCheckbox: form.querySelector('#character-theme-checkbox'),
+        deleteCurrentPageStyleButton: form.querySelector('#delete-current-page-style-button'),
+        deleteAllCharacterStylesButton: form.querySelector('#delete-all-character-styles-button')
+    };
 
-    let char_image_url_input = form.querySelector('#character-image-url-input');
-    if (!char_image_url_input) {
-        console.log('#character-image-url-input element not found');
-    } else {
-        char_image_url_input.addEventListener('input', async function () {
-            let url = char_image_url_input.value;
-            let imageBase64 = await urlToBase64(url);
-            setCharacterImage(imageBase64);
-            updateTemp('character_image', url); // Store URL if present
-        });
-    }
+    // Use event delegation for better performance
+    form.addEventListener('input', async function(e) {
+        const target = e.target;
+        const id = target.id;
+        
+        switch(id) {
+            case 'name-input':
+                setCharacterAlias(target.value);
+                updateTemp('character_alias', target.value);
+                break;
+            case 'character-image-url-input':
+                const imageBase64 = await urlToBase64(target.value);
+                setCharacterImage(imageBase64);
+                updateTemp('character_image', target.value);
+                break;
+            case 'bg-url-input':
+                const bgBase64 = await urlToBase64(target.value);
+                setBackgroundImage(bgBase64);
+                updateTemp('background_image', target.value);
+                break;
+        }
+    });
 
-    let char_image_file_input = form.querySelector('#character-image-file-input');
-    if (!char_image_file_input) {
-        console.log('#character-image-file-input element not found');
-    } else {
-        char_image_file_input.addEventListener('change', async function () {
-            let file = char_image_file_input.files[0];
-            let imageBase64 = await fileToBase64(file);
-            setCharacterImage(imageBase64);
-            updateTemp('character_image', imageBase64); // Store base64 if file selected
-        });
-    }
+    form.addEventListener('change', async function(e) {
+        const target = e.target;
+        const id = target.id;
+        
+        switch(id) {
+            case 'name-color-input':
+                setCharacterAliasColor(target.value);
+                updateTemp('character_name_color', target.value);
+                break;
+            case 'character-image-file-input':
+                if (target.files[0]) {
+                    const imageBase64 = await fileToBase64(target.files[0]);
+                    setCharacterImage(imageBase64);
+                    updateTemp('character_image', imageBase64);
+                }
+                break;
+            case 'bg-file-input':
+                if (target.files[0]) {
+                    const bgBase64 = await fileToBase64(target.files[0]);
+                    setBackgroundImage(bgBase64);
+                    updateTemp('background_image', bgBase64);
+                }
+                break;
+            case 'character-narration-color-input':
+                setCharacterNarrationColor(target.value);
+                updateTemp('character_narration_color', target.value);
+                break;
+            case 'character-chat-color-input':
+                setCharacterDialogueColor(target.value, character_dialogue);
+                updateTemp('character_message_color', target.value);
+                break;
+            case 'user-chat-color-input':
+                setUserChatColor(target.value, user_message);
+                updateTemp('user_message_color', target.value);
+                break;
+            case 'character-chat-bg-color-input':
+                setCharacterChatBgColor(target.value, character_chat_bubble_background);
+                updateTemp('character_message_box_color', target.value);
+                break;
+            case 'user-chat-bg-color-input':
+                setUserChatBgColor(target.value, user_chat_bubble_background);
+                updateTemp('user_message_box_color', target.value);
+                break;
+            case 'user-name-color-input':
+                setUserNameColor(target.value);
+                updateTemp('username_color', target.value);
+                break;
+        }
+    });
 
-    let bg_url_input = form.querySelector('#bg-url-input');
-    if (!bg_url_input) {
-        console.log('#bg-url-input element not found');
-    } else {
-        bg_url_input.addEventListener('input', async function () {
-            let url = bg_url_input.value;
-            let imageBase64 = await urlToBase64(url);
-            setBackgroundImage(imageBase64);
-            updateTemp('background_image', url); // Store URL if present
-        });
-    }
-
-    let bg_file_input = form.querySelector('#bg-file-input');
-    if (!bg_file_input) {
-        console.log('#bg-file-input element not found');
-    } else {
-        bg_file_input.addEventListener('change', async function () {
-            let file = bg_file_input.files[0];
-            let imageBase64 = await fileToBase64(file);
-            setBackgroundImage(imageBase64);
-            updateTemp('background_image', imageBase64); // Store base64 if file selected
-        });
-    }
-
-    let char_narr_input = form.querySelector('#character-narration-color-input');
-    if (!char_narr_input) {
-        console.log('#character-narration-color-input element not found');
-    } else {
-        char_narr_input.addEventListener('change', function () {
-            setCharacterNarrationColor(char_narr_input.value);
-            updateTemp('character_narration_color', char_narr_input.value);
-        });
-    }
-
-
-    let char_chat_input = form.querySelector('#character-chat-color-input');
-    if (!char_chat_input) {
-        console.log('#character-chat-color-input element not found');
-    } else {
-        char_chat_input.addEventListener('change', function () {
-            setCharacterDialogueColor(char_chat_input.value, character_dialogue);
-            updateTemp('character_message_color', char_chat_input.value);
-        });
-    }
-
-    let user_chat_input = form.querySelector('#user-chat-color-input');
-    if (!user_chat_input) {
-        console.log('#user-chat-color-input element not found');
-    } else {
-        user_chat_input.addEventListener('change', function () {
-            const regex = user_message;
-            setUserChatColor(user_chat_input.value, regex);
-            updateTemp('user_message_color', user_chat_input.value);
-        });
-    }
-
-
-    let char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
-    if (!char_chat_bg_input) {
-        console.log('#character-chat-bg-color-input element not found');
-    } else {
-        char_chat_bg_input.addEventListener('change', function () {
-            const regex = character_chat_bubble_background;
-            setCharacterChatBgColor(char_chat_bg_input.value, regex);
-            updateTemp('character_message_box_color', char_chat_bg_input.value);
-        });
-    }
-
-
-    let user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-    if (!user_chat_bg_input) {
-        console.log('#user-chat-bg-color-input element not found');
-    } else {
-        user_chat_bg_input.addEventListener('change', function () {
-            const regex = user_chat_bubble_background;
-            setUserChatBgColor(user_chat_bg_input.value, regex);
-            updateTemp('user_message_box_color', user_chat_bg_input.value);
-        });
-    }
-
-    let user_name_color_input = form.querySelector('#user-name-color-input');
-    if (!user_name_color_input) {
-        console.log('#user-name-color-input element not found');
-    } else {
-        user_name_color_input.addEventListener('change', function () {
-            setUserNameColor(user_name_color_input.value);
-            updateTemp('username_color', user_name_color_input.value);
-        });
-    }
-
-    // ...existing code for reset buttons...
-    // Add Save button event handler
-    let saveButton = form.querySelector('#save-button');
-    let applyToAllCheckbox = form.querySelector('#apply-to-all-checkbox');
-    let charThemeCheckbox = form.querySelector('#character-theme-checkbox');
-    if (saveButton) {
-        saveButton.addEventListener('click', async function () {
+    // Button event handlers
+    if (formElements.saveButton) {
+        formElements.saveButton.addEventListener('click', async function () {
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            if (charThemeCheckbox && !charThemeCheckbox.checked) {
+            if (formElements.charThemeCheckbox && !formElements.charThemeCheckbox.checked) {
                 CHAR_ID = CHAT_ID;
             }
-            // Use temp_form_data for DB save
+            // Use optimized batch save
             await saveCharacterDetailsToDBFromTemp(CHAR_ID);
-            // Save character image and background if present in temp_form_data
-            if (temp_form_data.character_image) {
-                saveCharacterImage(CHAR_ID, temp_form_data.character_image);
-            }
-            if (temp_form_data.background_image) {
-                saveBackgroundImage(CHAR_ID, temp_form_data.background_image);
-            }
-            if (applyToAllCheckbox && applyToAllCheckbox.checked) {
+            
+            if (formElements.applyToAllCheckbox && formElements.applyToAllCheckbox.checked) {
                 await saveCharacterDetailsToDBFromTemp('Universal');
             }
             showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
-            resetTempFormData(); // Clear temp after save
+            resetTempFormData();
         });
     }
 
-    // Add Delete Current Page Style button event handler
-    let deleteCurrentPageStyleButton = form.querySelector('#delete-current-page-style-button');
-    if (deleteCurrentPageStyleButton) {
-        deleteCurrentPageStyleButton.addEventListener('click', async function () {
+    if (formElements.deleteCurrentPageStyleButton) {
+        formElements.deleteCurrentPageStyleButton.addEventListener('click', async function () {
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
@@ -493,10 +441,8 @@ function initializeCharacterSettingsEventHandlers(form) {
         });
     }
 
-    // Add Delete All Character Styles button event handler
-    let deleteAllCharacterStylesButton = form.querySelector('#delete-all-character-styles-button');
-    if (deleteAllCharacterStylesButton) {
-        deleteAllCharacterStylesButton.addEventListener('click', async function () {
+    if (formElements.deleteAllCharacterStylesButton) {
+        formElements.deleteAllCharacterStylesButton.addEventListener('click', async function () {
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             await deleteCharacterRecord(CHAR_ID);
@@ -583,33 +529,47 @@ async function getCharacterRecord(CHAR_ID) {
  * @returns {Promise<void>}
  */
 async function populateCustomizerPopup(form, CHAR_ID) {
+    // Cache DOM elements to avoid repeated queries
+    const formElements = {
+        nameInput: form.querySelector('#name-input'),
+        nameColorInput: form.querySelector('#name-color-input'),
+        narrationColorInput: form.querySelector('#character-narration-color-input'),
+        chatColorInput: form.querySelector('#character-chat-color-input'),
+        chatBgColorInput: form.querySelector('#character-chat-bg-color-input'),
+        userNameColorInput: form.querySelector('#user-name-color-input'),
+        userChatColorInput: form.querySelector('#user-chat-color-input'),
+        userChatBgColorInput: form.querySelector('#user-chat-bg-color-input'),
+        characterImageUrlInput: form.querySelector('#character-image-url-input'),
+        bgUrlInput: form.querySelector('#bg-url-input')
+    };
+
     // If temp_form_data is not empty, use it to populate the form
     if (temp_form_data && Object.keys(temp_form_data).length > 0) {
-        if (form.querySelector('#name-input') && temp_form_data.character_alias !== undefined) form.querySelector('#name-input').value = temp_form_data.character_alias;
-        if (form.querySelector('#name-color-input') && temp_form_data.character_name_color !== undefined) form.querySelector('#name-color-input').value = temp_form_data.character_name_color;
-        if (form.querySelector('#character-narration-color-input') && temp_form_data.character_narration_color !== undefined) form.querySelector('#character-narration-color-input').value = temp_form_data.character_narration_color;
-        if (form.querySelector('#character-chat-color-input') && temp_form_data.character_message_color !== undefined) form.querySelector('#character-chat-color-input').value = temp_form_data.character_message_color;
-        if (form.querySelector('#character-chat-bg-color-input') && temp_form_data.character_message_box_color !== undefined) form.querySelector('#character-chat-bg-color-input').value = temp_form_data.character_message_box_color;
-        if (form.querySelector('#user-name-color-input') && temp_form_data.username_color !== undefined) form.querySelector('#user-name-color-input').value = temp_form_data.username_color;
-        if (form.querySelector('#user-chat-color-input') && temp_form_data.user_message_color !== undefined) form.querySelector('#user-chat-color-input').value = temp_form_data.user_message_color;
-        if (form.querySelector('#user-chat-bg-color-input') && temp_form_data.user_message_box_color !== undefined) form.querySelector('#user-chat-bg-color-input').value = temp_form_data.user_message_box_color;
-        // Populate character image url if present and is a string (not base64)
-        if (form.querySelector('#character-image-url-input') && typeof temp_form_data.character_image === 'string' && !temp_form_data.character_image.startsWith('data:image')) {
-            form.querySelector('#character-image-url-input').value = temp_form_data.character_image;
+        // Helper function to set value and dispatch event if element exists
+        const setValueAndDispatch = (element, value) => {
+            if (element && value !== undefined) {
+                element.value = value;
+                element.dispatchEvent(new Event('input'));
+            }
+        };
+
+        // Populate form fields from temp_form_data
+        setValueAndDispatch(formElements.nameInput, temp_form_data.character_alias);
+        setValueAndDispatch(formElements.nameColorInput, temp_form_data.character_name_color);
+        setValueAndDispatch(formElements.narrationColorInput, temp_form_data.character_narration_color);
+        setValueAndDispatch(formElements.chatColorInput, temp_form_data.character_message_color);
+        setValueAndDispatch(formElements.chatBgColorInput, temp_form_data.character_message_box_color);
+        setValueAndDispatch(formElements.userNameColorInput, temp_form_data.username_color);
+        setValueAndDispatch(formElements.userChatColorInput, temp_form_data.user_message_color);
+        setValueAndDispatch(formElements.userChatBgColorInput, temp_form_data.user_message_box_color);
+
+        // Handle image URLs (only if they're URLs, not base64)
+        if (formElements.characterImageUrlInput && typeof temp_form_data.character_image === 'string' && !temp_form_data.character_image.startsWith('data:image')) {
+            formElements.characterImageUrlInput.value = temp_form_data.character_image;
         }
-        // Populate background url if present and is a string (not base64)
-        if (form.querySelector('#bg-url-input') && typeof temp_form_data.background_image === 'string' && !temp_form_data.background_image.startsWith('data:image')) {
-            form.querySelector('#bg-url-input').value = temp_form_data.background_image;
+        if (formElements.bgUrlInput && typeof temp_form_data.background_image === 'string' && !temp_form_data.background_image.startsWith('data:image')) {
+            formElements.bgUrlInput.value = temp_form_data.background_image;
         }
-        // Optionally, trigger input events to update the UI with loaded values
-        if (form.querySelector('#name-input')) form.querySelector('#name-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#name-color-input')) form.querySelector('#name-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#character-narration-color-input')) form.querySelector('#character-narration-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#character-chat-color-input')) form.querySelector('#character-chat-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
         return;
     }
     // Fallback to DB values if temp_form_data is empty
@@ -633,24 +593,24 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         getField('user_message_color'),
         getField('user_message_box_color')
     ]);
-    // Set values in form if present
-    if (form.querySelector('#name-input') && alias !== null) form.querySelector('#name-input').value = alias;
-    if (form.querySelector('#name-color-input') && nameColor !== null) form.querySelector('#name-color-input').value = nameColor;
-    if (form.querySelector('#character-narration-color-input') && narrationColor !== null) form.querySelector('#character-narration-color-input').value = narrationColor;
-    if (form.querySelector('#character-chat-color-input') && messageColor !== null) form.querySelector('#character-chat-color-input').value = messageColor;
-    if (form.querySelector('#character-chat-bg-color-input') && messageBoxColor !== null) form.querySelector('#character-chat-bg-color-input').value = messageBoxColor;
-    if (form.querySelector('#user-name-color-input') && usernameColor !== null) form.querySelector('#user-name-color-input').value = usernameColor;
-    if (form.querySelector('#user-chat-color-input') && userMessageColor !== null) form.querySelector('#user-chat-color-input').value = userMessageColor;
-    if (form.querySelector('#user-chat-bg-color-input') && userMessageBoxColor !== null) form.querySelector('#user-chat-bg-color-input').value = userMessageBoxColor;
-    // Optionally, trigger input events to update the UI with loaded values
-    if (form.querySelector('#name-input')) form.querySelector('#name-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#name-color-input')) form.querySelector('#name-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#character-narration-color-input')) form.querySelector('#character-narration-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#character-chat-color-input')) form.querySelector('#character-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
-    if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
+
+    // Helper function to set value and dispatch event if element exists
+    const setValueAndDispatch = (element, value) => {
+        if (element && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input'));
+        }
+    };
+
+    // Set values in form using cached elements
+    setValueAndDispatch(formElements.nameInput, alias);
+    setValueAndDispatch(formElements.nameColorInput, nameColor);
+    setValueAndDispatch(formElements.narrationColorInput, narrationColor);
+    setValueAndDispatch(formElements.chatColorInput, messageColor);
+    setValueAndDispatch(formElements.chatBgColorInput, messageBoxColor);
+    setValueAndDispatch(formElements.userNameColorInput, usernameColor);
+    setValueAndDispatch(formElements.userChatColorInput, userMessageColor);
+    setValueAndDispatch(formElements.userChatBgColorInput, userMessageBoxColor);
 
     // Add event listener for character-theme-checkbox
     const charThemeCheckbox = form.querySelector('#character-theme-checkbox');
@@ -761,22 +721,88 @@ async function saveCharacterDetailsToDB(form, overrideCharId) {
     ]);
 }
 
-// Helper to save from temp_form_data
+// Helper to save from temp_form_data using batch operation
 async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     let anchor = document.querySelector(char_id_selector);
     let CHAR_ID = overrideCharId || findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
-    // Save all fields from temp_form_data
-    await Promise.all([
-        saveCharacterAlias(CHAR_ID, temp_form_data.character_alias ?? null),
-        saveCharacterNameColor(CHAR_ID, temp_form_data.character_name_color ?? null),
-        saveCharacterNarrationColor(CHAR_ID, temp_form_data.character_narration_color ?? null),
-        saveCharacterMessageColor(CHAR_ID, temp_form_data.character_message_color ?? null),
-        saveCharacterMessageBoxColor(CHAR_ID, temp_form_data.character_message_box_color ?? null),
-        saveUsernameColor(CHAR_ID, temp_form_data.username_color ?? null),
-        saveUserMessageColor(CHAR_ID, temp_form_data.user_message_color ?? null),
-        saveUserMessageBoxColor(CHAR_ID, temp_form_data.user_message_box_color ?? null),
-        saveDefaultBackgroundImage(CHAR_ID, temp_form_data.background_image ?? null),
-    ]);
+    
+    // Batch save all fields in a single transaction
+    const fieldsToSave = {
+        character_alias: temp_form_data.character_alias ?? null,
+        character_name_color: temp_form_data.character_name_color ?? null,
+        character_narration_color: temp_form_data.character_narration_color ?? null,
+        character_message_color: temp_form_data.character_message_color ?? null,
+        character_message_box_color: temp_form_data.character_message_box_color ?? null,
+        username_color: temp_form_data.username_color ?? null,
+        user_message_color: temp_form_data.user_message_color ?? null,
+        user_message_box_color: temp_form_data.user_message_box_color ?? null,
+        background_image: temp_form_data.background_image ?? null,
+        character_image: temp_form_data.character_image ?? null
+    };
+    
+    await saveCharacterFieldsBatch(CHAR_ID, fieldsToSave);
+}
+
+// --- PERFORMANCE OPTIMIZATIONS ---
+let cachedStyleSheets = null;
+let dynamicStyleSheet = null;
+
+/**
+ * Gets filtered stylesheets, excluding Google Fonts for performance.
+ * Uses caching to avoid repeated filtering.
+ * @returns {CSSStyleSheet[]}
+ */
+function getCachedStyleSheets() {
+    if (!cachedStyleSheets) {
+        cachedStyleSheets = Array.from(document.styleSheets).filter(sheet => 
+            !sheet.href || !sheet.href.includes('fonts.googleapis.com')
+        );
+    }
+    return cachedStyleSheets;
+}
+
+/**
+ * Gets or creates a dynamic stylesheet for custom CSS rules.
+ * @returns {CSSStyleSheet}
+ */
+function getDynamicStyleSheet() {
+    if (!dynamicStyleSheet) {
+        let styleElement = document.getElementById('chat-customizer-dynamic-styles');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = 'chat-customizer-dynamic-styles';
+            document.head.appendChild(styleElement);
+        }
+        dynamicStyleSheet = styleElement.sheet;
+    }
+    return dynamicStyleSheet;
+}
+
+/**
+ * Applies CSS rules using a dynamic stylesheet for better performance.
+ * @param {string} selector
+ * @param {Object} styles
+ */
+function applyDynamicStyle(selector, styles) {
+    const sheet = getDynamicStyleSheet();
+    const styleString = Object.entries(styles).map(([prop, value]) => `${prop}: ${value}`).join('; ');
+    const rule = `${selector} { ${styleString} !important; }`;
+    
+    try {
+        sheet.insertRule(rule, sheet.cssRules.length);
+    } catch (e) {
+        console.warn('Failed to insert CSS rule:', rule, e);
+    }
+}
+
+/**
+ * Clears cached data for performance optimization.
+ * Call this when navigating away from pages or when major UI changes occur.
+ */
+function clearCaches() {
+    cachedStyleSheets = null;
+    dynamicStyleSheet = null;
+    temp_form_data = {};
 }
 

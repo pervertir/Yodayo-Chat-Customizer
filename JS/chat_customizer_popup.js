@@ -1,6 +1,28 @@
 // chat customizer popup
 let default_background_image = null;
 let temp_form_data = {};
+/**
+ * Captures the original background image from the page before any modifications.
+ * Should be called when the customizer is first initialized.
+ * @returns {void}
+ */
+function captureOriginalBackgroundImage() {
+    if (default_background_image !== null) return; // Already captured
+
+    /** @type {NodeListOf<HTMLDivElement>} */
+    let targetDivs = document.querySelectorAll(bg_img);
+    if (targetDivs.length > 0) {
+        /** @type {HTMLDivElement[]} */
+        let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
+        if (divElements.length > 0) {
+            default_background_image = divElements[0].style.backgroundImage || '';
+            console.log('Captured original background image:', default_background_image);
+            const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
+            temp_form_data.default_background_image = urlMatch[1]; // Store in temp_form_data
+        }
+    }
+}
+
 // --- UI SETTERS ---
 /**
  * Sets the background image for target divs.
@@ -19,9 +41,8 @@ async function setBackgroundImage(imageBase64) {
 
     console.log('Setting new background image');
     console.log(targetDivs);
+
     divElements.forEach((targetDiv) => {
-        default_background_image = targetDiv.style.backgroundImage;
-        console.log(default_background_image);
         targetDiv.style.backgroundImage = `url('data:image;base64,${imageBase64}')`;
         targetDiv.style.backgroundSize = 'cover';
         targetDiv.classList.remove('container');
@@ -134,7 +155,7 @@ function setCharacterNarrationColor(color) {
 function setCharacterDialogueColor(color, regex) {
     // Use dynamic stylesheet for better performance
     applyDynamicStyle('*[class*="text-primaryText"]', { color });
-    
+
     // Fallback: iterate through cached stylesheets only if needed
     const styleSheets = getCachedStyleSheets();
     styleSheets.forEach((styleSheet) => {
@@ -160,7 +181,7 @@ function setCharacterDialogueColor(color, regex) {
 function setUserChatColor(color, regex) {
     // Use dynamic stylesheet for better performance
     applyDynamicStyle('*[class*="text-black"]', { color });
-    
+
     // Fallback: iterate through cached stylesheets only if needed
     const styleSheets = getCachedStyleSheets();
     styleSheets.forEach((styleSheet) => {
@@ -340,11 +361,11 @@ function initializeCharacterSettingsEventHandlers(form) {
     };
 
     // Use event delegation for better performance
-    form.addEventListener('input', async function(e) {
+    form.addEventListener('input', async function (e) {
         const target = e.target;
         const id = target.id;
-        
-        switch(id) {
+
+        switch (id) {
             case 'name-input':
                 setCharacterAlias(target.value);
                 updateTemp('character_alias', target.value);
@@ -362,11 +383,11 @@ function initializeCharacterSettingsEventHandlers(form) {
         }
     });
 
-    form.addEventListener('change', async function(e) {
+    form.addEventListener('change', async function (e) {
         const target = e.target;
         const id = target.id;
-        
-        switch(id) {
+
+        switch (id) {
             case 'name-color-input':
                 setCharacterAliasColor(target.value);
                 updateTemp('character_name_color', target.value);
@@ -425,6 +446,8 @@ function initializeCharacterSettingsEventHandlers(form) {
     // Button event handlers
     if (formElements.saveButton) {
         formElements.saveButton.addEventListener('click', async function () {
+            // Ensure we have the default background captured before saving
+
             let anchor = document.querySelector(char_id_selector);
             let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
             if (formElements.charThemeCheckbox && !formElements.charThemeCheckbox.checked) {
@@ -432,7 +455,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
             // Use optimized batch save
             await saveCharacterDetailsToDBFromTemp(CHAR_ID);
-            
+
             if (formElements.applyToAllCheckbox && formElements.applyToAllCheckbox.checked) {
                 await saveCharacterDetailsToDBFromTemp('Universal');
             }
@@ -577,8 +600,12 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         if (formElements.characterImageUrlInput && typeof temp_form_data.character_image === 'string' && !temp_form_data.character_image.startsWith('data:image')) {
             formElements.characterImageUrlInput.value = temp_form_data.character_image;
         }
-        if (formElements.bgUrlInput && typeof temp_form_data.background_image === 'string' && !temp_form_data.background_image.startsWith('data:image')) {
-            formElements.bgUrlInput.value = temp_form_data.background_image;
+        if (formElements.bgUrlInput) {
+            if (typeof temp_form_data.background_image === 'string' && !temp_form_data.background_image.startsWith('data:image')) {
+                formElements.bgUrlInput.value = temp_form_data.background_image;
+            } else if (!temp_form_data.background_image && typeof temp_form_data.default_background_image === 'string') {
+                formElements.bgUrlInput.value = temp_form_data.default_background_image;
+            }
         }
         return;
     }
@@ -592,7 +619,9 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         messageBoxColor,
         usernameColor,
         userMessageColor,
-        userMessageBoxColor
+        userMessageBoxColor,
+        backgroundImage,
+        defaultBackgroundImage
     ] = await Promise.all([
         getField('character_alias'),
         getField('character_name_color'),
@@ -601,7 +630,9 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         getField('character_message_box_color'),
         getField('username_color'),
         getField('user_message_color'),
-        getField('user_message_box_color')
+        getField('user_message_box_color'),
+        getField('background_image'),
+        getField('default_background_image')
     ]);
 
     // Helper function to set value and dispatch event if element exists
@@ -621,6 +652,20 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     setValueAndDispatch(formElements.userNameColorInput, usernameColor);
     setValueAndDispatch(formElements.userChatColorInput, userMessageColor);
     setValueAndDispatch(formElements.userChatBgColorInput, userMessageBoxColor);
+
+    // Handle background image URL
+    if (formElements.bgUrlInput) {
+        if (backgroundImage && typeof backgroundImage === 'string' && !backgroundImage.startsWith('data:image')) {
+            // If there's a custom background image that's a URL, show it
+            formElements.bgUrlInput.value = backgroundImage;
+        } else if (!backgroundImage && defaultBackgroundImage && typeof defaultBackgroundImage === 'string' && defaultBackgroundImage.startsWith('url(')) {
+            // If no custom background but there's a default background, extract and show the URL
+            const urlMatch = defaultBackgroundImage.match(/url\(['"]?([^'"]+)['"]?\)/);
+            if (urlMatch) {
+                formElements.bgUrlInput.value = urlMatch[1];
+            }
+        }
+    }
 }
 
 /**
@@ -652,6 +697,9 @@ function handleFormAdded(mutationsList, observer) {
         if (mutation.type === 'childList') {
             if (form) {
                 console.log('Form Found.');
+
+                // Capture original background image before any modifications
+                captureOriginalBackgroundImage();
 
                 // Add classes to existing elements
                 addUserNameClass();
@@ -722,10 +770,10 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     let anchor = document.querySelector(char_id_selector);
     let CHAR_ID = overrideCharId || findCharacterID(anchor);
     if (!CHAR_ID) CHAR_ID = CHAT_ID;
-    
+
     // Only include fields that actually exist in temp_form_data (have been modified)
     const fieldsToSave = {};
-    
+
     // Only add fields that exist in temp_form_data
     if ('character_alias' in temp_form_data) fieldsToSave.character_alias = temp_form_data.character_alias;
     if ('character_name_color' in temp_form_data) fieldsToSave.character_name_color = temp_form_data.character_name_color;
@@ -737,7 +785,8 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     if ('user_message_box_color' in temp_form_data) fieldsToSave.user_message_box_color = temp_form_data.user_message_box_color;
     if ('background_image' in temp_form_data) fieldsToSave.background_image = temp_form_data.background_image;
     if ('character_image' in temp_form_data) fieldsToSave.character_image = temp_form_data.character_image;
-    
+    if ('default_background_image' in temp_form_data) fieldsToSave.default_background_image = temp_form_data.default_background_image;
+
     // Only save if there are actually fields to update
     if (Object.keys(fieldsToSave).length > 0) {
         await saveCharacterFieldsBatch(CHAR_ID, fieldsToSave);
@@ -755,7 +804,7 @@ let dynamicStyleSheet = null;
  */
 function getCachedStyleSheets() {
     if (!cachedStyleSheets) {
-        cachedStyleSheets = Array.from(document.styleSheets).filter(sheet => 
+        cachedStyleSheets = Array.from(document.styleSheets).filter(sheet =>
             !sheet.href || !sheet.href.includes('fonts.googleapis.com')
         );
     }
@@ -788,7 +837,7 @@ function applyDynamicStyle(selector, styles) {
     const sheet = getDynamicStyleSheet();
     const styleString = Object.entries(styles).map(([prop, value]) => `${prop}: ${value}`).join('; ');
     const rule = `${selector} { ${styleString} !important; }`;
-    
+
     try {
         sheet.insertRule(rule, sheet.cssRules.length);
     } catch (e) {
@@ -804,5 +853,7 @@ function clearCaches() {
     cachedStyleSheets = null;
     dynamicStyleSheet = null;
     temp_form_data = {};
+    // Note: we intentionally don't reset default_background_image here
+    // as it should persist throughout the session
 }
 

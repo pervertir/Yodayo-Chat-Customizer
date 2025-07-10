@@ -332,7 +332,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!char_name_color_input) {
         console.log('#name-color-input element not found');
     } else {
-        char_name_color_input.addEventListener('input', function () {
+        char_name_color_input.addEventListener('change', function () {
             setCharacterAliasColor(char_name_color_input.value);
             updateTemp('character_name_color', char_name_color_input.value);
         });
@@ -390,7 +390,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!char_narr_input) {
         console.log('#character-narration-color-input element not found');
     } else {
-        char_narr_input.addEventListener('input', function () {
+        char_narr_input.addEventListener('change', function () {
             setCharacterNarrationColor(char_narr_input.value);
             updateTemp('character_narration_color', char_narr_input.value);
         });
@@ -401,7 +401,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!char_chat_input) {
         console.log('#character-chat-color-input element not found');
     } else {
-        char_chat_input.addEventListener('input', function () {
+        char_chat_input.addEventListener('change', function () {
             setCharacterDialogueColor(char_chat_input.value, character_dialogue);
             updateTemp('character_message_color', char_chat_input.value);
         });
@@ -411,7 +411,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!user_chat_input) {
         console.log('#user-chat-color-input element not found');
     } else {
-        user_chat_input.addEventListener('input', function () {
+        user_chat_input.addEventListener('change', function () {
             const regex = user_message;
             setUserChatColor(user_chat_input.value, regex);
             updateTemp('user_message_color', user_chat_input.value);
@@ -423,7 +423,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!char_chat_bg_input) {
         console.log('#character-chat-bg-color-input element not found');
     } else {
-        char_chat_bg_input.addEventListener('input', function () {
+        char_chat_bg_input.addEventListener('change', function () {
             const regex = character_chat_bubble_background;
             setCharacterChatBgColor(char_chat_bg_input.value, regex);
             updateTemp('character_message_box_color', char_chat_bg_input.value);
@@ -435,7 +435,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!user_chat_bg_input) {
         console.log('#user-chat-bg-color-input element not found');
     } else {
-        user_chat_bg_input.addEventListener('input', function () {
+        user_chat_bg_input.addEventListener('change', function () {
             const regex = user_chat_bubble_background;
             setUserChatBgColor(user_chat_bg_input.value, regex);
             updateTemp('user_message_box_color', user_chat_bg_input.value);
@@ -446,7 +446,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     if (!user_name_color_input) {
         console.log('#user-name-color-input element not found');
     } else {
-        user_name_color_input.addEventListener('input', function () {
+        user_name_color_input.addEventListener('change', function () {
             setUserNameColor(user_name_color_input.value);
             updateTemp('username_color', user_name_color_input.value);
         });
@@ -609,7 +609,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         if (form.querySelector('#character-chat-bg-color-input')) form.querySelector('#character-chat-bg-color-input').dispatchEvent(new Event('input'));
         if (form.querySelector('#user-name-color-input')) form.querySelector('#user-name-color-input').dispatchEvent(new Event('input'));
         if (form.querySelector('#user-chat-color-input')) form.querySelector('#user-chat-color-input').dispatchEvent(new Event('input'));
-        if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color_input').dispatchEvent(new Event('input'));
+        if (form.querySelector('#user-chat-bg-color-input')) form.querySelector('#user-chat-bg-color-input').dispatchEvent(new Event('input'));
         return;
     }
     // Fallback to DB values if temp_form_data is empty

@@ -300,14 +300,23 @@ function handleMutations(mutationsList) {
 function initializeCloseButtonEventHandler(form, formBody) {
     console.log(formBody);
     const closeModal = () => {
-        // document.documentElement.style.cssText = '';
+        // Reset document styles
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.paddingRight = '';
 
         let main = document.querySelector('body > main');
-        main.setAttribute('aria-hidden', 'false');
-        main.removeAttribute('inert');
+        if (main) {
+            main.setAttribute('aria-hidden', 'false');
+            main.removeAttribute('inert');
+        }
 
-        // form.style.display = 'none'; // or 'hidden' or 'unset' depending on your CSS
-        form.remove();
+        // Remove the modal by removing the portal root element
+        /** @type {HTMLElement|null} */
+        const portalRoot = document.getElementById('headlessui-portal-root');
+        if (portalRoot) {
+            portalRoot.remove();
+        }
+        
         document.removeEventListener('click', handleClickOutside);
 
     };

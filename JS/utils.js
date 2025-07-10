@@ -121,7 +121,7 @@ async function addMenuItem(targetElement, itemId, resourceName) {
 function addCustomizeChatForm(itemId, resourceName) {
     console.log("Adding chat customizer form.");
     if (document.getElementById(itemId)) {
-        let form = document.querySelector('#headlessui-portal-root');
+        let portalRoot = document.querySelector('#headlessui-portal-root');
         let main = document.querySelector('body > main');
         
         // yodayo does this by default so I'm just mimicing it
@@ -129,10 +129,19 @@ function addCustomizeChatForm(itemId, resourceName) {
         document.documentElement.style.paddingRight = '1px';
 
         // To allow interaction with elements below the form
-        main.setAttribute('aria-hidden', 'true');
-        main.setAttribute('inert', '');
+        if (main) {
+            main.setAttribute('aria-hidden', 'true');
+            main.setAttribute('inert', '');
+        }
         
-        form.style.display = 'block';    
+        if (portalRoot) {
+            portalRoot.style.display = 'block';    
+        } else {
+            // Portal root doesn't exist, create new form
+            renderHTMLFromFile(resourceName).then(chatCustomizerForm => {
+                document.body.appendChild(chatCustomizerForm);
+            });
+        }
 
         return;
     }
@@ -148,7 +157,7 @@ function addCustomizeChatForm(itemId, resourceName) {
 function addImageViewer(itemId, resourceName) {
 
     if (document.getElementById(itemId)) {
-        let form = document.querySelector('#image-viewer-ui-popup');
+        let portalRoot = document.querySelector('#headlessui-portal-root');
         let main = document.querySelector('body > main');
 
         // yodayo does this by default so I'm just mimicing it
@@ -156,9 +165,19 @@ function addImageViewer(itemId, resourceName) {
         document.documentElement.style.paddingRight = '1px';
 
         // To allow interaction with elements below the form
-        main.setAttribute('inert', '');
+        if (main) {
+            main.setAttribute('inert', '');
+        }
 
-        form.style.display = 'block';
+        if (portalRoot) {
+            portalRoot.style.display = 'block';
+        } else {
+            // Portal root doesn't exist, create new image viewer
+            renderHTMLFromFile(resourceName).then(imageViewerBody => {
+                document.body.appendChild(imageViewerBody);
+                console.log('Image Viewer inserted:', imageViewerBody);
+            });
+        }
 
         return;
     }

@@ -38,7 +38,7 @@
           data-headlessui-state="open"
         >
           <div
-            class="relative min-w-full h-auto overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-2xl opacity-100 translate-y-0 sm:scale-100"
+            class="flex flex-col mx-4 w-screen h-[85vh] overflow-y-auto rounded-lg bg-secondaryBg shadow-xl transition-all sm:my-8 sm:max-w-4xl sm:min-h-[80vh] opacity-100 translate-y-0 sm:scale-100"
           >
             <div
               class="p-2 bg-secondaryBg text-white text-center text-xl border-b border-[#22242b]"
@@ -66,8 +66,9 @@
               </div>
             </div>
             <div
-              class="flex-1 grid grid-cols-3 gap-5 overflow-y-auto overflow-x-hidden p-2 bg-primaryBg"
+              class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto overflow-x-hidden p-6 bg-primaryBg"
               id="cards"
+              style="perspective: 1000px;"
             >
               <!-- Cards will be inserted here -->
             </div>

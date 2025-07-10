@@ -142,6 +142,9 @@ function handleImageViewerAdded(mutationsList, observer) {
                 console.log('Image Viewer found.');
                 ImageViewerCache.isInitialized = true;
 
+                // Inject custom CSS for card animations
+                injectCardFlipCSS();
+
                 // Initialize handlers and render cards
                 initializeImageViewerCloseButtonEventHandler(imageViewer);
                 renderAllCardsInDiv();
@@ -244,6 +247,9 @@ async function renderAllCardsInDiv() {
             const colorUserBubbleBg = cardElement.querySelector('#color-user-bubble-bg');
             if (colorUserBubbleBg) colorUserBubbleBg.value = record.user_message_box_color || '#ffffff';
 
+            // Add flip animation handlers
+            addCardFlipHandlers(cardElement);
+
             cardContainer.appendChild(cardElement);
         }
     };
@@ -252,3 +258,98 @@ async function renderAllCardsInDiv() {
         console.error('Failed to load character records:', e.target.error);
     };
 }
+
+/**
+ * Add flip animation event handlers to a card
+ * @param {HTMLElement} cardElement
+ * @returns {void}
+ */
+function addCardFlipHandlers(cardElement) {
+    /** @type {HTMLElement|null} */
+    const cardInner = cardElement.querySelector('.card-inner');
+    /** @type {HTMLElement|null} */
+    const cardFront = cardElement.querySelector('.card-front');
+    /** @type {HTMLElement|null} */
+    const backButton = cardElement.querySelector('#card-back-button');
+
+    if (!cardInner || !cardFront || !backButton) {
+        console.error('Required card elements not found for flip animation');
+        return;
+    }
+
+    // Click handler for flipping to back (color pickers)
+    cardFront.addEventListener('click', () => {
+        cardInner.style.transform = 'rotateY(180deg)';
+    });
+
+    // Click handler for flipping back to front (character display)
+    backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        cardInner.style.transform = 'rotateY(0deg)';
+    });
+}
+
+/**
+ * Inject custom CSS for 3D card flip animations
+ * @returns {void}
+ */
+function injectCardFlipCSS() {
+    const styleId = 'card-flip-styles';
+    
+    // Don't inject if already exists
+    if (document.getElementById(styleId)) {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+        .card-container {
+            perspective: 1000px;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.7s ease-in-out;
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front:hover {
+            transform: scale(1.02);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .card-front:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease-in-out;
+        }
+        
+        /* Ensure the card has a fixed aspect ratio */
+        .card-container {
+            aspect-ratio: 3/4;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+    `;
+    
+    document.head.appendChild(style);
+}
+
+// Inject CSS for card flip animations
+injectCardFlipCSS();

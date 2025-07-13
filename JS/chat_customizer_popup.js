@@ -65,11 +65,11 @@ async function setCharacterImage(imageData) {
         /** @type {HTMLImageElement|null} */
         let existingImage = characterContainer.querySelector('div > div > img');
         let imageHeight = "90vh";
-        
+
         // Check if the data is a URL or base64
         const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
         const imageSrc = isUrl ? imageData : `data:image;base64,${imageData}`;
-        
+
         if (existingImage) {
             existingImage.src = imageSrc;
             existingImage.style.height = imageHeight;
@@ -325,7 +325,7 @@ function initializeCloseButtonEventHandler(form, formBody) {
         if (portalRoot) {
             portalRoot.remove();
         }
-        
+
         document.removeEventListener('click', handleClickOutside);
 
     };
@@ -563,7 +563,7 @@ async function loadCustomizedUI(CHAR_ID) {
             setCharacterImage(imageSource);
         }
     }
-    
+
     if (bgSource) {
         // Check if it's a URL or base64 data
         const isBgUrl = bgSource.startsWith('http://') || bgSource.startsWith('https://');
@@ -648,6 +648,8 @@ async function populateCustomizerPopup(form, CHAR_ID) {
             const characterNameElement = document.querySelector(character_name_title);
             if (characterNameElement) {
                 characterName = characterNameElement.textContent.trim();
+                // Add the character name to temp_form_data so it gets saved
+                temp_form_data.character_alias = characterName;
             }
         }
         setValueAndDispatch(formElements.nameInput, characterName);

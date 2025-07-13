@@ -178,10 +178,37 @@ async function renderAllCardsInDiv() {
             const bgImg = cardElement.querySelector('#card-bg-image');
             if (bgImg) {
                 if (record.background_image) {
-                    bgImg.src = record.background_image.startsWith('data:') ? record.background_image : `data:image/png;base64,${record.background_image}`;
+                    // Check if the data is a URL or base64
+                    const isUrl = record.background_image.startsWith('http://') || record.background_image.startsWith('https://') || record.background_image.startsWith('data:image');
+                    if (isUrl && !record.background_image.startsWith('data:')) {
+                        // Convert URL to base64 to avoid CORS issues
+                        try {
+                            const imageBase64 = await urlToBase64(record.background_image);
+                            bgImg.src = `data:image/png;base64,${imageBase64}`;
+                        } catch (error) {
+                            console.error('Failed to load background image from URL:', error);
+                            // Fallback: try setting the URL directly
+                            bgImg.src = record.background_image;
+                        }
+                    } else {
+                        bgImg.src = isUrl ? record.background_image : `data:image/png;base64,${record.background_image}`;
+                    }
                 } else if (record.default_background_image) {
-                    // Use default background image if custom background is not available (always https:// URL)
-                    bgImg.src = record.default_background_image;
+                    // Extract URL from CSS url() format if needed, otherwise use as-is
+                    let imageUrl = record.default_background_image;
+                    if (imageUrl.startsWith('url(')) {
+                        const urlMatch = imageUrl.match(/url\(['"]?([^'"]+)['"]?\)/);
+                        imageUrl = urlMatch ? urlMatch[1] : imageUrl;
+                    }
+                    // Convert URL to base64 to avoid CORS issues
+                    try {
+                        const imageBase64 = await urlToBase64(imageUrl);
+                        bgImg.src = `data:image/png;base64,${imageBase64}`;
+                    } catch (error) {
+                        console.error('Failed to load default background image from URL:', error);
+                        // Fallback: try setting the URL directly
+                        bgImg.src = imageUrl;
+                    }
                 }
             }
 
@@ -190,7 +217,21 @@ async function renderAllCardsInDiv() {
             const charImg = cardElement.querySelector('#card-character-image');
             if (charImg) {
                 if (record.character_image) {
-                    charImg.src = record.character_image.startsWith('data:') ? record.character_image : `data:image/png;base64,${record.character_image}`;
+                    // Check if the data is a URL or base64
+                    const isUrl = record.character_image.startsWith('http://') || record.character_image.startsWith('https://') || record.character_image.startsWith('data:image');
+                    if (isUrl && !record.character_image.startsWith('data:')) {
+                        // Convert URL to base64 to avoid CORS issues
+                        try {
+                            const imageBase64 = await urlToBase64(record.character_image);
+                            charImg.src = `data:image/png;base64,${imageBase64}`;
+                        } catch (error) {
+                            console.error('Failed to load character image from URL:', error);
+                            // Fallback: try setting the URL directly
+                            charImg.src = record.character_image;
+                        }
+                    } else {
+                        charImg.src = isUrl ? record.character_image : `data:image/png;base64,${record.character_image}`;
+                    }
                 } else {
                     // Don't render the image if character image is not available
                     charImg.style.display = 'none';

@@ -642,7 +642,15 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         };
 
         // Populate form fields from temp_form_data
-        setValueAndDispatch(formElements.nameInput, temp_form_data.character_alias);
+        // If no character_alias in temp data, try to get character name from the page
+        let characterName = temp_form_data.character_alias;
+        if (!characterName) {
+            const characterNameElement = document.querySelector(character_name_title);
+            if (characterNameElement) {
+                characterName = characterNameElement.textContent.trim();
+            }
+        }
+        setValueAndDispatch(formElements.nameInput, characterName);
         setValueAndDispatch(formElements.nameColorInput, temp_form_data.character_name_color);
         setValueAndDispatch(formElements.narrationColorInput, temp_form_data.character_narration_color);
         setValueAndDispatch(formElements.chatColorInput, temp_form_data.character_message_color);
@@ -699,7 +707,15 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     };
 
     // Set values in form using cached elements
-    setValueAndDispatch(formElements.nameInput, alias);
+    // If no alias from DB, try to get character name from the page
+    let characterName = alias;
+    if (!characterName) {
+        const characterNameElement = document.querySelector(character_name_selector);
+        if (characterNameElement) {
+            characterName = characterNameElement.textContent.trim();
+        }
+    }
+    setValueAndDispatch(formElements.nameInput, characterName);
     setValueAndDispatch(formElements.nameColorInput, nameColor);
     setValueAndDispatch(formElements.narrationColorInput, narrationColor);
     setValueAndDispatch(formElements.chatColorInput, messageColor);

@@ -313,39 +313,59 @@ async function saveUniversalColorSettings(colorSettings) {
 }
 
 /**
- * Loads universal color settings (returns only color fields, not image/bg/name).
- * @returns {Promise<Object|null>} An object with color fields or null if not set.
+ * Gets universal color settings (character record with CHAR_ID = 'Universal')
+ * @returns {Promise<CharacterRecord|null>}
  */
 async function getUniversalColorSettings() {
+    return await getCharacterRecord('Universal');
+}
+
+/**
+ * Batch get character fields for better database performance
+ * @param {string} CHAR_ID - Character ID
+ * @param {string[]} fields - Array of field names to retrieve
+ * @returns {Promise<Object>} Object with field values
+ */
+async function getCharacterFieldsBatch(CHAR_ID, fields) {
+    if (!db) await openDatabase();
+    
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get(CHAR_ID);
+        
+        getRequest.onsuccess = function(event) {
+            const result = event.target.result || {};
+            const fieldData = {};
+            
+            fields.forEach(field => {
+                fieldData[field] = result[field] !== undefined ? result[field] : null;
+            });
+            
+            resolve(fieldData);
+        };
+        
+        getRequest.onerror = function(e) {
+            reject(e.target.error);
+        };
+    });
+}
+
+/**
+ * Loads the full character record from the database.
+ * @param {string} CHAR_ID
+ * @returns {Promise<CharacterRecord|null>}
+ */
+async function getCharacterRecord(CHAR_ID) {
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get('Universal');
-        getRequest.onsuccess = function(event) {
-            const record = event.target.result;
-            if (!record) return resolve(null);
-            // Only return color fields
-            const {
-                character_name_color,
-                character_narration_color,
-                character_message_color,
-                character_message_box_color,
-                username_color,
-                user_message_color,
-                user_message_box_color
-            } = record;
-            resolve({
-                character_name_color,
-                character_narration_color,
-                character_message_color,
-                character_message_box_color,
-                username_color,
-                user_message_color,
-                user_message_box_color
-            });
+        const getRequest = objectStore.get(CHAR_ID);
+        getRequest.onsuccess = function (event) {
+            resolve(event.target.result || null);
         };
-        getRequest.onerror = function(e) { reject(e.target.error); };
+        getRequest.onerror = function (e) { reject(e.target.error); };
     });
 }
 

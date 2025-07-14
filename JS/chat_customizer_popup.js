@@ -1,6 +1,10 @@
-// chat customizer popup
+// Chat Customizer Popup - Main popup functionality and form handling
+// This module handles the customizer popup UI, form interactions, and data loading
+
+// --- STATE MANAGEMENT ---
 let default_background_image = null;
 let temp_form_data = {};
+
 /**
  * Captures the original background image from the page before any modifications.
  * Should be called when the customizer is first initialized.
@@ -19,282 +23,6 @@ function captureOriginalBackgroundImage() {
             console.log('Captured original background image:', default_background_image);
             const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
             temp_form_data.default_background_image = urlMatch[1]; // Store in temp_form_data
-        }
-    }
-}
-
-// --- UI SETTERS ---
-/**
- * Sets the background image for target divs.
- * @param {string} imageData - The image data (base64-encoded string or URL).
- * @returns {Promise<void>}
- */
-async function setBackgroundImage(imageData) {
-    /** @type {NodeListOf<HTMLDivElement>} */
-    let targetDivs = document.querySelectorAll(bg_img);
-    if (!targetDivs.length) {
-        console.error('Background divs not found.');
-        return;
-    }
-    /** @type {HTMLDivElement[]} */
-    let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
-
-    console.log('Setting new background image');
-    console.log(targetDivs);
-
-    // Check if the data is a URL or base64
-    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
-    const backgroundImageUrl = isUrl ? `url('${imageData}')` : `url('data:image;base64,${imageData}')`;
-
-    divElements.forEach((targetDiv) => {
-        targetDiv.style.backgroundImage = backgroundImageUrl;
-        targetDiv.style.backgroundSize = 'cover';
-        targetDiv.classList.remove('container');
-    });
-}
-
-/**
- * Sets the character image in the character container.
- * @param {string} imageData - The image data (base64-encoded string or URL).
- * @returns {Promise<void>}
- */
-async function setCharacterImage(imageData) {
-    /** @type {HTMLElement|null} */
-    let characterContainer = document.querySelector('.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2');
-    if (characterContainer) {
-        /** @type {HTMLImageElement|null} */
-        let existingImage = characterContainer.querySelector('div > div > img');
-        let imageHeight = "90vh";
-
-        // Check if the data is a URL or base64
-        const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
-        const imageSrc = isUrl ? imageData : `data:image;base64,${imageData}`;
-
-        if (existingImage) {
-            existingImage.src = imageSrc;
-            existingImage.style.height = imageHeight;
-            console.log('Changed Character Image.');
-        } else {
-            let innerDiv = characterContainer.querySelector('div > div');
-            if (!innerDiv) {
-                renderHTMLFromFile(character_image_container_resource_name).then(character_image_container => {
-                    /** @type {HTMLImageElement} */
-                    let image = character_image_container.querySelector('img');
-                    image.src = imageSrc;
-                    image.style.height = imageHeight;
-                    characterContainer.appendChild(character_image_container);
-                });
-            }
-        }
-    } else {
-        console.error('Character container not found');
-    }
-}
-
-/**
- * Sets the alias (character name) in the UI.
- * @param {string} alias
- * @returns {void}
- */
-function setCharacterAlias(alias) {
-    const character_names = document.querySelectorAll(character_name_selector);
-    character_names.forEach((name) => {
-        name.textContent = alias;
-    });
-    const name_title = document.querySelector(character_name_title);
-    if (name_title) name_title.textContent = alias;
-}
-
-/**
- * Sets the alias color in the UI.
- * @param {string} color
- * @returns {void}
- */
-function setCharacterAliasColor(color) {
-    for (let i = 0; i < document.styleSheets.length; i++) {
-        const styleSheet = document.styleSheets[i];
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            continue;
-        }
-        try {
-            for (let j = 0; j < styleSheet.cssRules.length; j++) {
-                const rule = styleSheet.cssRules[j];
-                if (rule.selectorText === 'a') {
-                    rule.style.color = color;
-                }
-            }
-        } catch (e) {
-            console.warn('Cannot access stylesheet: ', styleSheet.href);
-            continue;
-        }
-    }
-}
-
-/**
- * Sets the character narration color in the UI.
- * @param {string} color
- * @returns {void}
- */
-function setCharacterNarrationColor(color) {
-    for (let i = 0; i < document.styleSheets.length; i++) {
-        const styleSheet = document.styleSheets[i];
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            continue;
-        }
-        try {
-            for (let j = 0; j < styleSheet.cssRules.length; j++) {
-                const rule = styleSheet.cssRules[j];
-                if (rule.selectorText === '.text-chipText') {
-                    rule.style.color = color;
-                }
-            }
-        } catch (e) {
-            console.warn('Cannot access stylesheet: ', styleSheet.href);
-            continue;
-        }
-    }
-}
-
-/**
- * Sets the character chat color in the UI using optimized CSS injection.
- * @param {string} color
- * @param {RegExp} regex
- * @returns {void}
- */
-function setCharacterDialogueColor(color, regex) {
-    // Use dynamic stylesheet for better performance
-    applyDynamicStyle('*[class*="text-primaryText"]', { color });
-
-    // Fallback: iterate through cached stylesheets only if needed
-    const styleSheets = getCachedStyleSheets();
-    styleSheets.forEach((styleSheet) => {
-        if (!styleSheet.href) return;
-        try {
-            Array.from(styleSheet.cssRules).forEach((rule) => {
-                if (rule.selectorText && regex.test(rule.selectorText)) {
-                    rule.style.color = color;
-                }
-            });
-        } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
-        }
-    });
-}
-
-/**
- * Sets the user chat color in the UI using optimized CSS injection.
- * @param {string} color
- * @param {RegExp} regex
- * @returns {void}
- */
-function setUserChatColor(color, regex) {
-    // Use dynamic stylesheet for better performance
-    applyDynamicStyle('*[class*="text-black"]', { color });
-
-    // Fallback: iterate through cached stylesheets only if needed
-    const styleSheets = getCachedStyleSheets();
-    styleSheets.forEach((styleSheet) => {
-        if (!styleSheet.href) return;
-        try {
-            Array.from(styleSheet.cssRules).forEach((rule) => {
-                if (rule.selectorText && regex.test(rule.selectorText)) {
-                    rule.style.color = color;
-                }
-            });
-        } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
-        }
-    });
-}
-
-/**
- * Sets the character chat background color in the UI.
- * @param {string} color
- * @param {RegExp} regex
- * @returns {void}
- */
-function setCharacterChatBgColor(color, regex) {
-    Array.from(document.styleSheets).forEach((styleSheet) => {
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
-            return;
-        }
-        if (!styleSheet.href) {
-            return;
-        }
-        try {
-            Array.from(styleSheet.cssRules).forEach((rule) => {
-                if (rule.selectorText && regex.test(rule.selectorText)) {
-                    rule.style.backgroundColor = color;
-                    rule.style.opacity = '85%';
-                }
-            });
-        } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
-            console.warn(e);
-        }
-    });
-}
-
-/**
- * Sets the user chat background color in the UI.
- * @param {string} color
- * @param {RegExp} regex
- * @returns {void}
- */
-function setUserChatBgColor(color, regex) {
-    setCharacterChatBgColor(color, regex);
-}
-
-/**
- * Sets the user name color in the UI.
- * @param {string} color
- * @returns {void}
- */
-function setUserNameColor(color) {
-    let styleSheet = document.getElementById('dynamic-styles');
-    if (!styleSheet) {
-        styleSheet = document.createElement('style');
-        styleSheet.id = 'dynamic-styles';
-        document.head.appendChild(styleSheet);
-    }
-    styleSheet.innerHTML = `.username { color: ${color} !important; }`;
-}
-
-// --- DOM HELPERS ---
-/**
- * Adds the 'username' class to all username elements.
- * @returns {void}
- */
-function addUserNameClass() {
-    /** @type {NodeListOf<HTMLElement>} */
-    let usernameElements = document.querySelectorAll(user_name);
-    usernameElements.forEach((element) => {
-        element.classList.add('username');
-    });
-}
-
-/**
- * Handles DOM mutations to add the 'username' class to new username elements.
- * @param {MutationRecord[]} mutationsList
- * @returns {void}
- */
-function handleMutations(mutationsList) {
-    for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    if (node.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
-                        node.classList.add('username');
-                    }
-                }
-                node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
-                    if (child.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
-                        child.classList.add('username');
-                    }
-                });
-            });
         }
     }
 }
@@ -344,171 +72,169 @@ function initializeCloseButtonEventHandler(form, formBody) {
 }
 
 /**
- * Initializes event handlers for character settings form using optimized approach.
+ * Optimized event handler initialization with better performance
  * @param {HTMLElement} form
  * @returns {void}
  */
 function initializeCharacterSettingsEventHandlers(form) {
     // Helper to update temp_form_data
-    function updateTemp(key, value) {
-        temp_form_data[key] = value;
-    }
-    function resetTempFormData() {
-        temp_form_data = {};
-    }
+    const updateTemp = (key, value) => temp_form_data[key] = value;
 
-    // Cache all form elements at once
-    const formElements = {
-        char_name_input: form.querySelector('#name-input'),
-        char_name_color_input: form.querySelector('#name-color-input'),
-        char_image_url_input: form.querySelector('#character-image-url-input'),
-        char_image_file_input: form.querySelector('#character-image-file-input'),
-        bg_url_input: form.querySelector('#bg-url-input'),
-        bg_file_input: form.querySelector('#bg-file-input'),
-        char_narr_input: form.querySelector('#character-narration-color-input'),
-        char_chat_input: form.querySelector('#character-chat-color-input'),
-        user_chat_input: form.querySelector('#user-chat-color-input'),
-        char_chat_bg_input: form.querySelector('#character-chat-bg-color-input'),
-        user_chat_bg_input: form.querySelector('#user-chat-bg-color-input'),
-        user_name_color_input: form.querySelector('#user-name-color-input'),
-        saveButton: form.querySelector('#save-button'),
-        applyToAllCheckbox: form.querySelector('#apply-to-all-checkbox'),
-        charThemeCheckbox: form.querySelector('#character-theme-checkbox'),
-        deleteCurrentPageStyleButton: form.querySelector('#delete-current-page-style-button'),
-        deleteAllCharacterStylesButton: form.querySelector('#delete-all-character-styles-button')
+    // Cache all form elements once with error handling
+    const formElements = {};
+    const elementSelectors = {
+        char_name_input: '#name-input',
+        char_name_color_input: '#name-color-input',
+        char_image_url_input: '#character-image-url-input',
+        char_image_file_input: '#character-image-file-input',
+        bg_url_input: '#bg-url-input',
+        bg_file_input: '#bg-file-input',
+        char_narr_input: '#character-narration-color-input',
+        char_chat_input: '#character-chat-color-input',
+        user_chat_input: '#user-chat-color-input',
+        char_chat_bg_input: '#character-chat-bg-color-input',
+        user_chat_bg_input: '#user-chat-bg-color-input',
+        user_name_color_input: '#user-name-color-input',
+        saveButton: '#save-button',
+        applyToAllCheckbox: '#apply-to-all-checkbox',
+        charThemeCheckbox: '#character-theme-checkbox',
+        deleteCurrentPageStyleButton: '#delete-current-page-style-button',
+        deleteAllCharacterStylesButton: '#delete-all-character-styles-button'
     };
 
-    // Use event delegation for better performance
-    form.addEventListener('input', async function (e) {
-        const target = e.target;
-        const id = target.id;
-
-        switch (id) {
-            case 'name-input':
-                setCharacterAlias(target.value);
-                updateTemp('character_alias', target.value);
-                break;
-            case 'character-image-url-input':
-                if (target.value) {
-                    const imageBase64 = await urlToBase64(target.value);
-                    setCharacterImage(imageBase64);
-                    updateTemp('character_image', target.value);
-                }
-                break;
-            case 'bg-url-input':
-                if (target.value) {
-                    const bgBase64 = await urlToBase64(target.value);
-                    setBackgroundImage(bgBase64);
-                    updateTemp('background_image', target.value);
-                }
-                break;
-        }
+    // Batch DOM queries
+    Object.entries(elementSelectors).forEach(([key, selector]) => {
+        formElements[key] = form.querySelector(selector);
     });
 
-    form.addEventListener('change', async function (e) {
-        const target = e.target;
-        const id = target.id;
-
-        switch (id) {
-            case 'name-color-input':
-                setCharacterAliasColor(target.value);
-                updateTemp('character_name_color', target.value);
-                break;
-            case 'character-image-file-input':
-                if (target.files[0]) {
-                    const imageBase64 = await fileToBase64(target.files[0]);
-                    setCharacterImage(imageBase64);
-                    updateTemp('character_image', imageBase64);
-                }
-                break;
-            case 'bg-file-input':
-                if (target.files[0]) {
-                    const bgBase64 = await fileToBase64(target.files[0]);
-                    setBackgroundImage(bgBase64);
-                    updateTemp('background_image', bgBase64);
-                }
-                break;
-            case 'character-narration-color-input':
-                setCharacterNarrationColor(target.value);
-                updateTemp('character_narration_color', target.value);
-                break;
-            case 'character-chat-color-input':
-                setCharacterDialogueColor(target.value, character_dialogue);
-                updateTemp('character_message_color', target.value);
-                break;
-            case 'user-chat-color-input':
-                setUserChatColor(target.value, user_message);
-                updateTemp('user_message_color', target.value);
-                break;
-            case 'character-chat-bg-color-input':
-                setCharacterChatBgColor(target.value, character_chat_bubble_background);
-                updateTemp('character_message_box_color', target.value);
-                break;
-            case 'user-chat-bg-color-input':
-                setUserChatBgColor(target.value, user_chat_bubble_background);
-                updateTemp('user_message_box_color', target.value);
-                break;
-            case 'user-name-color-input':
-                setUserNameColor(target.value);
-                updateTemp('username_color', target.value);
-                break;
-            case 'character-theme-checkbox':
-                // Handle character theme checkbox toggle
-                let anchor = document.querySelector(char_id_selector);
-                let CHAR_ID = findCharacterID(anchor);
-                if (!target.checked) {
-                    CHAR_ID = CHAT_ID;
-                }
-                // Could repopulate form here if needed
-                // populateCustomizerPopup(form, CHAR_ID);
-                break;
+    // Optimized event handler mapping
+    const inputHandlers = {
+        'name-input': (value) => {
+            setCharacterAlias(value);
+            updateTemp('character_alias', value);
+        },
+        'character-image-url-input': async (value) => {
+            if (value) {
+                const imageBase64 = await urlToBase64(value);
+                setCharacterImage(imageBase64);
+                updateTemp('character_image', value);
+            }
+        },
+        'bg-url-input': async (value) => {
+            if (value) {
+                const bgBase64 = await urlToBase64(value);
+                setBackgroundImage(bgBase64);
+                updateTemp('background_image', value);
+            }
         }
-    });
+    };
 
-    // Button event handlers
-    if (formElements.saveButton) {
-        formElements.saveButton.addEventListener('click', async function () {
-            // Ensure we have the default background captured before saving
-
+    const changeHandlers = {
+        'name-color-input': (value) => {
+            setCharacterAliasColor(value);
+            updateTemp('character_name_color', value);
+        },
+        'character-image-file-input': async (target) => {
+            if (target.files[0]) {
+                const imageBase64 = await fileToBase64(target.files[0]);
+                setCharacterImage(imageBase64);
+                updateTemp('character_image', imageBase64);
+            }
+        },
+        'bg-file-input': async (target) => {
+            if (target.files[0]) {
+                const bgBase64 = await fileToBase64(target.files[0]);
+                setBackgroundImage(bgBase64);
+                updateTemp('background_image', bgBase64);
+            }
+        },
+        'character-narration-color-input': (value) => {
+            setCharacterNarrationColor(value);
+            updateTemp('character_narration_color', value);
+        },
+        'character-chat-color-input': (value) => {
+            setCharacterDialogueColor(value, character_dialogue);
+            updateTemp('character_message_color', value);
+        },
+        'user-chat-color-input': (value) => {
+            setUserChatColor(value, user_message);
+            updateTemp('user_message_color', value);
+        },
+        'character-chat-bg-color-input': (value) => {
+            setCharacterChatBgColor(value, character_chat_bubble_background);
+            updateTemp('character_message_box_color', value);
+        },
+        'user-chat-bg-color-input': (value) => {
+            setUserChatBgColor(value, user_chat_bubble_background);
+            updateTemp('user_message_box_color', value);
+        },
+        'user-name-color-input': (value) => {
+            setUserNameColor(value);
+            updateTemp('username_color', value);
+        },
+        'character-theme-checkbox': (target) => {
             let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            if (formElements.charThemeCheckbox && !formElements.charThemeCheckbox.checked) {
+            let CHAR_ID = findCharacterID(anchor);
+            if (!target.checked) {
                 CHAR_ID = CHAT_ID;
             }
-            // Use optimized batch save
-            await saveCharacterDetailsToDBFromTemp(CHAR_ID);
+        }
+    };
 
-            if (formElements.applyToAllCheckbox && formElements.applyToAllCheckbox.checked) {
-                await saveCharacterDetailsToDBFromTemp('Universal');
+    // Delegated event listeners for better performance
+    form.addEventListener('input', async function(e) {
+        const handler = inputHandlers[e.target.id];
+        if (handler) {
+            await handler(e.target.value);
+        }
+    });
+
+    form.addEventListener('change', async function(e) {
+        const handler = changeHandlers[e.target.id];
+        if (handler) {
+            if (e.target.type === 'file') {
+                await handler(e.target);
+            } else {
+                await handler(e.target.value);
             }
-            showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
-            resetTempFormData();
-        });
-    }
+        }
+    });
 
-    if (formElements.deleteCurrentPageStyleButton) {
-        formElements.deleteCurrentPageStyleButton.addEventListener('click', async function () {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
-            location.reload();
-            alert('Current chat style excluded for this character.');
-        });
-    }
+    // Button event handlers with null checks
+    formElements.saveButton?.addEventListener('click', async function() {
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+        
+        if (formElements.charThemeCheckbox && !formElements.charThemeCheckbox.checked) {
+            CHAR_ID = CHAT_ID;
+        }
+        
+        await saveCharacterDetailsToDBFromTemp(CHAR_ID);
+        
+        if (formElements.applyToAllCheckbox?.checked) {
+            await saveCharacterDetailsToDBFromTemp('Universal');
+        }
+        
+        showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
+        clearTempFormData();
+    });
 
-    if (formElements.deleteAllCharacterStylesButton) {
-        formElements.deleteAllCharacterStylesButton.addEventListener('click', async function () {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-            await deleteCharacterRecord(CHAR_ID);
-            location.reload();
-            alert('All styles for this character have been deleted.');
-        });
-    }
+    formElements.deleteCurrentPageStyleButton?.addEventListener('click', async function() {
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+        await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
+        location.reload();
+        alert('Current chat style excluded for this character.');
+    });
+
+    formElements.deleteAllCharacterStylesButton?.addEventListener('click', async function() {
+        let anchor = document.querySelector(char_id_selector);
+        let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+        await deleteCharacterRecord(CHAR_ID);
+        location.reload();
+        alert('All styles for this character have been deleted.');
+    });
 }
-
-// --- DATABASE INTEGRATION ---
-// Assumes database_handler.js is loaded and provides saveCharacterImage, saveBackgroundImage, getCharacterImage, getBackgroundImage, CHAT_ID, findCharacterID
 
 /**
  * Loads all customizer settings and applies them to the actual UI (not the popup form).
@@ -518,8 +244,12 @@ function initializeCharacterSettingsEventHandlers(form) {
  * @returns {Promise<void>}
  */
 async function loadCustomizedUI(CHAR_ID) {
+    console.log('=== DEBUG: loadCustomizedUI called with CHAR_ID:', CHAR_ID);
+    
     // Try to load the character record
     const charRecord = await getCharacterRecord(CHAR_ID);
+    console.log('=== DEBUG: Character record for', CHAR_ID, ':', charRecord);
+    
     let colorSource = null;
     let imageSource = null;
     let bgSource = null;
@@ -529,8 +259,20 @@ async function loadCustomizedUI(CHAR_ID) {
         imageSource = charRecord.character_image || null;
         bgSource = charRecord.background_image || null;
         aliasSource = charRecord.character_alias || null;
+        
+        console.log('=== DEBUG: Character colors from CHAR record:');
+        console.log('  character_name_color:', charRecord.character_name_color);
+        console.log('  character_narration_color:', charRecord.character_narration_color);
+        console.log('  character_message_color:', charRecord.character_message_color);
+        console.log('  character_message_box_color:', charRecord.character_message_box_color);
+        console.log('  username_color:', charRecord.username_color);
+        console.log('  user_message_color:', charRecord.user_message_color);
+        console.log('  user_message_box_color:', charRecord.user_message_box_color);
+        
         // Get universal colors for fallback
         const universalColors = await getUniversalColorSettings();
+        console.log('=== DEBUG: Universal colors:', universalColors);
+        
         colorSource = {
             character_name_color: charRecord.character_name_color ?? (universalColors && universalColors.character_name_color),
             character_narration_color: charRecord.character_narration_color ?? (universalColors && universalColors.character_narration_color),
@@ -540,9 +282,13 @@ async function loadCustomizedUI(CHAR_ID) {
             user_message_color: charRecord.user_message_color ?? (universalColors && universalColors.user_message_color),
             user_message_box_color: charRecord.user_message_box_color ?? (universalColors && universalColors.user_message_box_color)
         };
+        
+        console.log('=== DEBUG: Final colorSource (CHAR + Universal fallback):', colorSource);
     } else {
+        console.log('=== DEBUG: No character record found, loading universal colors only');
         // If no char record, try universal
         const universalColors = await getUniversalColorSettings();
+        console.log('=== DEBUG: Universal colors:', universalColors);
         colorSource = universalColors || {};
     }
     // Set images/bg/alias if present
@@ -593,31 +339,41 @@ async function loadCustomizedUI(CHAR_ID) {
 }
 
 /**
- * Loads the full character record from the database.
- * @param {string} CHAR_ID
- * @returns {Promise<CharacterRecord|null>}
+ * Batch get character fields for better database performance
+ * @param {string} CHAR_ID - Character ID
+ * @param {string[]} fields - Array of field names to retrieve
+ * @returns {Promise<Object>} Object with field values
  */
-async function getCharacterRecord(CHAR_ID) {
+async function getCharacterFieldsBatch(CHAR_ID, fields) {
     if (!db) await openDatabase();
+    
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const getRequest = objectStore.get(CHAR_ID);
-        getRequest.onsuccess = function (event) {
-            resolve(event.target.result || null);
+        
+        getRequest.onsuccess = function(event) {
+            const result = event.target.result || {};
+            const fieldData = {};
+            
+            fields.forEach(field => {
+                fieldData[field] = result[field] !== undefined ? result[field] : null;
+            });
+            
+            resolve(fieldData);
         };
-        getRequest.onerror = function (e) { reject(e.target.error); };
+        
+        getRequest.onerror = function(e) {
+            reject(e.target.error);
+        };
     });
 }
 
-/**
- * Populates the customizer popup form with values from the database.
- * @param {HTMLElement} form
- * @param {string} CHAR_ID
- * @returns {Promise<void>}
- */
+// --- FORM POPULATION AND DATA LOADING ---
 async function populateCustomizerPopup(form, CHAR_ID) {
-    // Cache DOM elements to avoid repeated queries
+    console.log('=== DEBUG: populateCustomizerPopup called with CHAR_ID:', CHAR_ID);
+    
+    // Single DOM query with better caching
     const formElements = {
         nameInput: form.querySelector('#name-input'),
         nameColorInput: form.querySelector('#name-color-input'),
@@ -631,126 +387,158 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         bgUrlInput: form.querySelector('#bg-url-input')
     };
 
-    // If temp_form_data is not empty, use it to populate the form
-    if (temp_form_data && Object.keys(temp_form_data).length > 0) {
-        // Helper function to set value and dispatch event if element exists
-        const setValueAndDispatch = (element, value) => {
-            if (element && value !== undefined) {
-                element.value = value;
-                element.dispatchEvent(new Event('input'));
-            }
+    // Check for color data in temp_form_data
+    const hasColorData = temp_form_data && Object.keys(temp_form_data).some(key => 
+        key.includes('color') && temp_form_data[key]
+    );
+    
+    // Determine data source strategy
+    const useFullTempData = temp_form_data && Object.keys(temp_form_data).length > 0 && hasColorData;
+    const useHybridApproach = temp_form_data && Object.keys(temp_form_data).length > 0 && !hasColorData;
+    
+    let formData = {};
+    
+    if (useFullTempData) {
+        console.log('=== DEBUG: Using temp_form_data (has color data)');
+        formData = { ...temp_form_data };
+    } else {
+        console.log('=== DEBUG: Loading from database');
+        
+        // Batch database operations for better performance
+        const [dbData, characterName] = await Promise.all([
+            getCharacterFieldsBatch(CHAR_ID, [
+                'character_alias', 'character_name_color', 'character_narration_color',
+                'character_message_color', 'character_message_box_color', 'username_color',
+                'user_message_color', 'user_message_box_color', 'background_image', 'default_background_image'
+            ]),
+            useHybridApproach && temp_form_data.character_alias ? 
+                Promise.resolve(temp_form_data.character_alias) :
+                getCharacterNameFromPage()
+        ]);
+        
+        formData = {
+            character_alias: characterName || dbData.character_alias,
+            character_name_color: dbData.character_name_color,
+            character_narration_color: dbData.character_narration_color,
+            character_message_color: dbData.character_message_color,
+            character_message_box_color: dbData.character_message_box_color,
+            username_color: dbData.username_color,
+            user_message_color: dbData.user_message_color,
+            user_message_box_color: dbData.user_message_box_color,
+            background_image: useHybridApproach ? temp_form_data.background_image : dbData.background_image,
+            default_background_image: useHybridApproach ? temp_form_data.default_background_image : dbData.default_background_image
         };
-
-        // Populate form fields from temp_form_data
-        // If no character_alias in temp data, try to get character name from the page
-        let characterName = temp_form_data.character_alias;
-        if (!characterName) {
-            const characterNameElement = document.querySelector(character_name_title);
-            if (characterNameElement) {
-                characterName = characterNameElement.textContent.trim();
-                // Add the character name to temp_form_data so it gets saved
-                temp_form_data.character_alias = characterName;
-            }
-        }
-        setValueAndDispatch(formElements.nameInput, characterName);
-        setValueAndDispatch(formElements.nameColorInput, temp_form_data.character_name_color);
-        setValueAndDispatch(formElements.narrationColorInput, temp_form_data.character_narration_color);
-        setValueAndDispatch(formElements.chatColorInput, temp_form_data.character_message_color);
-        setValueAndDispatch(formElements.chatBgColorInput, temp_form_data.character_message_box_color);
-        setValueAndDispatch(formElements.userNameColorInput, temp_form_data.username_color);
-        setValueAndDispatch(formElements.userChatColorInput, temp_form_data.user_message_color);
-        setValueAndDispatch(formElements.userChatBgColorInput, temp_form_data.user_message_box_color);
-
-        // Handle image URLs (only if they're URLs, not base64)
-        if (formElements.characterImageUrlInput && typeof temp_form_data.character_image === 'string' && !temp_form_data.character_image.startsWith('data:image')) {
-            formElements.characterImageUrlInput.value = temp_form_data.character_image;
-        }
-        if (formElements.bgUrlInput) {
-            if (typeof temp_form_data.background_image === 'string' && !temp_form_data.background_image.startsWith('data:image')) {
-                formElements.bgUrlInput.value = temp_form_data.background_image;
-            } else if (!temp_form_data.background_image && typeof temp_form_data.default_background_image === 'string') {
-                formElements.bgUrlInput.value = temp_form_data.default_background_image;
-            }
-        }
-        return;
     }
-    // Fallback to DB values if temp_form_data is empty
-    const getField = async (field) => await getCharacterField(CHAR_ID, field);
-    const [
-        alias,
-        nameColor,
-        narrationColor,
-        messageColor,
-        messageBoxColor,
-        usernameColor,
-        userMessageColor,
-        userMessageBoxColor,
-        backgroundImage,
-        defaultBackgroundImage
-    ] = await Promise.all([
-        getField('character_alias'),
-        getField('character_name_color'),
-        getField('character_narration_color'),
-        getField('character_message_color'),
-        getField('character_message_box_color'),
-        getField('username_color'),
-        getField('user_message_color'),
-        getField('user_message_box_color'),
-        getField('background_image'),
-        getField('default_background_image')
-    ]);
+    
+    // Batch form population for better performance
+    const formMapping = [
+        [formElements.nameInput, formData.character_alias],
+        [formElements.nameColorInput, formData.character_name_color],
+        [formElements.narrationColorInput, formData.character_narration_color],
+        [formElements.chatColorInput, formData.character_message_color],
+        [formElements.chatBgColorInput, formData.character_message_box_color],
+        [formElements.userNameColorInput, formData.username_color],
+        [formElements.userChatColorInput, formData.user_message_color],
+        [formElements.userChatBgColorInput, formData.user_message_box_color]
+    ];
+    
+    // Batch DOM updates to minimize reflows
+    requestAnimationFrame(() => {
+        formMapping.forEach(([element, value]) => {
+            setFormElementValue(element, value, true); // Suppress events during batch
+        });
+        
+        // Handle background image URL
+        handleBackgroundImageUrl(formElements.bgUrlInput, formData);
+        
+        // Fire events after all DOM updates
+        formMapping.forEach(([element, value]) => {
+            if (element && value !== null && value !== undefined) {
+                const eventType = element.type === 'color' ? 'change' : 'input';
+                element.dispatchEvent(new Event(eventType, { bubbles: true }));
+            }
+        });
+    });
+}
 
-    // Helper function to set value and dispatch event if element exists
-    const setValueAndDispatch = (element, value) => {
-        if (element && value !== null) {
-            element.value = value;
-            element.dispatchEvent(new Event('input'));
-        }
-    };
-
-    // Set values in form using cached elements
-    // If no alias from DB, try to get character name from the page
-    let characterName = alias;
-    if (!characterName) {
-        const characterNameElement = document.querySelector(character_name_selector);
-        if (characterNameElement) {
-            characterName = characterNameElement.textContent.trim();
+/**
+ * Handles background image URL setting with optimized logic
+ */
+function handleBackgroundImageUrl(bgUrlInput, formData) {
+    if (!bgUrlInput) return;
+    
+    let bgImageToShow = null;
+    
+    // Priority: non-base64 background_image, then default_background_image, then extracted URL
+    if (formData.background_image && !formData.background_image.startsWith('data:image')) {
+        bgImageToShow = formData.background_image;
+    } else if (formData.default_background_image) {
+        if (formData.default_background_image.startsWith('url(')) {
+            const urlMatch = formData.default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
+            bgImageToShow = urlMatch?.[1];
+        } else {
+            bgImageToShow = formData.default_background_image;
         }
     }
-    setValueAndDispatch(formElements.nameInput, characterName);
-    setValueAndDispatch(formElements.nameColorInput, nameColor);
-    setValueAndDispatch(formElements.narrationColorInput, narrationColor);
-    setValueAndDispatch(formElements.chatColorInput, messageColor);
-    setValueAndDispatch(formElements.chatBgColorInput, messageBoxColor);
-    setValueAndDispatch(formElements.userNameColorInput, usernameColor);
-    setValueAndDispatch(formElements.userChatColorInput, userMessageColor);
-    setValueAndDispatch(formElements.userChatBgColorInput, userMessageBoxColor);
-
-    // Handle background image URL
-    if (formElements.bgUrlInput) {
-        if (backgroundImage && typeof backgroundImage === 'string' && !backgroundImage.startsWith('data:image')) {
-            // If there's a custom background image that's a URL, show it
-            formElements.bgUrlInput.value = backgroundImage;
-        } else if (!backgroundImage && defaultBackgroundImage && typeof defaultBackgroundImage === 'string' && defaultBackgroundImage.startsWith('url(')) {
-            // If no custom background but there's a default background, extract and show the URL
-            const urlMatch = defaultBackgroundImage.match(/url\(['"]?([^'"]+)['"]?\)/);
-            if (urlMatch) {
-                formElements.bgUrlInput.value = urlMatch[1];
-            }
-        }
+    
+    if (bgImageToShow) {
+        bgUrlInput.value = bgImageToShow;
     }
 }
 
 /**
- * Loads customizer data from the database and updates the form/UI.
+ * Gets character name from page elements
+ */
+async function getCharacterNameFromPage() {
+    const characterNameElement = document.querySelector(character_name_selector);
+    return characterNameElement?.textContent?.trim() || null;
+}
+
+/**
+ * Batch get character fields for better database performance
+ * @param {string} CHAR_ID - Character ID
+ * @param {string[]} fields - Array of field names to retrieve
+ * @returns {Promise<Object>} Object with field values
+ */
+async function getCharacterFieldsBatch(CHAR_ID, fields) {
+    if (!db) await openDatabase();
+    
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getRequest = objectStore.get(CHAR_ID);
+        
+        getRequest.onsuccess = function(event) {
+            const result = event.target.result || {};
+            const fieldData = {};
+            
+            fields.forEach(field => {
+                fieldData[field] = result[field] !== undefined ? result[field] : null;
+            });
+            
+            resolve(fieldData);
+        };
+        
+        getRequest.onerror = function(e) {
+            reject(e.target.error);
+        };
+    });
+}
+
+/**
+ * Optimized load customizer data function
  * @param {HTMLElement} form
  * @returns {Promise<void>}
  */
 async function loadCustomizerData(form) {
-    let anchor = document.querySelector(char_id_selector);
-    let CHAR_ID = findCharacterID(anchor);
-    if (!CHAR_ID) CHAR_ID = CHAT_ID;
-    // await loadCustomizedUI(CHAR_ID);
+    console.log('=== DEBUG: loadCustomizerData called');
+    
+    // Cache selectors and minimize DOM queries
+    const anchor = document.querySelector(char_id_selector);
+    const CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+    
+    console.log('=== DEBUG: Using CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
+    
     await populateCustomizerPopup(form, CHAR_ID);
 }
 
@@ -801,6 +589,7 @@ function handleFormAdded(mutationsList, observer) {
     }
 }
 
+// --- SAVE OPERATIONS ---
 /**
  * Saves the current character defaults to the database for later reset.
  * @param {HTMLElement} form
@@ -838,27 +627,19 @@ async function saveCharacterDetailsToDB(form, overrideCharId) {
     ]);
 }
 
-// Helper to save from temp_form_data using batch operation
+/**
+ * Optimized save function using batch database operations
+ * @param {string} [overrideCharId] Optional CHAR_ID to override (for Universal save)
+ * @returns {Promise<void>}
+ */
 async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
-    let anchor = document.querySelector(char_id_selector);
-    let CHAR_ID = overrideCharId || findCharacterID(anchor);
-    if (!CHAR_ID) CHAR_ID = CHAT_ID;
+    const anchor = document.querySelector(char_id_selector);
+    const CHAR_ID = overrideCharId || findCharacterID(anchor) || CHAT_ID;
 
     // Only include fields that actually exist in temp_form_data (have been modified)
-    const fieldsToSave = {};
-
-    // Only add fields that exist in temp_form_data
-    if ('character_alias' in temp_form_data) fieldsToSave.character_alias = temp_form_data.character_alias;
-    if ('character_name_color' in temp_form_data) fieldsToSave.character_name_color = temp_form_data.character_name_color;
-    if ('character_narration_color' in temp_form_data) fieldsToSave.character_narration_color = temp_form_data.character_narration_color;
-    if ('character_message_color' in temp_form_data) fieldsToSave.character_message_color = temp_form_data.character_message_color;
-    if ('character_message_box_color' in temp_form_data) fieldsToSave.character_message_box_color = temp_form_data.character_message_box_color;
-    if ('username_color' in temp_form_data) fieldsToSave.username_color = temp_form_data.username_color;
-    if ('user_message_color' in temp_form_data) fieldsToSave.user_message_color = temp_form_data.user_message_color;
-    if ('user_message_box_color' in temp_form_data) fieldsToSave.user_message_box_color = temp_form_data.user_message_box_color;
-    if ('background_image' in temp_form_data) fieldsToSave.background_image = temp_form_data.background_image;
-    if ('character_image' in temp_form_data) fieldsToSave.character_image = temp_form_data.character_image;
-    if ('default_background_image' in temp_form_data) fieldsToSave.default_background_image = temp_form_data.default_background_image;
+    const fieldsToSave = Object.fromEntries(
+        Object.entries(temp_form_data).filter(([key, value]) => value !== undefined && value !== null)
+    );
 
     // Only save if there are actually fields to update
     if (Object.keys(fieldsToSave).length > 0) {
@@ -866,67 +647,13 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     }
 }
 
-// --- PERFORMANCE OPTIMIZATIONS ---
-let cachedStyleSheets = null;
-let dynamicStyleSheet = null;
-
+// --- CACHE MANAGEMENT ---
 /**
- * Gets filtered stylesheets, excluding Google Fonts for performance.
- * Uses caching to avoid repeated filtering.
- * @returns {CSSStyleSheet[]}
+ * Clears temporary form data cache
  */
-function getCachedStyleSheets() {
-    if (!cachedStyleSheets) {
-        cachedStyleSheets = Array.from(document.styleSheets).filter(sheet =>
-            !sheet.href || !sheet.href.includes('fonts.googleapis.com')
-        );
-    }
-    return cachedStyleSheets;
-}
-
-/**
- * Gets or creates a dynamic stylesheet for custom CSS rules.
- * @returns {CSSStyleSheet}
- */
-function getDynamicStyleSheet() {
-    if (!dynamicStyleSheet) {
-        let styleElement = document.getElementById('chat-customizer-dynamic-styles');
-        if (!styleElement) {
-            styleElement = document.createElement('style');
-            styleElement.id = 'chat-customizer-dynamic-styles';
-            document.head.appendChild(styleElement);
-        }
-        dynamicStyleSheet = styleElement.sheet;
-    }
-    return dynamicStyleSheet;
-}
-
-/**
- * Applies CSS rules using a dynamic stylesheet for better performance.
- * @param {string} selector
- * @param {Object} styles
- */
-function applyDynamicStyle(selector, styles) {
-    const sheet = getDynamicStyleSheet();
-    const styleString = Object.entries(styles).map(([prop, value]) => `${prop}: ${value}`).join('; ');
-    const rule = `${selector} { ${styleString} !important; }`;
-
-    try {
-        sheet.insertRule(rule, sheet.cssRules.length);
-    } catch (e) {
-        console.warn('Failed to insert CSS rule:', rule, e);
-    }
-}
-
-/**
- * Clears cached data for performance optimization.
- * Call this when navigating away from pages or when major UI changes occur.
- */
-function clearCaches() {
-    cachedStyleSheets = null;
-    dynamicStyleSheet = null;
+function clearTempFormData() {
     temp_form_data = {};
-    // Note: we intentionally don't reset default_background_image here
-    // as it should persist throughout the session
 }
+
+// --- INITIALIZATION AND OBSERVERS ---
 

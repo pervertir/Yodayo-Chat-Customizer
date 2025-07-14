@@ -213,3 +213,189 @@ function showInjectionNotification(resourceName, CHAR_ID, message="") {
     });
 }
 
+// --- COLOR AND FORM UTILITIES ---
+// Cache for color normalization to avoid repeated computations
+const colorNormalizationCache = new Map();
+
+/**
+ * Normalizes color values to hex format for color inputs.
+ * @param {string} color - The color value to normalize
+ * @returns {string} - Normalized hex color value or original if already valid
+ */
+function normalizeColorForInput(color) {
+    if (!color) return color;
+    
+    // Check cache first
+    if (colorNormalizationCache.has(color)) {
+        return colorNormalizationCache.get(color);
+    }
+    
+    let result = color;
+    
+    // If already a valid hex color, return as is
+    if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        result = color;
+    } 
+    // If hex without #, add it
+    else if (/^[0-9A-Fa-f]{6}$/.test(color)) {
+        result = '#' + color;
+    }
+    // Try to convert RGB/RGBA to hex
+    else {
+        const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (rgbMatch) {
+            const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+            const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
+            const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
+            result = `#${r}${g}${b}`;
+        } else {
+            // For named colors and other formats, try using a temporary element
+            try {
+                const tempElement = document.createElement('div');
+                tempElement.style.color = color;
+                document.body.appendChild(tempElement);
+                const computedColor = window.getComputedStyle(tempElement).color;
+                document.body.removeChild(tempElement);
+                
+                // Convert computed RGB to hex
+                const computedRgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (computedRgbMatch) {
+                    const r = parseInt(computedRgbMatch[1]).toString(16).padStart(2, '0');
+                    const g = parseInt(computedRgbMatch[2]).toString(16).padStart(2, '0');
+                    const b = parseInt(computedRgbMatch[3]).toString(16).padStart(2, '0');
+                    result = `#${r}${g}${b}`;
+                }
+            } catch (e) {
+                console.warn('Failed to normalize color:', color, e);
+                result = color; // Return original if conversion fails
+            }
+        }
+    }
+    
+    // Cache the result
+    colorNormalizationCache.set(color, result);
+    return result;
+}
+
+/**
+ * Optimized form element setter with batching support
+ * @param {HTMLElement} element - The form element to set
+ * @param {string} value - The value to set
+ * @param {boolean} suppressEvents - Whether to suppress events (for batch operations)
+ */
+function setFormElementValue(element, value, suppressEvents = false) {
+    if (!element || value === null || value === undefined) return;
+    
+    const normalizedValue = element.type === 'color' ? normalizeColorForInput(value) : value;
+    element.value = normalizedValue;
+    
+    if (!suppressEvents) {
+        const eventType = element.type === 'color' ? 'change' : 'input';
+        element.dispatchEvent(new Event(eventType, { bubbles: true }));
+    }
+}
+
+// --- DOM UTILITIES ---
+/**
+ * Adds the 'username' class to all username elements.
+ * @returns {void}
+ */
+function addUserNameClass() {
+    /** @type {NodeListOf<HTMLElement>} */
+    let usernameElements = document.querySelectorAll(user_name);
+    usernameElements.forEach((element) => {
+        element.classList.add('username');
+    });
+}
+
+/**
+ * Handles DOM mutations to add the 'username' class to new username elements.
+ * @param {MutationRecord[]} mutationsList
+ * @returns {void}
+ */
+function handleMutations(mutationsList) {
+    for (let mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.matches('p.text-xs.font-medium.opacity-50')) {
+                        console.log(node);
+                        node.classList.add('username');
+                    }
+                }
+                node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
+                    if (child.matches('p.text-xs.font-medium.opacity-50')) {
+                        console.log(node);
+                        child.classList.add('username');
+                    }
+                });
+            });
+        }
+    }
+}
+
+// --- PERFORMANCE UTILITIES ---
+let cachedStyleSheets = null;
+let dynamicStyleSheet = null;
+
+/**
+ * Gets filtered stylesheets, excluding Google Fonts for performance.
+ * Uses caching to avoid repeated filtering.
+ * @returns {CSSStyleSheet[]}
+ */
+function getCachedStyleSheets() {
+    if (!cachedStyleSheets) {
+        cachedStyleSheets = Array.from(document.styleSheets).filter(sheet =>
+            !sheet.href || !sheet.href.includes('fonts.googleapis.com')
+        );
+    }
+    return cachedStyleSheets;
+}
+
+/**
+ * Gets or creates a dynamic stylesheet for custom CSS rules.
+ * @returns {CSSStyleSheet}
+ */
+function getDynamicStyleSheet() {
+    if (!dynamicStyleSheet) {
+        let styleElement = document.getElementById('chat-customizer-dynamic-styles');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = 'chat-customizer-dynamic-styles';
+            document.head.appendChild(styleElement);
+        }
+        dynamicStyleSheet = styleElement.sheet;
+    }
+    return dynamicStyleSheet;
+}
+
+/**
+ * Applies CSS rules using a dynamic stylesheet for better performance.
+ * @param {string} selector
+ * @param {Object} styles
+ */
+function applyDynamicStyle(selector, styles) {
+    const sheet = getDynamicStyleSheet();
+    const styleString = Object.entries(styles).map(([prop, value]) => `${prop}: ${value}`).join('; ');
+    const rule = `${selector} { ${styleString} !important; }`;
+
+    try {
+        sheet.insertRule(rule, sheet.cssRules.length);
+    } catch (e) {
+        console.warn('Failed to insert CSS rule:', rule, e);
+    }
+}
+
+/**
+ * Optimized cache clearing with selective resets
+ */
+function clearCaches() {
+    cachedStyleSheets = null;
+    dynamicStyleSheet = null;
+    
+    // Clear color normalization cache if it gets too large
+    if (colorNormalizationCache.size > 100) {
+        colorNormalizationCache.clear();
+    }
+}
+

@@ -403,3 +403,34 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
         getRequest.onerror = function(e) { reject(e.target.error); };
     });
 }
+
+/**
+ * Checks if a specific ID has any data in the database
+ * @param {string} ID - The ID to check (CHAT_ID, CHAR_ID, or 'Universal')
+ * @returns {Promise<boolean>} True if data exists
+ */
+async function hasDataForID(ID) {
+    const record = await getCharacterRecord(ID);
+    return record !== null;
+}
+
+/**
+ * Gets a summary of what data sources are available for current context
+ * @param {string} CHAR_ID - Character ID
+ * @param {string} CHAT_ID - Chat ID  
+ * @returns {Promise<Object>} Summary object with available sources
+ */
+async function getDataSourceSummary(CHAR_ID, CHAT_ID) {
+    const [hasChatData, hasCharData, hasUniversalData] = await Promise.all([
+        hasDataForID(CHAT_ID),
+        hasDataForID(CHAR_ID), 
+        hasDataForID('Universal')
+    ]);
+    
+    return {
+        chatSpecific: hasChatData,
+        characterTheme: hasCharData,
+        universal: hasUniversalData,
+        activeSource: hasChatData ? 'chat' : (hasCharData ? 'character' : (hasUniversalData ? 'universal' : 'none'))
+    };
+}

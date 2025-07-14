@@ -173,11 +173,9 @@ function initializeCharacterSettingsEventHandlers(form) {
             updateTemp('username_color', value);
         },
         'character-theme-checkbox': (target) => {
-            let anchor = document.querySelector(char_id_selector);
-            let CHAR_ID = findCharacterID(anchor);
-            if (!target.checked) {
-                CHAR_ID = CHAT_ID;
-            }
+            // This checkbox determines save target: checked = character theme, unchecked = chat-specific
+            console.log('=== DEBUG: Character theme checkbox changed:', target.checked);
+            console.log('  Will save to:', target.checked ? 'CHAR_ID (character theme)' : 'CHAT_ID (chat-specific)');
         }
     };
 
@@ -205,14 +203,23 @@ function initializeCharacterSettingsEventHandlers(form) {
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
         
-        if (formElements.charThemeCheckbox && !formElements.charThemeCheckbox.checked) {
-            CHAR_ID = CHAT_ID;
+        // Determine save target based on character theme checkbox
+        let saveTarget;
+        if (formElements.charThemeCheckbox?.checked) {
+            // Save as character theme (CHAR_ID)
+            saveTarget = CHAR_ID;
+            console.log('=== DEBUG: Saving as character theme to CHAR_ID:', saveTarget);
+        } else {
+            // Save as chat-specific (CHAT_ID)  
+            saveTarget = CHAT_ID;
+            console.log('=== DEBUG: Saving as chat-specific to CHAT_ID:', saveTarget);
         }
         
-        await saveCharacterDetailsToDBFromTemp(CHAR_ID);
+        await saveCharacterDetailsToDBFromTemp(saveTarget);
         
         if (formElements.applyToAllCheckbox?.checked) {
             await saveCharacterDetailsToDBFromTemp('Universal');
+            console.log('=== DEBUG: Also saved to Universal');
         }
         
         showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
@@ -220,158 +227,187 @@ function initializeCharacterSettingsEventHandlers(form) {
     });
 
     formElements.deleteCurrentPageStyleButton?.addEventListener('click', async function() {
-        let anchor = document.querySelector(char_id_selector);
-        let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-        await excludeChatIdForCharacter(CHAR_ID, CHAT_ID);
+        // Always operate on current chat (CHAT_ID) for this action
+        await deleteCharacterRecord(CHAT_ID);
         location.reload();
-        alert('Current chat style excluded for this character.');
+        alert('Current chat style has been deleted.');
     });
 
     formElements.deleteAllCharacterStylesButton?.addEventListener('click', async function() {
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-        await deleteCharacterRecord(CHAR_ID);
+        
+        // Delete character theme and also exclude this chat from character themes  
+        await Promise.all([
+            deleteCharacterRecord(CHAR_ID),  // Delete character theme
+            deleteCharacterRecord(CHAT_ID)   // Delete any chat-specific settings too
+        ]);
         location.reload();
-        alert('All styles for this character have been deleted.');
+        alert('All styles for this character and chat have been deleted.');
     });
 }
 
 /**
- * Loads all customizer settings and applies them to the actual UI (not the popup form).
- * If CHAR_ID is not found, but Universal is, loads universal colors only.
- * If CHAR_ID is found, loads all fields from CHAR_ID, but falls back to Universal for missing color fields.
- * @param {string} CHAR_ID
+ * Loads all customizer settings using hierarchical priority system:
+ * 1. Chat-specific settings (CHAT_ID) - highest priority
+ * 2. Character-specific settings (CHAR_ID) - medium priority  
+ * 3. Universal settings - fallback
+ * @param {string} CHAR_ID - Character ID
  * @returns {Promise<void>}
  */
 async function loadCustomizedUI(CHAR_ID) {
-    console.log('=== DEBUG: loadCustomizedUI called with CHAR_ID:', CHAR_ID);
+    console.log('=== DEBUG: loadCustomizedUI called with CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
     
-    // Try to load the character record
-    const charRecord = await getCharacterRecord(CHAR_ID);
-    console.log('=== DEBUG: Character record for', CHAR_ID, ':', charRecord);
+    // Load all three potential sources
+    const [chatRecord, charRecord, universalRecord] = await Promise.all([
+        getCharacterRecord(CHAT_ID),        // Chat-specific settings
+        getCharacterRecord(CHAR_ID),        // Character-specific settings  
+        getUniversalColorSettings()         // Universal settings
+    ]);
     
-    let colorSource = null;
-    let imageSource = null;
-    let bgSource = null;
-    let aliasSource = null;
-    if (charRecord) {
-        // If char record exists, use its images/bg/alias, and prefer its colors, but fallback to universal for missing colors
-        imageSource = charRecord.character_image || null;
-        bgSource = charRecord.background_image || null;
-        aliasSource = charRecord.character_alias || null;
-        
-        console.log('=== DEBUG: Character colors from CHAR record:');
-        console.log('  character_name_color:', charRecord.character_name_color);
-        console.log('  character_narration_color:', charRecord.character_narration_color);
-        console.log('  character_message_color:', charRecord.character_message_color);
-        console.log('  character_message_box_color:', charRecord.character_message_box_color);
-        console.log('  username_color:', charRecord.username_color);
-        console.log('  user_message_color:', charRecord.user_message_color);
-        console.log('  user_message_box_color:', charRecord.user_message_box_color);
-        
-        // Get universal colors for fallback
-        const universalColors = await getUniversalColorSettings();
-        console.log('=== DEBUG: Universal colors:', universalColors);
-        
-        colorSource = {
-            character_name_color: charRecord.character_name_color ?? (universalColors && universalColors.character_name_color),
-            character_narration_color: charRecord.character_narration_color ?? (universalColors && universalColors.character_narration_color),
-            character_message_color: charRecord.character_message_color ?? (universalColors && universalColors.character_message_color),
-            character_message_box_color: charRecord.character_message_box_color ?? (universalColors && universalColors.character_message_box_color),
-            username_color: charRecord.username_color ?? (universalColors && universalColors.username_color),
-            user_message_color: charRecord.user_message_color ?? (universalColors && universalColors.user_message_color),
-            user_message_box_color: charRecord.user_message_box_color ?? (universalColors && universalColors.user_message_box_color)
-        };
-        
-        console.log('=== DEBUG: Final colorSource (CHAR + Universal fallback):', colorSource);
-    } else {
-        console.log('=== DEBUG: No character record found, loading universal colors only');
-        // If no char record, try universal
-        const universalColors = await getUniversalColorSettings();
-        console.log('=== DEBUG: Universal colors:', universalColors);
-        colorSource = universalColors || {};
-    }
-    // Set images/bg/alias if present
-    if (imageSource) {
-        // Check if it's a URL or base64 data
-        const isImageUrl = imageSource.startsWith('http://') || imageSource.startsWith('https://');
-        if (isImageUrl) {
-            // Convert URL to base64 first
-            try {
-                const imageBase64 = await urlToBase64(imageSource);
-                setCharacterImage(imageBase64);
-            } catch (error) {
-                console.error('Failed to load character image from URL:', error);
-                // Fallback: set the URL directly
-                setCharacterImage(imageSource);
-            }
-        } else {
-            setCharacterImage(imageSource);
-        }
-    }
-
-    if (bgSource) {
-        // Check if it's a URL or base64 data
-        const isBgUrl = bgSource.startsWith('http://') || bgSource.startsWith('https://');
-        if (isBgUrl) {
-            // Convert URL to base64 first
-            try {
-                const bgBase64 = await urlToBase64(bgSource);
-                setBackgroundImage(bgBase64);
-            } catch (error) {
-                console.error('Failed to load background image from URL:', error);
-                // Fallback: set the URL directly
-                setBackgroundImage(bgSource);
-            }
-        } else {
-            setBackgroundImage(bgSource);
-        }
-    }
-    if (aliasSource !== null) setCharacterAlias(aliasSource);
-    // Set colors if present
-    if (colorSource.character_name_color) setCharacterAliasColor(colorSource.character_name_color);
-    if (colorSource.character_narration_color) setCharacterNarrationColor(colorSource.character_narration_color);
-    if (colorSource.character_message_color) setCharacterDialogueColor(colorSource.character_message_color);
-    if (colorSource.username_color) setUserNameColor(colorSource.username_color);
-    if (colorSource.user_message_color) setUserChatColor(colorSource.user_message_color, user_message);
-    if (colorSource.character_message_box_color) setCharacterChatBgColor(colorSource.character_message_box_color, character_chat_bubble_background);
-    if (colorSource.user_message_box_color) setUserChatBgColor(colorSource.user_message_box_color, user_chat_bubble_background);
+    console.log('=== DEBUG: Chat record (CHAT_ID):', chatRecord);
+    console.log('=== DEBUG: Character record (CHAR_ID):', charRecord);
+    console.log('=== DEBUG: Universal record:', universalRecord);
+    
+    // Hierarchical merging: Chat > Character > Universal
+    const mergedSettings = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
+    console.log('=== DEBUG: Final merged settings:', mergedSettings);
+    
+    // Apply the merged settings to the UI
+    applySettingsToUI(mergedSettings);
 }
 
 /**
- * Batch get character fields for better database performance
- * @param {string} CHAR_ID - Character ID
- * @param {string[]} fields - Array of field names to retrieve
- * @returns {Promise<Object>} Object with field values
+ * Merges settings using hierarchical priority: Chat > Character > Universal
+ * @param {Object|null} chatRecord - Chat-specific settings (highest priority)
+ * @param {Object|null} charRecord - Character-specific settings (medium priority)
+ * @param {Object|null} universalRecord - Universal settings (fallback)
+ * @returns {Object} Merged settings object
  */
-async function getCharacterFieldsBatch(CHAR_ID, fields) {
-    if (!db) await openDatabase();
+function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
+    const fields = [
+        'character_alias', 'character_image', 'background_image', 'default_background_image',
+        'character_name_color', 'character_narration_color', 'character_message_color',
+        'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color'
+    ];
     
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        
-        getRequest.onsuccess = function(event) {
-            const result = event.target.result || {};
-            const fieldData = {};
-            
-            fields.forEach(field => {
-                fieldData[field] = result[field] !== undefined ? result[field] : null;
-            });
-            
-            resolve(fieldData);
-        };
-        
-        getRequest.onerror = function(e) {
-            reject(e.target.error);
-        };
+    const mergedSettings = {};
+    
+    fields.forEach(field => {
+        // Priority: Chat > Character > Universal
+        if (chatRecord && chatRecord[field] !== undefined && chatRecord[field] !== null) {
+            mergedSettings[field] = chatRecord[field];
+        } else if (charRecord && charRecord[field] !== undefined && charRecord[field] !== null) {
+            mergedSettings[field] = charRecord[field];
+        } else if (universalRecord && universalRecord[field] !== undefined && universalRecord[field] !== null) {
+            mergedSettings[field] = universalRecord[field];
+        }
     });
+    
+    return mergedSettings;
+}
+
+/**
+ * Applies the merged settings to the actual UI
+ * @param {Object} settings - The merged settings to apply
+ */
+async function applySettingsToUI(settings) {
+    // Apply images/backgrounds/alias if present
+    if (settings.character_image) {
+        await applyImageSetting(settings.character_image, 'character');
+    }
+    
+    if (settings.background_image) {
+        await applyImageSetting(settings.background_image, 'background');
+    }
+    
+    if (settings.character_alias) {
+        setCharacterAlias(settings.character_alias);
+    }
+    
+    // Apply colors if present
+    if (settings.character_name_color) setCharacterAliasColor(settings.character_name_color);
+    if (settings.character_narration_color) setCharacterNarrationColor(settings.character_narration_color);
+    if (settings.character_message_color) setCharacterDialogueColor(settings.character_message_color);
+    if (settings.username_color) setUserNameColor(settings.username_color);
+    if (settings.user_message_color) setUserChatColor(settings.user_message_color, user_message);
+    if (settings.character_message_box_color) setCharacterChatBgColor(settings.character_message_box_color, character_chat_bubble_background);
+    if (settings.user_message_box_color) setUserChatBgColor(settings.user_message_box_color, user_chat_bubble_background);
+}
+
+/**
+ * Helper function to apply image settings with URL/base64 handling
+ * @param {string} imageData - Image data (URL or base64)
+ * @param {string} type - 'character' or 'background'
+ */
+async function applyImageSetting(imageData, type) {
+    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://');
+    
+    if (isUrl) {
+        try {
+            const imageBase64 = await urlToBase64(imageData);
+            if (type === 'character') {
+                setCharacterImage(imageBase64);
+            } else {
+                setBackgroundImage(imageBase64);
+            }
+        } catch (error) {
+            console.error(`Failed to load ${type} image from URL:`, error);
+            // Fallback: set the URL directly
+            if (type === 'character') {
+                setCharacterImage(imageData);
+            } else {
+                setBackgroundImage(imageData);
+            }
+        }
+    } else {
+        if (type === 'character') {
+            setCharacterImage(imageData);
+        } else {
+            setBackgroundImage(imageData);
+        }
+    }
+}
+
+/**
+ * Loads data using hierarchical priority: Chat ID > Character ID > Universal
+ * @param {string} CHAR_ID - Character ID  
+ * @returns {Promise<Object>} Merged data object
+ */
+async function loadHierarchicalData(CHAR_ID) {
+    // Load all three potential sources in parallel
+    const [chatRecord, charRecord, universalRecord] = await Promise.all([
+        getCharacterRecord(CHAT_ID),        // Chat-specific settings
+        getCharacterRecord(CHAR_ID),        // Character-specific settings  
+        getUniversalColorSettings()         // Universal settings
+    ]);
+    
+    console.log('=== DEBUG: Hierarchical data loading:');
+    console.log('  Chat record (CHAT_ID):', chatRecord);
+    console.log('  Character record (CHAR_ID):', charRecord);
+    console.log('  Universal record:', universalRecord);
+    
+    // Merge with hierarchical priority and add character name from page if not found
+    const mergedData = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
+    
+    // If no character alias found, get it from the page
+    if (!mergedData.character_alias) {
+        mergedData.character_alias = await getCharacterNameFromPage();
+    }
+    
+    return mergedData;
 }
 
 // --- FORM POPULATION AND DATA LOADING ---
+/**
+ * Optimized form population with hierarchical data loading and batching
+ * Priority: Chat ID > Character ID > Universal > temp_form_data (for temporary overrides)
+ * @param {HTMLElement} form - The form element
+ * @param {string} CHAR_ID - Character ID
+ * @returns {Promise<void>}
+ */
 async function populateCustomizerPopup(form, CHAR_ID) {
-    console.log('=== DEBUG: populateCustomizerPopup called with CHAR_ID:', CHAR_ID);
+    console.log('=== DEBUG: populateCustomizerPopup called with CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
     
     // Single DOM query with better caching
     const formElements = {
@@ -387,47 +423,19 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         bgUrlInput: form.querySelector('#bg-url-input')
     };
 
-    // Check for color data in temp_form_data
-    const hasColorData = temp_form_data && Object.keys(temp_form_data).some(key => 
-        key.includes('color') && temp_form_data[key]
-    );
-    
-    // Determine data source strategy
-    const useFullTempData = temp_form_data && Object.keys(temp_form_data).length > 0 && hasColorData;
-    const useHybridApproach = temp_form_data && Object.keys(temp_form_data).length > 0 && !hasColorData;
+    // Check for meaningful data in temp_form_data (user has made changes)
+    const hasModifications = temp_form_data && Object.keys(temp_form_data).length > 0;
     
     let formData = {};
     
-    if (useFullTempData) {
-        console.log('=== DEBUG: Using temp_form_data (has color data)');
-        formData = { ...temp_form_data };
+    if (hasModifications) {
+        console.log('=== DEBUG: Using temp_form_data with modifications:', temp_form_data);
+        // Start with database data and overlay temp changes
+        const hierarchicalData = await loadHierarchicalData(CHAR_ID);
+        formData = { ...hierarchicalData, ...temp_form_data }; // temp_form_data takes precedence
     } else {
-        console.log('=== DEBUG: Loading from database');
-        
-        // Batch database operations for better performance
-        const [dbData, characterName] = await Promise.all([
-            getCharacterFieldsBatch(CHAR_ID, [
-                'character_alias', 'character_name_color', 'character_narration_color',
-                'character_message_color', 'character_message_box_color', 'username_color',
-                'user_message_color', 'user_message_box_color', 'background_image', 'default_background_image'
-            ]),
-            useHybridApproach && temp_form_data.character_alias ? 
-                Promise.resolve(temp_form_data.character_alias) :
-                getCharacterNameFromPage()
-        ]);
-        
-        formData = {
-            character_alias: characterName || dbData.character_alias,
-            character_name_color: dbData.character_name_color,
-            character_narration_color: dbData.character_narration_color,
-            character_message_color: dbData.character_message_color,
-            character_message_box_color: dbData.character_message_box_color,
-            username_color: dbData.username_color,
-            user_message_color: dbData.user_message_color,
-            user_message_box_color: dbData.user_message_box_color,
-            background_image: useHybridApproach ? temp_form_data.background_image : dbData.background_image,
-            default_background_image: useHybridApproach ? temp_form_data.default_background_image : dbData.default_background_image
-        };
+        console.log('=== DEBUG: Loading fresh data from database hierarchy');
+        formData = await loadHierarchicalData(CHAR_ID);
     }
     
     // Batch form population for better performance
@@ -495,38 +503,7 @@ async function getCharacterNameFromPage() {
 }
 
 /**
- * Batch get character fields for better database performance
- * @param {string} CHAR_ID - Character ID
- * @param {string[]} fields - Array of field names to retrieve
- * @returns {Promise<Object>} Object with field values
- */
-async function getCharacterFieldsBatch(CHAR_ID, fields) {
-    if (!db) await openDatabase();
-    
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        
-        getRequest.onsuccess = function(event) {
-            const result = event.target.result || {};
-            const fieldData = {};
-            
-            fields.forEach(field => {
-                fieldData[field] = result[field] !== undefined ? result[field] : null;
-            });
-            
-            resolve(fieldData);
-        };
-        
-        getRequest.onerror = function(e) {
-            reject(e.target.error);
-        };
-    });
-}
-
-/**
- * Optimized load customizer data function
+ * Optimized load customizer data function with hierarchical loading
  * @param {HTMLElement} form
  * @returns {Promise<void>}
  */
@@ -538,6 +515,9 @@ async function loadCustomizerData(form) {
     const CHAR_ID = findCharacterID(anchor) || CHAT_ID;
     
     console.log('=== DEBUG: Using CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
+    
+    // Debug the hierarchy (can be disabled in production)
+    await debugDataHierarchy(CHAR_ID);
     
     await populateCustomizerPopup(form, CHAR_ID);
 }
@@ -653,6 +633,25 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
  */
 function clearTempFormData() {
     temp_form_data = {};
+}
+
+// --- INITIALIZATION AND OBSERVERS ---
+/**
+ * Debug function to log the current data loading hierarchy
+ * @param {string} CHAR_ID - Character ID
+ */
+async function debugDataHierarchy(CHAR_ID) {
+    console.log('=== DATA HIERARCHY DEBUG ===');
+    console.log('Loading priority: CHAT_ID > CHAR_ID > Universal');
+    console.log('CHAT_ID:', CHAT_ID);
+    console.log('CHAR_ID:', CHAR_ID);
+    
+    const summary = await getDataSourceSummary(CHAR_ID, CHAT_ID);
+    console.log('Data availability:', summary);
+    
+    const hierarchicalData = await loadHierarchicalData(CHAR_ID);
+    console.log('Final merged data:', hierarchicalData);
+    console.log('=== END HIERARCHY DEBUG ===');
 }
 
 // --- INITIALIZATION AND OBSERVERS ---

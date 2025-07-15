@@ -222,7 +222,9 @@ async function saveUserMessageBoxColor(CHAR_ID, color) {
  * @returns {Promise<void>}
  */
 async function saveDefaultBackgroundImage(CHAR_ID, imageBase64) {
-    return saveCharacterField(CHAR_ID, 'default_background_image', imageBase64);
+    if (CHAR_ID != 'Universal') {
+        return saveCharacterField(CHAR_ID, 'default_background_image', imageBase64);
+    }
 }
 /**
  * @param {string} CHAR_ID

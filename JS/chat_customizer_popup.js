@@ -616,10 +616,33 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     const anchor = document.querySelector(char_id_selector);
     const CHAR_ID = overrideCharId || findCharacterID(anchor) || CHAT_ID;
 
-    // Only include fields that actually exist in temp_form_data (have been modified)
-    const fieldsToSave = Object.fromEntries(
-        Object.entries(temp_form_data).filter(([key, value]) => value !== undefined && value !== null)
-    );
+    // Define color-only fields for universal saving
+    const colorFields = [
+        'character_name_color',
+        'character_narration_color', 
+        'character_message_color',
+        'character_message_box_color',
+        'username_color',
+        'user_message_color',
+        'user_message_box_color'
+    ];
+
+    let fieldsToSave;
+    
+    // If saving to Universal, only save color fields
+    if (CHAR_ID === 'Universal') {
+        fieldsToSave = Object.fromEntries(
+            Object.entries(temp_form_data).filter(([key, value]) => 
+                value !== undefined && value !== null && colorFields.includes(key)
+            )
+        );
+        console.log('=== DEBUG: Universal save - only color fields:', fieldsToSave);
+    } else {
+        // For character/chat specific saves, include all fields
+        fieldsToSave = Object.fromEntries(
+            Object.entries(temp_form_data).filter(([key, value]) => value !== undefined && value !== null)
+        );
+    }
 
     // Only save if there are actually fields to update
     if (Object.keys(fieldsToSave).length > 0) {

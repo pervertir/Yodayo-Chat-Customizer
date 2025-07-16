@@ -387,6 +387,64 @@ function applyDynamicStyle(selector, styles) {
 }
 
 /**
+ * Standardized image data handler for consistent base64/URL processing
+ * This function normalizes different image data formats and returns the appropriate src value
+ * @param {string} imageData - Image data (URL, data URL, or pure base64)
+ * @returns {string} Properly formatted image src
+ */
+function normalizeImageData(imageData) {
+    if (!imageData || typeof imageData !== 'string') {
+        throw new Error('Invalid image data provided');
+    }
+
+    // Check if it's already a data URL
+    if (imageData.startsWith('data:image')) {
+        return imageData;
+    }
+    
+    // Check if it's a regular URL
+    if (imageData.startsWith('http://') || imageData.startsWith('https://')) {
+        return imageData;
+    }
+    
+    // Assume it's a pure base64 string (stored format in our database)
+    // Add the data URL prefix
+    return `data:image/png;base64,${imageData}`;
+}
+
+/**
+ * Checks if the provided string is a URL (not base64 data)
+ * @param {string} str - String to check
+ * @returns {boolean} True if it's a URL, false otherwise
+ */
+function isImageUrl(str) {
+    if (!str || typeof str !== 'string') return false;
+    return str.startsWith('http://') || str.startsWith('https://');
+}
+
+/**
+ * Checks if the provided string is already a data URL
+ * @param {string} str - String to check  
+ * @returns {boolean} True if it's a data URL, false otherwise
+ */
+function isDataUrl(str) {
+    if (!str || typeof str !== 'string') return false;
+    return str.startsWith('data:image');
+}
+
+/**
+ * Checks if the provided string is pure base64 data (our storage format)
+ * @param {string} str - String to check
+ * @returns {boolean} True if it's likely pure base64, false otherwise
+ */
+function isPureBase64(str) {
+    if (!str || typeof str !== 'string') return false;
+    
+    // Not a URL and not a data URL, and is long enough to be base64
+    return !isImageUrl(str) && !isDataUrl(str) && str.length > 50;
+}
+
+/**
  * Optimized cache clearing with selective resets
  */
 function clearCaches() {

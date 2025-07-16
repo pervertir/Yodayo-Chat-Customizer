@@ -174,8 +174,6 @@ function initializeCharacterSettingsEventHandlers(form) {
         },
         'character-theme-checkbox': (target) => {
             // This checkbox determines save target: checked = character theme, unchecked = chat-specific
-            console.log('=== DEBUG: Character theme checkbox changed:', target.checked);
-            console.log('  Will save to:', target.checked ? 'CHAR_ID (character theme)' : 'CHAT_ID (chat-specific)');
         }
     };
 
@@ -208,18 +206,15 @@ function initializeCharacterSettingsEventHandlers(form) {
         if (formElements.charThemeCheckbox?.checked) {
             // Save as character theme (CHAR_ID)
             saveTarget = CHAR_ID;
-            console.log('=== DEBUG: Saving as character theme to CHAR_ID:', saveTarget);
         } else {
             // Save as chat-specific (CHAT_ID)  
             saveTarget = CHAT_ID;
-            console.log('=== DEBUG: Saving as chat-specific to CHAT_ID:', saveTarget);
         }
         
         await saveCharacterDetailsToDBFromTemp(saveTarget);
         
         if (formElements.applyToAllCheckbox?.checked) {
             await saveCharacterDetailsToDBFromTemp('Universal');
-            console.log('=== DEBUG: Also saved to Universal');
         }
         
         showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
@@ -256,8 +251,6 @@ function initializeCharacterSettingsEventHandlers(form) {
  * @returns {Promise<void>}
  */
 async function loadCustomizedUI(CHAR_ID) {
-    console.log('=== DEBUG: loadCustomizedUI called with CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
-    
     // Load all three potential sources
     const [chatRecord, charRecord, universalRecord] = await Promise.all([
         getCharacterRecord(CHAT_ID),        // Chat-specific settings
@@ -265,13 +258,8 @@ async function loadCustomizedUI(CHAR_ID) {
         getUniversalColorSettings()         // Universal settings
     ]);
     
-    console.log('=== DEBUG: Chat record (CHAT_ID):', chatRecord);
-    console.log('=== DEBUG: Character record (CHAR_ID):', charRecord);
-    console.log('=== DEBUG: Universal record:', universalRecord);
-    
     // Hierarchical merging: Chat > Character > Universal
     const mergedSettings = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
-    console.log('=== DEBUG: Final merged settings:', mergedSettings);
     
     // Apply the merged settings to the UI
     applySettingsToUI(mergedSettings);
@@ -312,6 +300,12 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
  * @param {Object} settings - The merged settings to apply
  */
 async function applySettingsToUI(settings) {
+    // Check if settings object exists
+    if (!settings || typeof settings !== 'object') {
+        console.warn('applySettingsToUI: Invalid or missing settings object');
+        return;
+    }
+
     // Apply images/backgrounds/alias if present
     if (settings.character_image) {
         await applyImageSetting(settings.character_image, 'character');
@@ -340,12 +334,33 @@ async function applySettingsToUI(settings) {
  * @param {string} imageData - Image data (URL or base64)
  * @param {string} type - 'character' or 'background'
  */
+/**
+ * Applies image settings (character or background) with standardized handling
+ * Uses the same approach as image viewer for consistency
+ * @param {string} imageData - The image data to apply
+ * @param {string} type - The type of image ('character' or 'background')
+ */
 async function applyImageSetting(imageData, type) {
-    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://');
+    // Validate inputs
+    if (!imageData || typeof imageData !== 'string') {
+        console.warn(`applyImageSetting: Invalid imageData for ${type}`);
+        return;
+    }
     
-    if (isUrl) {
+    if (!type || (type !== 'character' && type !== 'background')) {
+        console.warn(`applyImageSetting: Invalid type "${type}"`);
+        return;
+    }
+
+    // Use the same logic as image viewer's setImageSource function
+    if (isImageUrl(imageData)) {
+        // Convert URL to base64 with timeout (same as image viewer)
         try {
-            const imageBase64 = await urlToBase64(imageData);
+            const imageBase64 = await Promise.race([
+                urlToBase64(imageData),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+            // Apply the converted base64 using standardized handling
             if (type === 'character') {
                 setCharacterImage(imageBase64);
             } else {
@@ -361,6 +376,7 @@ async function applyImageSetting(imageData, type) {
             }
         }
     } else {
+        // Handle base64 data using standardized normalization (same as image viewer)
         if (type === 'character') {
             setCharacterImage(imageData);
         } else {
@@ -382,11 +398,6 @@ async function loadHierarchicalData(CHAR_ID) {
         getUniversalColorSettings()         // Universal settings
     ]);
     
-    console.log('=== DEBUG: Hierarchical data loading:');
-    console.log('  Chat record (CHAT_ID):', chatRecord);
-    console.log('  Character record (CHAR_ID):', charRecord);
-    console.log('  Universal record:', universalRecord);
-    
     // Merge with hierarchical priority and add character name from page if not found
     const mergedData = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
     
@@ -407,8 +418,6 @@ async function loadHierarchicalData(CHAR_ID) {
  * @returns {Promise<void>}
  */
 async function populateCustomizerPopup(form, CHAR_ID) {
-    console.log('=== DEBUG: populateCustomizerPopup called with CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
-    
     // Single DOM query with better caching
     const formElements = {
         nameInput: form.querySelector('#name-input'),
@@ -429,12 +438,10 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     let formData = {};
     
     if (hasModifications) {
-        console.log('=== DEBUG: Using temp_form_data with modifications:', temp_form_data);
         // Start with database data and overlay temp changes
         const hierarchicalData = await loadHierarchicalData(CHAR_ID);
         formData = { ...hierarchicalData, ...temp_form_data }; // temp_form_data takes precedence
     } else {
-        console.log('=== DEBUG: Loading fresh data from database hierarchy');
         formData = await loadHierarchicalData(CHAR_ID);
     }
     
@@ -459,6 +466,9 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         // Handle background image URL
         handleBackgroundImageUrl(formElements.bgUrlInput, formData);
         
+        // Handle character image URL
+        handleCharacterImageUrl(formElements.characterImageUrlInput, formData);
+        
         // Fire events after all DOM updates
         formMapping.forEach(([element, value]) => {
             if (element && value !== null && value !== undefined) {
@@ -470,21 +480,21 @@ async function populateCustomizerPopup(form, CHAR_ID) {
 }
 
 /**
- * Handles background image URL setting with optimized logic
+ * Handles background image URL setting with standardized logic (same as image viewer)
  */
 function handleBackgroundImageUrl(bgUrlInput, formData) {
     if (!bgUrlInput) return;
     
     let bgImageToShow = null;
     
-    // Priority: non-base64 background_image, then default_background_image, then extracted URL
-    if (formData.background_image && !formData.background_image.startsWith('data:image')) {
+    // Use standardized isImageUrl function (same logic as image viewer)
+    if (formData.background_image && isImageUrl(formData.background_image)) {
         bgImageToShow = formData.background_image;
     } else if (formData.default_background_image) {
         if (formData.default_background_image.startsWith('url(')) {
             const urlMatch = formData.default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
             bgImageToShow = urlMatch?.[1];
-        } else {
+        } else if (isImageUrl(formData.default_background_image)) {
             bgImageToShow = formData.default_background_image;
         }
     }
@@ -495,10 +505,28 @@ function handleBackgroundImageUrl(bgUrlInput, formData) {
 }
 
 /**
+ * Handles character image URL setting with standardized logic (same as image viewer)
+ */
+function handleCharacterImageUrl(characterImageUrlInput, formData) {
+    if (!characterImageUrlInput) return;
+    
+    let characterImageToShow = null;
+    
+    // Use standardized isImageUrl function (same logic as image viewer)
+    if (formData.character_image && isImageUrl(formData.character_image)) {
+        characterImageToShow = formData.character_image;
+    }
+    
+    if (characterImageToShow) {
+        characterImageUrlInput.value = characterImageToShow;
+    }
+}
+
+/**
  * Gets character name from page elements
  */
 async function getCharacterNameFromPage() {
-    const characterNameElement = document.querySelector(character_name_selector);
+    const characterNameElement = document.querySelector(character_name_title);
     return characterNameElement?.textContent?.trim() || null;
 }
 
@@ -508,16 +536,9 @@ async function getCharacterNameFromPage() {
  * @returns {Promise<void>}
  */
 async function loadCustomizerData(form) {
-    console.log('=== DEBUG: loadCustomizerData called');
-    
     // Cache selectors and minimize DOM queries
     const anchor = document.querySelector(char_id_selector);
     const CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-    
-    console.log('=== DEBUG: Using CHAR_ID:', CHAR_ID, 'CHAT_ID:', CHAT_ID);
-    
-    // Debug the hierarchy (can be disabled in production)
-    await debugDataHierarchy(CHAR_ID);
     
     await populateCustomizerPopup(form, CHAR_ID);
 }
@@ -636,7 +657,6 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
                 value !== undefined && value !== null && colorFields.includes(key)
             )
         );
-        console.log('=== DEBUG: Universal save - only color fields:', fieldsToSave);
     } else {
         // For character/chat specific saves, include all fields
         fieldsToSave = Object.fromEntries(
@@ -656,25 +676,6 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
  */
 function clearTempFormData() {
     temp_form_data = {};
-}
-
-// --- INITIALIZATION AND OBSERVERS ---
-/**
- * Debug function to log the current data loading hierarchy
- * @param {string} CHAR_ID - Character ID
- */
-async function debugDataHierarchy(CHAR_ID) {
-    console.log('=== DATA HIERARCHY DEBUG ===');
-    console.log('Loading priority: CHAT_ID > CHAR_ID > Universal');
-    console.log('CHAT_ID:', CHAT_ID);
-    console.log('CHAR_ID:', CHAR_ID);
-    
-    const summary = await getDataSourceSummary(CHAR_ID, CHAT_ID);
-    console.log('Data availability:', summary);
-    
-    const hierarchicalData = await loadHierarchicalData(CHAR_ID);
-    console.log('Final merged data:', hierarchicalData);
-    console.log('=== END HIERARCHY DEBUG ===');
 }
 
 // --- INITIALIZATION AND OBSERVERS ---

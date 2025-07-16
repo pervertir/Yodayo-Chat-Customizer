@@ -6,6 +6,12 @@
  * @returns {Promise<void>}
  */
 async function setBackgroundImage(imageData) {
+    // Validate input
+    if (!imageData || typeof imageData !== 'string') {
+        console.error('setBackgroundImage: Invalid imageData provided');
+        return;
+    }
+
     /** @type {NodeListOf<HTMLDivElement>} */
     let targetDivs = document.querySelectorAll(bg_img);
     if (!targetDivs.length) {
@@ -18,9 +24,8 @@ async function setBackgroundImage(imageData) {
     console.log('Setting new background image');
     console.log(targetDivs);
 
-    // Check if the data is a URL or base64
-    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
-    const backgroundImageUrl = isUrl ? `url('${imageData}')` : `url('data:image;base64,${imageData}')`;
+    // Use standardized image data handling (same as image viewer)
+    const backgroundImageUrl = `url('${normalizeImageData(imageData)}')`;
 
     divElements.forEach((targetDiv) => {
         targetDiv.style.backgroundImage = backgroundImageUrl;
@@ -35,6 +40,12 @@ async function setBackgroundImage(imageData) {
  * @returns {Promise<void>}
  */
 async function setCharacterImage(imageData) {
+    // Validate input
+    if (!imageData || typeof imageData !== 'string') {
+        console.error('setCharacterImage: Invalid imageData provided');
+        return;
+    }
+
     /** @type {HTMLElement|null} */
     let characterContainer = document.querySelector('.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2');
     if (characterContainer) {
@@ -42,9 +53,8 @@ async function setCharacterImage(imageData) {
         let existingImage = characterContainer.querySelector('div > div > img');
         let imageHeight = "90vh";
 
-        // Check if the data is a URL or base64
-        const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:image');
-        const imageSrc = isUrl ? imageData : `data:image;base64,${imageData}`;
+        // Use standardized image data handling (same as image viewer)
+        const imageSrc = normalizeImageData(imageData);
 
         if (existingImage) {
             existingImage.src = imageSrc;
@@ -89,7 +99,7 @@ function setCharacterAlias(alias) {
 function setCharacterAliasColor(color) {
     for (let i = 0; i < document.styleSheets.length; i++) {
         const styleSheet = document.styleSheets[i];
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
+        if (styleSheet.href && styleSheet.href.includes('fonts.googleapis.com')) {
             continue;
         }
         try {
@@ -114,7 +124,7 @@ function setCharacterAliasColor(color) {
 function setCharacterNarrationColor(color) {
     for (let i = 0; i < document.styleSheets.length; i++) {
         const styleSheet = document.styleSheets[i];
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
+        if (styleSheet.href && styleSheet.href.includes('fonts.googleapis.com')) {
             continue;
         }
         try {
@@ -191,7 +201,7 @@ function setUserChatColor(color, regex) {
  */
 function setCharacterChatBgColor(color, regex) {
     Array.from(document.styleSheets).forEach((styleSheet) => {
-        if (styleSheet.href && styleSheet.href.includes('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap')) {
+        if (styleSheet.href && styleSheet.href.includes('fonts.googleapis.com')) {
             return;
         }
         if (!styleSheet.href) {

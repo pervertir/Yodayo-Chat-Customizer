@@ -37,38 +37,37 @@ function captureOriginalBackgroundImage() {
 function initializeCloseButtonEventHandler(form, formBody) {
     console.log(formBody);
     const closeModal = () => {
-        // Reset document styles
         document.documentElement.style.overflow = '';
         document.documentElement.style.paddingRight = '';
-
         let main = document.querySelector('body > main');
         if (main) {
             main.setAttribute('aria-hidden', 'false');
             main.removeAttribute('inert');
         }
-
-        // Remove the modal by removing the portal root element
-        /** @type {HTMLElement|null} */
         const portalRoot = document.getElementById('headlessui-portal-root');
         if (portalRoot) {
             portalRoot.remove();
         }
-
-        document.removeEventListener('click', handleClickOutside);
-
+        document.removeEventListener('mousedown', handleMouseDown);
+        document.removeEventListener('mouseup', handleMouseUp);
     };
 
-    const handleClickOutside = (event) => {
-        if (!formBody.contains(event.target)) {
+    let mouseDownOutside = false;
+    const handleMouseDown = (event) => {
+        mouseDownOutside = !formBody.contains(event.target);
+    };
+    const handleMouseUp = (event) => {
+        if (mouseDownOutside && !formBody.contains(event.target)) {
             closeModal();
         }
+        mouseDownOutside = false;
     };
 
     let closeButton = form.querySelector('#close-button');
     closeButton.addEventListener('click', closeModal);
 
-    // Add event listener to close modal on click outside
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 }
 
 /**
@@ -178,14 +177,14 @@ function initializeCharacterSettingsEventHandlers(form) {
     };
 
     // Delegated event listeners for better performance
-    form.addEventListener('input', async function(e) {
+    form.addEventListener('input', async function (e) {
         const handler = inputHandlers[e.target.id];
         if (handler) {
             await handler(e.target.value);
         }
     });
 
-    form.addEventListener('change', async function(e) {
+    form.addEventListener('change', async function (e) {
         const handler = changeHandlers[e.target.id];
         if (handler) {
             if (e.target.type === 'file') {
@@ -197,10 +196,10 @@ function initializeCharacterSettingsEventHandlers(form) {
     });
 
     // Button event handlers with null checks
-    formElements.saveButton?.addEventListener('click', async function() {
+    formElements.saveButton?.addEventListener('click', async function () {
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-        
+
         // Determine save target based on character theme checkbox
         let saveTarget;
         if (formElements.charThemeCheckbox?.checked) {
@@ -210,28 +209,28 @@ function initializeCharacterSettingsEventHandlers(form) {
             // Save as chat-specific (CHAT_ID)  
             saveTarget = CHAT_ID;
         }
-        
+
         await saveCharacterDetailsToDBFromTemp(saveTarget);
-        
+
         if (formElements.applyToAllCheckbox?.checked) {
             await saveCharacterDetailsToDBFromTemp('Universal');
         }
-        
+
         showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
         clearTempFormData();
     });
 
-    formElements.deleteCurrentPageStyleButton?.addEventListener('click', async function() {
+    formElements.deleteCurrentPageStyleButton?.addEventListener('click', async function () {
         // Always operate on current chat (CHAT_ID) for this action
         await deleteCharacterRecord(CHAT_ID);
         location.reload();
         alert('Current chat style has been deleted.');
     });
 
-    formElements.deleteAllCharacterStylesButton?.addEventListener('click', async function() {
+    formElements.deleteAllCharacterStylesButton?.addEventListener('click', async function () {
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-        
+
         // Delete character theme and also exclude this chat from character themes  
         await Promise.all([
             deleteCharacterRecord(CHAR_ID),  // Delete character theme
@@ -257,10 +256,10 @@ async function loadCustomizedUI(CHAR_ID) {
         getCharacterRecord(CHAR_ID),        // Character-specific settings  
         getCharacterRecord('Universal')         // Universal settings
     ]);
-    
+
     // Hierarchical merging: Chat > Character > Universal
     const mergedSettings = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
-    
+
     // Apply the merged settings to the UI
     applySettingsToUI(mergedSettings);
 }
@@ -278,9 +277,9 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
         'character_name_color', 'character_narration_color', 'character_message_color',
         'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color'
     ];
-    
+
     const mergedSettings = {};
-    
+
     fields.forEach(field => {
         // Priority: Chat > Character > Universal
         if (chatRecord && chatRecord[field] !== undefined && chatRecord[field] !== null) {
@@ -291,7 +290,7 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
             mergedSettings[field] = universalRecord[field];
         }
     });
-    
+
     return mergedSettings;
 }
 
@@ -313,15 +312,15 @@ async function applySettingsToUI(settings) {
     if (settings.character_image) {
         await applyImageSetting(settings.character_image, 'character');
     }
-    
+
     if (settings.background_image) {
         await applyImageSetting(settings.background_image, 'background');
     }
-    
+
     if (settings.character_alias) {
         setCharacterAlias(settings.character_alias);
     }
-    
+
     // Apply colors if present
     if (settings.character_name_color) setCharacterAliasColor(settings.character_name_color);
     if (settings.character_narration_color) setCharacterNarrationColor(settings.character_narration_color);
@@ -349,7 +348,7 @@ async function applyImageSetting(imageData, type) {
         console.warn(`applyImageSetting: Invalid imageData for ${type}`);
         return;
     }
-    
+
     if (!type || (type !== 'character' && type !== 'background')) {
         console.warn(`applyImageSetting: Invalid type "${type}"`);
         return;
@@ -400,15 +399,15 @@ async function loadHierarchicalData(CHAR_ID) {
         getCharacterRecord(CHAR_ID),        // Character-specific settings  
         getCharacterRecord('Universal')         // Universal settings
     ]);
-    
+
     // Merge with hierarchical priority and add character name from page if not found
     const mergedData = mergeSettingsHierarchically(chatRecord, charRecord, universalRecord);
-    
+
     // If no character alias found, get it from the page
     if (!mergedData.character_alias) {
         mergedData.character_alias = await getCharacterNameFromPage();
     }
-    
+
     return mergedData;
 }
 
@@ -437,7 +436,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
 
     // Check for meaningful data in temp_form_data (user has made changes)
     const hasModifications = temp_form_data && Object.keys(temp_form_data).length > 0;
-    
+
     let formData = {};
     const hierarchicalData = await loadHierarchicalData(CHAR_ID);
     if (hasModifications) {
@@ -451,7 +450,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     } else {
         formData = { ...hierarchicalData };
     }
-    
+
     // Batch form population for better performance
     const formMapping = [
         [formElements.nameInput, formData.character_alias, 'character_alias'],
@@ -463,7 +462,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         [formElements.userChatColorInput, formData.user_message_color, 'user_message_color'],
         [formElements.userChatBgColorInput, formData.user_message_box_color, 'user_message_box_color']
     ];
-    
+
     // Batch DOM updates to minimize reflows
     requestAnimationFrame(() => {
         formMapping.forEach(([element, value, tempKey]) => {
@@ -473,19 +472,19 @@ async function populateCustomizerPopup(form, CHAR_ID) {
                 temp_form_data[tempKey] = value;
             }
         });
-        
+
         // Handle background image URL
         const bgImageUrl = handleBackgroundImageUrl(formElements.bgUrlInput, formData);
         if (bgImageUrl && !hasModifications) {
             temp_form_data.background_image = bgImageUrl;
         }
-        
+
         // Handle character image URL
         const charImageUrl = handleCharacterImageUrl(formElements.characterImageUrlInput, formData);
         if (charImageUrl && !hasModifications) {
             temp_form_data.character_image = charImageUrl;
         }
-        
+
         // Fire events after all DOM updates
         formMapping.forEach(([element, value]) => {
             if (element && value !== null && value !== undefined) {
@@ -502,9 +501,9 @@ async function populateCustomizerPopup(form, CHAR_ID) {
  */
 function handleBackgroundImageUrl(bgUrlInput, formData) {
     if (!bgUrlInput) return null;
-    
+
     let bgImageToShow = null;
-    
+
     // Use standardized isImageUrl function (same logic as image viewer)
     if (formData.background_image && isImageUrl(formData.background_image)) {
         bgImageToShow = formData.background_image;
@@ -516,12 +515,12 @@ function handleBackgroundImageUrl(bgUrlInput, formData) {
             bgImageToShow = formData.default_background_image;
         }
     }
-    
+
     if (bgImageToShow) {
         bgUrlInput.value = bgImageToShow;
         return bgImageToShow;
     }
-    
+
     return null;
 }
 
@@ -531,19 +530,19 @@ function handleBackgroundImageUrl(bgUrlInput, formData) {
  */
 function handleCharacterImageUrl(characterImageUrlInput, formData) {
     if (!characterImageUrlInput) return null;
-    
+
     let characterImageToShow = null;
-    
+
     // Use standardized isImageUrl function (same logic as image viewer)
     if (formData.character_image && isImageUrl(formData.character_image)) {
         characterImageToShow = formData.character_image;
     }
-    
+
     if (characterImageToShow) {
         characterImageUrlInput.value = characterImageToShow;
         return characterImageToShow;
     }
-    
+
     return null;
 }
 
@@ -564,7 +563,7 @@ async function loadCustomizerData(form) {
     // Cache selectors and minimize DOM queries
     const anchor = document.querySelector(char_id_selector);
     const CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-    
+
     await populateCustomizerPopup(form, CHAR_ID);
 }
 
@@ -629,7 +628,7 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     // Define color-only fields for universal saving
     const colorFields = [
         'character_name_color',
-        'character_narration_color', 
+        'character_narration_color',
         'character_message_color',
         'character_message_box_color',
         'username_color',
@@ -641,7 +640,7 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     // If saving to Universal, only save color fields
     if (CHAR_ID === 'Universal') {
         fieldsToSave = Object.fromEntries(
-            Object.entries(temp_form_data).filter(([key, value]) => 
+            Object.entries(temp_form_data).filter(([key, value]) =>
                 value !== undefined && value !== null && colorFields.includes(key)
             )
         );

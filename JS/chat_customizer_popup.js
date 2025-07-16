@@ -306,6 +306,9 @@ async function applySettingsToUI(settings) {
         return;
     }
 
+    // Copy settings to temp_form_data so UI state is always tracked for saving
+    temp_form_data = { ...settings };
+
     // Apply images/backgrounds/alias if present
     if (settings.character_image) {
         await applyImageSetting(settings.character_image, 'character');
@@ -436,38 +439,52 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     const hasModifications = temp_form_data && Object.keys(temp_form_data).length > 0;
     
     let formData = {};
-    
+    const hierarchicalData = await loadHierarchicalData(CHAR_ID);
     if (hasModifications) {
-        // Start with database data and overlay temp changes
-        const hierarchicalData = await loadHierarchicalData(CHAR_ID);
-        formData = { ...hierarchicalData, ...temp_form_data }; // temp_form_data takes precedence
+        // Overlay temp changes, but fall back to temp for missing fields
+        formData = { ...hierarchicalData };
+        for (const key in temp_form_data) {
+            if (formData[key] === undefined || formData[key] === null) {
+                formData[key] = temp_form_data[key];
+            }
+        }
     } else {
-        formData = await loadHierarchicalData(CHAR_ID);
+        formData = { ...hierarchicalData };
     }
     
     // Batch form population for better performance
     const formMapping = [
-        [formElements.nameInput, formData.character_alias],
-        [formElements.nameColorInput, formData.character_name_color],
-        [formElements.narrationColorInput, formData.character_narration_color],
-        [formElements.chatColorInput, formData.character_message_color],
-        [formElements.chatBgColorInput, formData.character_message_box_color],
-        [formElements.userNameColorInput, formData.username_color],
-        [formElements.userChatColorInput, formData.user_message_color],
-        [formElements.userChatBgColorInput, formData.user_message_box_color]
+        [formElements.nameInput, formData.character_alias, 'character_alias'],
+        [formElements.nameColorInput, formData.character_name_color, 'character_name_color'],
+        [formElements.narrationColorInput, formData.character_narration_color, 'character_narration_color'],
+        [formElements.chatColorInput, formData.character_message_color, 'character_message_color'],
+        [formElements.chatBgColorInput, formData.character_message_box_color, 'character_message_box_color'],
+        [formElements.userNameColorInput, formData.username_color, 'username_color'],
+        [formElements.userChatColorInput, formData.user_message_color, 'user_message_color'],
+        [formElements.userChatBgColorInput, formData.user_message_box_color, 'user_message_box_color']
     ];
     
     // Batch DOM updates to minimize reflows
     requestAnimationFrame(() => {
-        formMapping.forEach(([element, value]) => {
+        formMapping.forEach(([element, value, tempKey]) => {
             setFormElementValue(element, value, true); // Suppress events during batch
+            // Also update temp_form_data to ensure values are tracked for saving
+            if (value !== null && value !== undefined && !hasModifications) {
+                temp_form_data[tempKey] = value;
+            }
         });
         
         // Handle background image URL
-        handleBackgroundImageUrl(formElements.bgUrlInput, formData);
+        const bgImageUrl = handleBackgroundImageUrl(formElements.bgUrlInput, formData);
+        if (bgImageUrl && !hasModifications) {
+            temp_form_data.background_image = bgImageUrl;
+        }
         
         // Handle character image URL
-        handleCharacterImageUrl(formElements.characterImageUrlInput, formData);
+        const charImageUrl = handleCharacterImageUrl(formElements.characterImageUrlInput, formData);
+        if (charImageUrl && !hasModifications) {
+            temp_form_data.character_image = charImageUrl;
+        }
         
         // Fire events after all DOM updates
         formMapping.forEach(([element, value]) => {
@@ -481,9 +498,10 @@ async function populateCustomizerPopup(form, CHAR_ID) {
 
 /**
  * Handles background image URL setting with standardized logic (same as image viewer)
+ * @returns {string|null} The background image URL that was set, if any
  */
 function handleBackgroundImageUrl(bgUrlInput, formData) {
-    if (!bgUrlInput) return;
+    if (!bgUrlInput) return null;
     
     let bgImageToShow = null;
     
@@ -501,14 +519,18 @@ function handleBackgroundImageUrl(bgUrlInput, formData) {
     
     if (bgImageToShow) {
         bgUrlInput.value = bgImageToShow;
+        return bgImageToShow;
     }
+    
+    return null;
 }
 
 /**
  * Handles character image URL setting with standardized logic (same as image viewer)
+ * @returns {string|null} The character image URL that was set, if any
  */
 function handleCharacterImageUrl(characterImageUrlInput, formData) {
-    if (!characterImageUrlInput) return;
+    if (!characterImageUrlInput) return null;
     
     let characterImageToShow = null;
     
@@ -519,7 +541,10 @@ function handleCharacterImageUrl(characterImageUrlInput, formData) {
     
     if (characterImageToShow) {
         characterImageUrlInput.value = characterImageToShow;
+        return characterImageToShow;
     }
+    
+    return null;
 }
 
 /**

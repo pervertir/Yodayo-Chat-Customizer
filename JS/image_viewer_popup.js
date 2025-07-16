@@ -1,3 +1,4 @@
+
 // Cache for DOM elements and state
 /** @typedef {Object} ImageViewerCacheType
  * @property {MutationObserver|null} observer
@@ -245,7 +246,7 @@ async function processCardData(record, cardElement) {
     try {
         // Set the card container ID to the character ID
         cardElement.id = record.CHAR_ID;
-        
+
         // Cache DOM queries
         const elements = {
             bgImg: cardElement.querySelector('#card-bg-image'),
@@ -257,27 +258,44 @@ async function processCardData(record, cardElement) {
             colorCharBubbleBg: cardElement.querySelector('#color-char-bubble-bg'),
             colorUserName: cardElement.querySelector('#color-user-name'),
             colorUserDialogue: cardElement.querySelector('#color-user-dialogue'),
-            colorUserBubbleBg: cardElement.querySelector('#color-user-bubble-bg')
+            colorUserBubbleBg: cardElement.querySelector('#color-user-bubble-bg'),
+            cardTypeTag: cardElement.querySelector('#card-type-tag'),
+            deleteButton: cardElement.querySelector('#card-delete-button'),
+            sendButton: cardElement.querySelector('#card-send-button')
         };
+
+        // Set card type tag based on record_type (manual CSS for color)
+        if (elements.cardTypeTag) {
+            if (record.record_type === 'chat') {
+                elements.cardTypeTag.textContent = 'Chat';
+                elements.cardTypeTag.style.backgroundColor = 'rgba(113, 251, 164, 0.6)'; // green-700 with opacity
+                elements.cardTypeTag.style.borderColor = '#bbf7d0'; // green-300
+            } else {
+                elements.cardTypeTag.textContent = 'Char';
+                elements.cardTypeTag.style.backgroundColor = 'rgba(64, 109, 233, 0.6)'; // blue-700 with opacity
+                elements.cardTypeTag.style.borderColor = '#59a0f1ff'; // blue-300
+            }
+        }
 
         // Process images in parallel
         const imagePromises = [];
-        
         if (elements.bgImg) {
             imagePromises.push(setCardBackgroundImage(elements.bgImg, record));
         }
-        
         if (elements.charImg) {
             imagePromises.push(setCardCharacterImage(elements.charImg, record));
         }
-        
         await Promise.all(imagePromises);
-        
+
         // Set text content and colors (fast operations)
         if (elements.charName && record.character_alias) {
-            elements.charName.textContent = record.character_alias;
+            // Only update the center span text, not the whole div
+            const centerSpan = elements.charName.querySelector('#character-name-span');
+            if (centerSpan) {
+                centerSpan.textContent = record.character_alias;
+            }
         }
-        
+
         // Batch set color values
         const colorMappings = [
             [elements.colorCharName, record.character_name_color, '#ffffff'],
@@ -288,11 +306,54 @@ async function processCardData(record, cardElement) {
             [elements.colorUserDialogue, record.user_message_color, '#000000'],
             [elements.colorUserBubbleBg, record.user_message_box_color, '#ffffff']
         ];
-        
         colorMappings.forEach(([element, value, fallback]) => {
             if (element) element.value = value || fallback;
         });
-        
+
+        // Add event listeners for delete and send buttons
+        if (elements.deleteButton) {
+            elements.deleteButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                let typeLabel = (record.record_type === 'chat') ? 'chat' : 'character';
+                const confirmDelete = window.confirm(`Are you sure you want to delete this ${typeLabel}? This action cannot be undone.`);
+                if (!confirmDelete) return;
+                try {
+                    if (!window.db) await openDatabase();
+                    const tx = db.transaction('Characters', 'readwrite');
+                    const store = tx.objectStore('Characters');
+                    store.delete(record.CHAR_ID);
+                    tx.oncomplete = function () {
+                        renderAllCardsInDiv();
+                    };
+                    tx.onerror = function (err) {
+                        console.error('Error deleting character:', err);
+                    };
+                } catch (error) {
+                    console.error('Error deleting character:', error);
+                }
+            });
+        }
+
+        if (elements.sendButton) {
+            elements.sendButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    const domain = window.location.origin;
+                    let url;
+                    if (record.record_type === 'chat') {
+                        url = `${domain}/tavern/chat/${record.CHAR_ID}`;
+                    } else {
+                        url = `${domain}/tavern/characters/${record.CHAR_ID}`;
+                    }
+                    window.open(url, '_blank');
+                } catch (error) {
+                    console.error('Error opening chat/character:', error);
+                }
+            });
+        }
+
         return cardElement;
     } catch (error) {
         console.error('Error processing card data:', error);

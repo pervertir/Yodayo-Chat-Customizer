@@ -5,6 +5,10 @@
     <!-- Front Side (Character Display) -->
     <div class="card-front absolute inset-0 w-full h-full bg-secondaryBg rounded-lg shadow-lg border border-zinc-800 cursor-pointer">
       <div class="w-full h-full flex flex-col items-center relative">
+        <!-- Card Type Tag (top left) -->
+        <div id="card-type-tag" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold shadow bg-blue-700 text-white border border-blue-300 z-30 select-none pointer-events-none">
+          Character
+        </div>
         <div class="relative w-full h-full flex flex-col items-center justify-end">
           <!-- Background Image -->
           <img id="card-bg-image" src="bg.png" alt="Background"
@@ -14,8 +18,18 @@
             class="absolute inset-0 w-full h-full object-contain rounded-lg shadow z-10 pointer-events-none" />
           <!-- Character Name -->
           <div id="card-character-name"
-            class="relative w-full bg-black/40 text-white px-4 py-2 rounded-b-lg text-lg font-semibold z-20 text-center pointer-events-none border-t border-zinc-700 shadow">
-            Character Name
+            class="relative w-full bg-black/40 text-white px-4 py-2 rounded-b-lg text-lg font-semibold z-20 flex items-center justify-between border-t border-zinc-700 shadow">
+            <!-- Left: Garbage Bin SVG -->
+            <span class="flex items-center" id="card-delete-button">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m5 0V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </span>
+            <span class="flex-1 text-center" id="character-name-span">Character Name</span>
+            <!-- If you want the text to be non-interactive, add pointer-events-none here -->
+            <!-- <span class="flex-1 text-center pointer-events-none">Character Name</span> -->
+            <!-- Right: Send SVG -->
+            <span class="flex items-center" id="card-send-button">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </span>
           </div>
         </div>
       </div>

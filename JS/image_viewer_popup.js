@@ -264,11 +264,11 @@ async function processCardData(record, cardElement) {
         const imagePromises = [];
         
         if (elements.bgImg) {
-            imagePromises.push(setBackgroundImage(elements.bgImg, record));
+            imagePromises.push(setCardBackgroundImage(elements.bgImg, record));
         }
         
         if (elements.charImg) {
-            imagePromises.push(setCharacterImage(elements.charImg, record));
+            imagePromises.push(setCardCharacterImage(elements.charImg, record));
         }
         
         await Promise.all(imagePromises);
@@ -301,12 +301,12 @@ async function processCardData(record, cardElement) {
 }
 
 /**
- * Optimized background image setting
+ * Sets background image for a card element
  * @param {HTMLImageElement} bgImg
  * @param {CharacterRecord} record
  * @returns {Promise<void>}
  */
-async function setBackgroundImage(bgImg, record) {
+async function setCardBackgroundImage(bgImg, record) {
     if (record.background_image) {
         await setImageSource(bgImg, record.background_image);
     } else if (record.default_background_image) {
@@ -320,12 +320,12 @@ async function setBackgroundImage(bgImg, record) {
 }
 
 /**
- * Optimized character image setting
+ * Sets character image for a card element
  * @param {HTMLImageElement} charImg
  * @param {CharacterRecord} record
  * @returns {Promise<void>}
  */
-async function setCharacterImage(charImg, record) {
+async function setCardCharacterImage(charImg, record) {
     if (record.character_image) {
         await setImageSource(charImg, record.character_image);
     } else {

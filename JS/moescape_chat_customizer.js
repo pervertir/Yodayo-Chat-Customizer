@@ -72,7 +72,8 @@
         } else if (!isTargetUrl() && scriptLoaded) {
             console.log('Exited chat page, hiding menu items.');
             scriptLoaded = false; // Reset scriptLoaded flag
-            if (observer) { observer.disconnect(); }
+            menuItemsAdded = false; // Reset menu items flag so they are re-added on next chat
+            if (observer) { observer.disconnect(); observer = null; }
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
         }
     }
@@ -97,7 +98,7 @@
     window.addEventListener('popstate', checkUrlChange);
 
     // Periodically check for URL changes (reduced frequency for better performance)
-    urlCheckInterval = setInterval(checkUrlChange, 2000); // Changed from 1000ms to 2000ms
+    urlCheckInterval = setInterval(checkUrlChange, 1000); // Changed from 1000ms to 2000ms
 
     /**
      * Adds custom menu items to the provided menu element.

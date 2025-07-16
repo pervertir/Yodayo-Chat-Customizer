@@ -591,42 +591,6 @@ function handleFormAdded(mutationsList, observer) {
 }
 
 // --- SAVE OPERATIONS ---
-/**
- * Saves the current character defaults to the database for later reset.
- * @param {HTMLElement} form
- * @param {string} [overrideCharId] Optional CHAR_ID to override (for Universal save)
- * @returns {Promise<void>}
- */
-async function saveCharacterDetailsToDB(form, overrideCharId) {
-    let anchor = document.querySelector(char_id_selector);
-    let CHAR_ID = overrideCharId || findCharacterID(anchor);
-    if (!CHAR_ID) CHAR_ID = CHAT_ID;
-
-    // Gather current values
-    const char_name_input = form.querySelector('#name-input');
-    const char_name_color_input = form.querySelector('#name-color-input');
-    const char_narr_input = form.querySelector('#character-narration-color-input');
-    const char_chat_input = form.querySelector('#character-chat-color-input');
-    const char_chat_bg_input = form.querySelector('#character-chat-bg-color-input');
-    const user_name_color_input = form.querySelector('#user-name-color-input');
-    const user_chat_input = form.querySelector('#user-chat-color-input');
-    const user_chat_bg_input = form.querySelector('#user-chat-bg-color-input');
-
-    // Store null if input is missing or empty, otherwise store the value
-    const getOrNull = (input) => (input && input.value !== '' ? input.value : null);
-
-    await Promise.all([
-        saveCharacterAlias(CHAR_ID, getOrNull(char_name_input)),
-        saveCharacterNameColor(CHAR_ID, getOrNull(char_name_color_input)),
-        saveCharacterNarrationColor(CHAR_ID, getOrNull(char_narr_input)),
-        saveCharacterMessageColor(CHAR_ID, getOrNull(char_chat_input)),
-        saveCharacterMessageBoxColor(CHAR_ID, getOrNull(char_chat_bg_input)),
-        saveUsernameColor(CHAR_ID, getOrNull(user_name_color_input)),
-        saveUserMessageColor(CHAR_ID, getOrNull(user_chat_input)),
-        saveUserMessageBoxColor(CHAR_ID, getOrNull(user_chat_bg_input)),
-        saveDefaultBackgroundImage(CHAR_ID, getOrNull(default_background_image)),
-    ]);
-}
 
 /**
  * Optimized save function using batch database operations

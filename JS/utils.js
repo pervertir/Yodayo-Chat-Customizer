@@ -444,16 +444,3 @@ function isPureBase64(str) {
     return !isImageUrl(str) && !isDataUrl(str) && str.length > 50;
 }
 
-/**
- * Optimized cache clearing with selective resets
- */
-function clearCaches() {
-    cachedStyleSheets = null;
-    dynamicStyleSheet = null;
-    
-    // Clear color normalization cache if it gets too large
-    if (colorNormalizationCache.size > 100) {
-        colorNormalizationCache.clear();
-    }
-}
-

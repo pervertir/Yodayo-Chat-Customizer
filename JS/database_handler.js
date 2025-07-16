@@ -2,7 +2,6 @@
 const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
 
 console.log('Chat ID: ', CHAT_ID);
-
 /**
  * @typedef {Object} CharacterRecord
  * @property {string} CHAR_ID
@@ -20,6 +19,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [username_color]
  * @property {string} [user_message_color]
  * @property {string} [user_message_box_color]
+ * @property {'chat'|'character'|'universal'} [record_type] // Added for type tracking
  */
 
 /**
@@ -65,47 +65,75 @@ function openDatabase() {
 
         request.onupgradeneeded = (event) => {
             db = event.target.result;
-            // Create the Characters object store with CHAR_ID as the key path
-            const objectStore = db.createObjectStore('Characters', { keyPath: 'CHAR_ID' });
-
-            // Define the attributes and set default values to null
-            objectStore.createIndex('chat_ids', 'chat_ids', { unique: false }); // changed
-            objectStore.createIndex('apply_to_all', 'apply_to_all', { unique: false }); // changed
-            objectStore.createIndex('exclude_chat_ids', 'exclude_chat_ids', { unique: false });
-            objectStore.createIndex('background_image', 'background_image', { unique: false });
-            objectStore.createIndex('character_alias', 'character_alias', { unique: false });
-            objectStore.createIndex('character_name_color', 'character_name_color', { unique: false });
-            objectStore.createIndex('character_image', 'character_image', { unique: false });
-            objectStore.createIndex('default_background_image', 'default_background_image', { unique: false }); // Added index for default_character_image
-            objectStore.createIndex('character_narration_color', 'character_narration_color', { unique: false });
-            objectStore.createIndex('character_message_color', 'character_message_color', { unique: false });
-            objectStore.createIndex('character_message_box_color', 'character_message_box_color', { unique: false });
-            objectStore.createIndex('username_color', 'username_color', { unique: false });
-            objectStore.createIndex('user_message_color', 'user_message_color', { unique: false });
-            objectStore.createIndex('user_message_box_color', 'user_message_box_color', { unique: false });
-
-            console.log('Object store and indexes created');
+            createInitialSchema();
+            console.log('Initial schema (v1) created');
         };
     });
+}
+
+/**
+ * Creates the initial database schema (version 1)
+ */
+function createInitialSchema() {
+    // Create the Characters object store with CHAR_ID as the key path
+    const objectStore = db.createObjectStore('Characters', { keyPath: 'CHAR_ID' });
+
+    // Define the attributes and set default values to null
+    objectStore.createIndex('chat_ids', 'chat_ids', { unique: false });
+    objectStore.createIndex('apply_to_all', 'apply_to_all', { unique: false });
+    objectStore.createIndex('exclude_chat_ids', 'exclude_chat_ids', { unique: false });
+    objectStore.createIndex('background_image', 'background_image', { unique: false });
+    objectStore.createIndex('character_alias', 'character_alias', { unique: false });
+    objectStore.createIndex('character_name_color', 'character_name_color', { unique: false });
+    objectStore.createIndex('character_image', 'character_image', { unique: false });
+    objectStore.createIndex('default_background_image', 'default_background_image', { unique: false });
+    objectStore.createIndex('character_narration_color', 'character_narration_color', { unique: false });
+    objectStore.createIndex('character_message_color', 'character_message_color', { unique: false });
+    objectStore.createIndex('character_message_box_color', 'character_message_box_color', { unique: false });
+    objectStore.createIndex('username_color', 'username_color', { unique: false });
+    objectStore.createIndex('user_message_color', 'user_message_color', { unique: false });
+    objectStore.createIndex('user_message_box_color', 'user_message_box_color', { unique: false });
+    objectStore.createIndex('record_type', 'record_type', { unique: false });
+
+    console.log('Initial schema (v1) created');
 }
 
 /**
  * @template {keyof CharacterRecord} K
  * @param {string} CHAR_ID
  * @param {K} field
- * @param {CharacterRecord[K] | null} value // Accept string | null
+ * @param {CharacterRecord[K] | null} value
+ * @param {string} [currentChatId] - Current chat ID for type detection
+ * @param {string} [currentCharId] - Current character ID for type detection
  * @returns {Promise<void>}
  */
-async function saveCharacterField(CHAR_ID, field, value) {
+async function saveCharacterField(CHAR_ID, field, value, currentChatId, currentCharId) {
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const getRequest = objectStore.get(CHAR_ID);
+        
         getRequest.onsuccess = function(event) {
             /** @type {CharacterRecord} */
             let record = event.target.result || { CHAR_ID };
+            
+            // Set the field value
             record[field] = value;
+            
+            // Determine record type if not already set
+            if (!record.record_type && currentChatId && currentCharId) {
+                if (CHAR_ID === 'Universal') {
+                    record.record_type = 'universal';
+                } else if (CHAR_ID === currentChatId) {
+                    record.record_type = 'chat';
+                } else if (CHAR_ID === currentCharId) {
+                    record.record_type = 'character';
+                } else {
+                    record.record_type = 'character'; // Default
+                }
+            }
+            
             const putRequest = objectStore.put(record);
             putRequest.onsuccess = function() { resolve(); };
             putRequest.onerror = function(e) { reject(e.target.error); };
@@ -136,137 +164,6 @@ async function getCharacterField(CHAR_ID, field) {
 }
 
 // Refactored save/get functions using helpers
-/**
- * @param {string} CHAR_ID
- * @param {string|null} imageBase64
- * @returns {Promise<void>}
- */
-async function saveBackgroundImage(CHAR_ID, imageBase64) {
-    return saveCharacterField(CHAR_ID, 'background_image', imageBase64);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} imageBase64
- * @returns {Promise<void>}
- */
-async function saveCharacterImage(CHAR_ID, imageBase64) {
-    return saveCharacterField(CHAR_ID, 'character_image', imageBase64);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} alias
- * @returns {Promise<void>}
- */
-async function saveCharacterAlias(CHAR_ID, alias) {
-    return saveCharacterField(CHAR_ID, 'character_alias', alias);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveCharacterNameColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'character_name_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveCharacterNarrationColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'character_narration_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveCharacterMessageColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'character_message_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveCharacterMessageBoxColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'character_message_box_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveUsernameColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'username_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveUserMessageColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'user_message_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} color
- * @returns {Promise<void>}
- */
-async function saveUserMessageBoxColor(CHAR_ID, color) {
-    return saveCharacterField(CHAR_ID, 'user_message_box_color', color);
-}
-/**
- * @param {string} CHAR_ID
- * @param {string|null} imageBase64
- * @returns {Promise<void>}
- */
-async function saveDefaultBackgroundImage(CHAR_ID, imageBase64) {
-    if (CHAR_ID != 'Universal') {
-        return saveCharacterField(CHAR_ID, 'default_background_image', imageBase64);
-    }
-}
-/**
- * @param {string} CHAR_ID
- * @returns {Promise<string|null>}
- */
-async function getDefaultBackgroundImage(CHAR_ID) {
-    return getCharacterField(CHAR_ID, 'default_background_image');
-}
-
-/**
- * Adds a chat ID to exclude_chat_ids and ensures it is removed from chat_ids.
- * @param {string} CHAR_ID
- * @param {string} CHAT_ID
- * @returns {Promise<void>}
- */
-async function excludeChatIdForCharacter(CHAR_ID, CHAT_ID) {
-    if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        getRequest.onsuccess = function(event) {
-            /** @type {CharacterRecord} */
-            let record = event.target.result || { CHAR_ID };
-            // Add to exclude_chat_ids if not present
-            if (!Array.isArray(record.exclude_chat_ids)) {
-                record.exclude_chat_ids = [];
-            }
-            if (!record.exclude_chat_ids.includes(CHAT_ID)) {
-                record.exclude_chat_ids.push(CHAT_ID);
-            }
-            // Remove from chat_ids if present
-            if (Array.isArray(record.chat_ids)) {
-                record.chat_ids = record.chat_ids.filter(id => id !== CHAT_ID);
-            }
-            const putRequest = objectStore.put(record);
-            putRequest.onsuccess = function() { resolve(); };
-            putRequest.onerror = function(e) { reject(e.target.error); };
-        };
-        getRequest.onerror = function(e) { reject(e.target.error); };
-    });
-}
 
 /**
  * Deletes the entire character record from the database.
@@ -281,75 +178,6 @@ async function deleteCharacterRecord(CHAR_ID) {
         const deleteRequest = objectStore.delete(CHAR_ID);
         deleteRequest.onsuccess = function() { resolve(); };
         deleteRequest.onerror = function(e) { reject(e.target.error); };
-    });
-}
-
-/**
- * Saves universal color settings (applies to all characters/chats).
- * Only color fields are stored, not image/bg/character name.
- * @param {Object} colorSettings - An object with color fields (see below).
- * @returns {Promise<void>}
- *
- * Example colorSettings:
- * {
- *   character_name_color: string|null,
- *   character_narration_color: string|null,
- *   character_message_color: string|null,
- *   character_message_box_color: string|null,
- *   username_color: string|null,
- *   user_message_color: string|null,
- *   user_message_box_color: string|null
- * }
- */
-async function saveUniversalColorSettings(colorSettings) {
-    if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        // Only store color fields
-        const universalRecord = { CHAR_ID: 'Universal', ...colorSettings };
-        const putRequest = objectStore.put(universalRecord);
-        putRequest.onsuccess = function() { resolve(); };
-        putRequest.onerror = function(e) { reject(e.target.error); };
-    });
-}
-
-/**
- * Gets universal color settings (character record with CHAR_ID = 'Universal')
- * @returns {Promise<CharacterRecord|null>}
- */
-async function getUniversalColorSettings() {
-    return await getCharacterRecord('Universal');
-}
-
-/**
- * Batch get character fields for better database performance
- * @param {string} CHAR_ID - Character ID
- * @param {string[]} fields - Array of field names to retrieve
- * @returns {Promise<Object>} Object with field values
- */
-async function getCharacterFieldsBatch(CHAR_ID, fields) {
-    if (!db) await openDatabase();
-    
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        
-        getRequest.onsuccess = function(event) {
-            const result = event.target.result || {};
-            const fieldData = {};
-            
-            fields.forEach(field => {
-                fieldData[field] = result[field] !== undefined ? result[field] : null;
-            });
-            
-            resolve(fieldData);
-        };
-        
-        getRequest.onerror = function(e) {
-            reject(e.target.error);
-        };
     });
 }
 
@@ -372,13 +200,14 @@ async function getCharacterRecord(CHAR_ID) {
 }
 
 /**
- * Saves multiple character fields in a single transaction for better performance.
- * Only updates the provided fields, preserving existing data.
+ * Saves multiple character fields in a single transaction
  * @param {string} CHAR_ID
  * @param {Partial<CharacterRecord>} fields - Object containing the fields to update
+ * @param {string} [currentChatId] - Current chat ID for type detection
+ * @param {string} [currentCharId] - Current character ID for type detection
  * @returns {Promise<void>}
  */
-async function saveCharacterFieldsBatch(CHAR_ID, fields) {
+async function saveCharacterFieldsBatch(CHAR_ID, fields, currentChatId, currentCharId) {
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
@@ -389,14 +218,26 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
             /** @type {CharacterRecord} */
             let record = event.target.result || { CHAR_ID };
             
-            // Only update fields that have actual values (not null/undefined)
+            // Update all provided fields
             Object.keys(fields).forEach(field => {
                 const value = fields[field];
                 if (value !== null && value !== undefined) {
                     record[field] = value;
                 }
-                // Don't overwrite existing values with null/undefined
             });
+            
+            // Determine record type if not already set
+            if (!record.record_type && currentChatId && currentCharId) {
+                if (CHAR_ID === 'Universal') {
+                    record.record_type = 'universal';
+                } else if (CHAR_ID === currentChatId) {
+                    record.record_type = 'chat';
+                } else if (CHAR_ID === currentCharId) {
+                    record.record_type = 'character';
+                } else {
+                    record.record_type = 'character'; // Default
+                }
+            }
             
             const putRequest = objectStore.put(record);
             putRequest.onsuccess = function() { resolve(); };
@@ -404,35 +245,4 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
         };
         getRequest.onerror = function(e) { reject(e.target.error); };
     });
-}
-
-/**
- * Checks if a specific ID has any data in the database
- * @param {string} ID - The ID to check (CHAT_ID, CHAR_ID, or 'Universal')
- * @returns {Promise<boolean>} True if data exists
- */
-async function hasDataForID(ID) {
-    const record = await getCharacterRecord(ID);
-    return record !== null;
-}
-
-/**
- * Gets a summary of what data sources are available for current context
- * @param {string} CHAR_ID - Character ID
- * @param {string} CHAT_ID - Chat ID  
- * @returns {Promise<Object>} Summary object with available sources
- */
-async function getDataSourceSummary(CHAR_ID, CHAT_ID) {
-    const [hasChatData, hasCharData, hasUniversalData] = await Promise.all([
-        hasDataForID(CHAT_ID),
-        hasDataForID(CHAR_ID), 
-        hasDataForID('Universal')
-    ]);
-    
-    return {
-        chatSpecific: hasChatData,
-        characterTheme: hasCharData,
-        universal: hasUniversalData,
-        activeSource: hasChatData ? 'chat' : (hasCharData ? 'character' : (hasUniversalData ? 'universal' : 'none'))
-    };
 }

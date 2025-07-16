@@ -255,7 +255,7 @@ async function loadCustomizedUI(CHAR_ID) {
     const [chatRecord, charRecord, universalRecord] = await Promise.all([
         getCharacterRecord(CHAT_ID),        // Chat-specific settings
         getCharacterRecord(CHAR_ID),        // Character-specific settings  
-        getUniversalColorSettings()         // Universal settings
+        getCharacterRecord('Universal')         // Universal settings
     ]);
     
     // Hierarchical merging: Chat > Character > Universal
@@ -395,7 +395,7 @@ async function loadHierarchicalData(CHAR_ID) {
     const [chatRecord, charRecord, universalRecord] = await Promise.all([
         getCharacterRecord(CHAT_ID),        // Chat-specific settings
         getCharacterRecord(CHAR_ID),        // Character-specific settings  
-        getUniversalColorSettings()         // Universal settings
+        getCharacterRecord('Universal')         // Universal settings
     ]);
     
     // Merge with hierarchical priority and add character name from page if not found

@@ -613,7 +613,6 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
     ];
 
     let fieldsToSave;
-    
     // If saving to Universal, only save color fields
     if (CHAR_ID === 'Universal') {
         fieldsToSave = Object.fromEntries(
@@ -626,6 +625,10 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
         fieldsToSave = Object.fromEntries(
             Object.entries(temp_form_data).filter(([key, value]) => value !== undefined && value !== null)
         );
+        // If saving to CHAT_ID (not character theme), set record_type to 'chat'
+        if (CHAR_ID === CHAT_ID) {
+            fieldsToSave.record_type = 'chat';
+        }
     }
 
     // Only save if there are actually fields to update

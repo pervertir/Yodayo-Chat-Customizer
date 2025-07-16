@@ -424,6 +424,18 @@ function injectCardFlipCSS() {
             -webkit-backface-visibility: hidden;
             -moz-backface-visibility: hidden;
         }
+        #card-character-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: bottom;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 10;
+            pointer-events: none;
+        }
         
         .card-back {
             transform: rotateY(180deg);
@@ -442,7 +454,7 @@ function injectCardFlipCSS() {
         /* Ensure the card has a fixed aspect ratio */
         .card-container {
             aspect-ratio: 3/4;
-            max-width: 280px;
+            max-width: 320px;
             margin: 0 auto;
         }
         

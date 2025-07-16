@@ -98,49 +98,6 @@ function createInitialSchema() {
     console.log('Initial schema (v1) created');
 }
 
-/**
- * @template {keyof CharacterRecord} K
- * @param {string} CHAR_ID
- * @param {K} field
- * @param {CharacterRecord[K] | null} value
- * @param {string} [currentChatId] - Current chat ID for type detection
- * @param {string} [currentCharId] - Current character ID for type detection
- * @returns {Promise<void>}
- */
-async function saveCharacterField(CHAR_ID, field, value, currentChatId, currentCharId) {
-    if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
-        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
-        const getRequest = objectStore.get(CHAR_ID);
-        
-        getRequest.onsuccess = function(event) {
-            /** @type {CharacterRecord} */
-            let record = event.target.result || { CHAR_ID };
-            
-            // Set the field value
-            record[field] = value;
-            
-            // Determine record type if not already set
-            if (!record.record_type && currentChatId && currentCharId) {
-                if (CHAR_ID === 'Universal') {
-                    record.record_type = 'universal';
-                } else if (CHAR_ID === currentChatId) {
-                    record.record_type = 'chat';
-                } else if (CHAR_ID === currentCharId) {
-                    record.record_type = 'character';
-                } else {
-                    record.record_type = 'character'; // Default
-                }
-            }
-            
-            const putRequest = objectStore.put(record);
-            putRequest.onsuccess = function() { resolve(); };
-            putRequest.onerror = function(e) { reject(e.target.error); };
-        };
-        getRequest.onerror = function(e) { reject(e.target.error); };
-    });
-}
 
 /**
  * @template {keyof CharacterRecord} K
@@ -207,7 +164,7 @@ async function getCharacterRecord(CHAR_ID) {
  * @param {string} [currentCharId] - Current character ID for type detection
  * @returns {Promise<void>}
  */
-async function saveCharacterFieldsBatch(CHAR_ID, fields, currentChatId, currentCharId) {
+async function saveCharacterFieldsBatch(CHAR_ID, fields) {
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
@@ -225,18 +182,15 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields, currentChatId, currentC
                     record[field] = value;
                 }
             });
-            
-            // Determine record type if not already set
-            if (!record.record_type && currentChatId && currentCharId) {
-                if (CHAR_ID === 'Universal') {
-                    record.record_type = 'universal';
-                } else if (CHAR_ID === currentChatId) {
-                    record.record_type = 'chat';
-                } else if (CHAR_ID === currentCharId) {
-                    record.record_type = 'character';
-                } else {
-                    record.record_type = 'character'; // Default
-                }
+            // Set record_type based on explicit field, otherwise fallback to CHAR_ID logic
+            if (fields.record_type) {
+                record.record_type = fields.record_type;
+            } else if (CHAR_ID === 'Universal') {
+                record.record_type = 'universal';
+            } else if (CHAR_ID === CHAT_ID) {
+                record.record_type = 'chat';
+            } else {
+                record.record_type = 'character'; // Default
             }
             
             const putRequest = objectStore.put(record);

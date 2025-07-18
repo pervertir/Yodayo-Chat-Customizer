@@ -20,7 +20,7 @@ const user_message = /\.text-black\b/;
 
 // Background
 const bg_color = '.bg-primaryBg';
-const bg_img = '.bg-cover, .bg-no-repeat'; // Convert array to selector string for better performance
+const bg_img = ['.bg-cover', '.bg-no-repeat']; // Convert array to selector string for better performance
 
 
 // Styles

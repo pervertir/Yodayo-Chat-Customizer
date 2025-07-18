@@ -1,33 +1,125 @@
-// Chat Customizer Popup - Main popup functionality and form handling
-// This module handles the customizer popup UI, form interactions, and data loading
 
-// --- STATE MANAGEMENT ---
+// =========================
+// STATE & CONSTANTS
+// =========================
 let default_background_image = null;
 let temp_form_data = {};
 
-/**
- * Captures the original background image from the page before any modifications.
- * Should be called when the customizer is first initialized.
- * @returns {void}
- */
+// =========================
+// UTILITY & HELPER FUNCTIONS
+// =========================
 function captureOriginalBackgroundImage() {
     if (default_background_image !== null) return; // Already captured
-
-    /** @type {NodeListOf<HTMLDivElement>} */
     let targetDivs = document.querySelectorAll(bg_img);
     if (targetDivs.length > 0) {
-        /** @type {HTMLDivElement[]} */
         let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
         if (divElements.length > 0) {
             default_background_image = divElements[0].style.backgroundImage || '';
             console.log('Captured original background image:', default_background_image);
             const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
-            temp_form_data.default_background_image = urlMatch[1]; // Store in temp_form_data
+            temp_form_data.default_background_image = urlMatch[1];
         }
     }
 }
 
+// =========================
+// RESET FUNCTIONS
+// =========================
+function resetCharacterSettings(formElements) {
+    const originalCharacterName = document.querySelector(character_name_title)?.textContent?.trim() || '';
+    if (formElements.char_name_input) {
+        formElements.char_name_input.value = '';
+        setCharacterAlias(originalCharacterName);
+        delete temp_form_data.character_alias;
+    }
+    if (formElements.char_name_color_input) {
+        formElements.char_name_color_input.value = '#ffffff';
+        setCharacterAliasColor('#ffffff');
+        delete temp_form_data.character_name_color;
+    }
+    if (formElements.char_image_url_input) {
+        formElements.char_image_url_input.value = '';
+        delete temp_form_data.character_image;
+    }
+    if (formElements.char_image_file_input) {
+        formElements.char_image_file_input.value = '';
+        delete temp_form_data.character_image;
+    }
+    if (typeof character_image_container_resource_name !== 'undefined') {
+        const customImageContainer = document.querySelector("#character-image-container");
+        if (customImageContainer) {
+            customImageContainer.remove();
+        }
+    }
+    showInjectionNotification(notification_resource_name, null, 'Character settings reset to default!');
+}
+
+function resetBackgroundSettings(formElements) {
+    if (formElements.bg_url_input) {
+        formElements.bg_url_input.value = '';
+        delete temp_form_data.background_image;
+    }
+    if (formElements.bg_file_input) {
+        formElements.bg_file_input.value = '';
+    }
+    if (default_background_image !== null) {
+        const targetDivs = document.querySelectorAll(bg_img);
+        if (targetDivs.length > 0) {
+            const divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
+            divElements.forEach((targetDiv) => {
+                targetDiv.style.backgroundImage = default_background_image;
+                targetDiv.style.backgroundSize = 'cover';
+                targetDiv.classList.add('container');
+            });
+        }
+    }
+    showInjectionNotification(notification_resource_name, null, 'Background settings reset to default!');
+}
+
+function resetColorSettings(formElements) {
+    const defaultColors = {
+        characterNarration: '#b0d8fb',
+        userNameColor: '#000000',
+        characterChat: '#ffffff',
+        userChat: '#000000',
+        characterChatBg: '#000000',
+        userChatBg: '#ffffff'
+    };
+    if (formElements.char_narr_input) {
+        formElements.char_narr_input.value = defaultColors.characterNarration;
+        setCharacterNarrationColor(defaultColors.characterNarration);
+        delete temp_form_data.character_narration_color;
+    }
+    if (formElements.user_name_color_input) {
+        formElements.user_name_color_input.value = defaultColors.userNameColor;
+        setUserNameColor(defaultColors.userNameColor);
+        delete temp_form_data.username_color;
+    }
+    if (formElements.char_chat_input) {
+        formElements.char_chat_input.value = defaultColors.characterChat;
+        setCharacterDialogueColor(defaultColors.characterChat, character_dialogue);
+        delete temp_form_data.character_message_color;
+    }
+    if (formElements.user_chat_input) {
+        formElements.user_chat_input.value = defaultColors.userChat;
+        setUserChatColor(defaultColors.userChat, user_message);
+        delete temp_form_data.user_message_color;
+    }
+    if (formElements.char_chat_bg_input) {
+        formElements.char_chat_bg_input.value = defaultColors.characterChatBg;
+        setCharacterChatBgColor(defaultColors.characterChatBg, character_chat_bubble_background);
+        delete temp_form_data.character_message_box_color;
+    }
+    if (formElements.user_chat_bg_input) {
+        formElements.user_chat_bg_input.value = defaultColors.userChatBg;
+        setUserChatBgColor(defaultColors.userChatBg, user_chat_bubble_background);
+        delete temp_form_data.user_message_box_color;
+    }
+    showInjectionNotification(notification_resource_name, null, 'Color settings reset to default!');
+}
+// =========================
 // --- EVENT HANDLERS ---
+// =========================
 /**
  * Initializes the close button event handler for the popup form.
  * @param {HTMLElement} form
@@ -98,7 +190,10 @@ function initializeCharacterSettingsEventHandlers(form) {
         applyToAllCheckbox: '#apply-to-all-checkbox',
         charThemeCheckbox: '#character-theme-checkbox',
         deleteCurrentPageStyleButton: '#delete-current-page-style-button',
-        deleteAllCharacterStylesButton: '#delete-all-character-styles-button'
+        deleteAllCharacterStylesButton: '#delete-all-character-styles-button',
+        characterSettingsResetButton: '#character-settings-reset-button',
+        backgroundResetButton: '#background-reset-button',
+        colorResetButton: '#color-reset-button'
     };
 
     // Batch DOM queries
@@ -239,6 +334,61 @@ function initializeCharacterSettingsEventHandlers(form) {
         location.reload();
         alert('All styles for this character and chat have been deleted.');
     });
+
+    // Reset button event handlers
+    formElements.characterSettingsResetButton?.addEventListener('click', function () {
+        resetCharacterSettings(formElements);
+    });
+
+    formElements.backgroundResetButton?.addEventListener('click', function () {
+        resetBackgroundSettings(formElements);
+    });
+
+    formElements.colorResetButton?.addEventListener('click', function () {
+        resetColorSettings(formElements);
+    });
+
+    // Add event listener for no-universal-checkbox
+    const noUniversalCheckbox = form.querySelector('#no-universal-checkbox');
+    if (noUniversalCheckbox) {
+        noUniversalCheckbox.addEventListener('change', async function () {
+            if (noUniversalCheckbox.checked) {
+                // Checked: reset to hardcoded defaults
+                resetColorSettings(formElements);
+            } else {
+                // Unchecked: restore universal color settings from DB
+                const universalRecord = await getCharacterRecord('Universal');
+                if (universalRecord) {
+                    // Only update color fields
+                    const colorFields = {
+                        char_narr_input: 'character_narration_color',
+                        user_name_color_input: 'username_color',
+                        char_chat_input: 'character_message_color',
+                        user_chat_input: 'user_message_color',
+                        char_chat_bg_input: 'character_message_box_color',
+                        user_chat_bg_input: 'user_message_box_color'
+                    };
+                    for (const [inputKey, dbKey] of Object.entries(colorFields)) {
+                        if (formElements[inputKey] && universalRecord[dbKey]) {
+                            formElements[inputKey].value = universalRecord[dbKey];
+                            // Call the appropriate setter
+                            switch (inputKey) {
+                                case 'char_narr_input': setCharacterNarrationColor(universalRecord[dbKey]); break;
+                                case 'user_name_color_input': setUserNameColor(universalRecord[dbKey]); break;
+                                case 'char_chat_input': setCharacterDialogueColor(universalRecord[dbKey], character_dialogue); break;
+                                case 'user_chat_input': setUserChatColor(universalRecord[dbKey], user_message); break;
+                                case 'char_chat_bg_input': setCharacterChatBgColor(universalRecord[dbKey], character_chat_bubble_background); break;
+                                case 'user_chat_bg_input': setUserChatBgColor(universalRecord[dbKey], user_chat_bubble_background); break;
+                            }
+                        }
+                    }
+                    showInjectionNotification(notification_resource_name, null, 'Universal color settings restored!');
+                } else {
+                    showInjectionNotification(notification_resource_name, null, 'No universal color settings found.');
+                }
+            }
+        });
+    }
 }
 
 /**

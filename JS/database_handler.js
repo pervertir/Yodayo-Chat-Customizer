@@ -19,6 +19,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [username_color]
  * @property {string} [user_message_color]
  * @property {string} [user_message_box_color]
+ * @property {boolean} [no_universal_colors] // Whether to exclude universal colors
  * @property {'chat'|'character'|'universal'} [record_type] // Added for type tracking
  */
 
@@ -93,6 +94,7 @@ function createInitialSchema() {
     objectStore.createIndex('username_color', 'username_color', { unique: false });
     objectStore.createIndex('user_message_color', 'user_message_color', { unique: false });
     objectStore.createIndex('user_message_box_color', 'user_message_box_color', { unique: false });
+    objectStore.createIndex('no_universal_colors', 'no_universal_colors', { unique: false });
     objectStore.createIndex('record_type', 'record_type', { unique: false });
 
     console.log('Initial schema (v1) created');

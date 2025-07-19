@@ -17,7 +17,9 @@ function captureOriginalBackgroundImage() {
             default_background_image = divElements[0].style.backgroundImage || '';
             console.log('Captured original background image:', default_background_image);
             const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
-            temp_form_data.default_background_image = urlMatch[1];
+            if (urlMatch && urlMatch[1]) {
+                temp_form_data.default_background_image = urlMatch[1];
+            }
         }
     }
 }
@@ -88,32 +90,32 @@ function resetColorSettings(formElements) {
     if (formElements.char_narr_input) {
         formElements.char_narr_input.value = defaultColors.characterNarration;
         setCharacterNarrationColor(defaultColors.characterNarration);
-        delete temp_form_data.character_narration_color;
+        temp_form_data.character_narration_color = defaultColors.characterNarration;
     }
     if (formElements.user_name_color_input) {
         formElements.user_name_color_input.value = defaultColors.userNameColor;
         setUserNameColor(defaultColors.userNameColor);
-        delete temp_form_data.username_color;
+        temp_form_data.username_color = defaultColors.userNameColor;
     }
     if (formElements.char_chat_input) {
         formElements.char_chat_input.value = defaultColors.characterChat;
         setCharacterDialogueColor(defaultColors.characterChat, character_dialogue);
-        delete temp_form_data.character_message_color;
+        temp_form_data.character_message_color = defaultColors.characterChat;
     }
     if (formElements.user_chat_input) {
         formElements.user_chat_input.value = defaultColors.userChat;
         setUserChatColor(defaultColors.userChat, user_message);
-        delete temp_form_data.user_message_color;
+        temp_form_data.user_message_color = defaultColors.userChat;
     }
     if (formElements.char_chat_bg_input) {
         formElements.char_chat_bg_input.value = defaultColors.characterChatBg;
         setCharacterChatBgColor(defaultColors.characterChatBg, character_chat_bubble_background);
-        delete temp_form_data.character_message_box_color;
+        temp_form_data.character_message_box_color = defaultColors.characterChatBg;
     }
     if (formElements.user_chat_bg_input) {
         formElements.user_chat_bg_input.value = defaultColors.userChatBg;
         setUserChatBgColor(defaultColors.userChatBg, user_chat_bubble_background);
-        delete temp_form_data.user_message_box_color;
+        temp_form_data.user_message_box_color = defaultColors.userChatBg;
     }
     showInjectionNotification(notification_resource_name, null, 'Color settings reset to default!');
 }
@@ -189,6 +191,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         saveButton: '#save-button',
         applyToAllCheckbox: '#apply-to-all-checkbox',
         charThemeCheckbox: '#character-theme-checkbox',
+        noUniversalCheckbox: '#no-universal-checkbox',
         deleteCurrentPageStyleButton: '#delete-current-page-style-button',
         deleteAllCharacterStylesButton: '#delete-all-character-styles-button',
         characterSettingsResetButton: '#character-settings-reset-button',
@@ -268,6 +271,9 @@ function initializeCharacterSettingsEventHandlers(form) {
         },
         'character-theme-checkbox': (target) => {
             // This checkbox determines save target: checked = character theme, unchecked = chat-specific
+        },
+        'no-universal-checkbox': (target) => {
+            updateTemp('no_universal_colors', target.checked);
         }
     };
 
@@ -349,46 +355,48 @@ function initializeCharacterSettingsEventHandlers(form) {
     });
 
     // Add event listener for no-universal-checkbox
-    const noUniversalCheckbox = form.querySelector('#no-universal-checkbox');
-    if (noUniversalCheckbox) {
-        noUniversalCheckbox.addEventListener('change', async function () {
-            if (noUniversalCheckbox.checked) {
-                // Checked: reset to hardcoded defaults
-                resetColorSettings(formElements);
-            } else {
-                // Unchecked: restore universal color settings from DB
-                const universalRecord = await getCharacterRecord('Universal');
-                if (universalRecord) {
-                    // Only update color fields
-                    const colorFields = {
-                        char_narr_input: 'character_narration_color',
-                        user_name_color_input: 'username_color',
-                        char_chat_input: 'character_message_color',
-                        user_chat_input: 'user_message_color',
-                        char_chat_bg_input: 'character_message_box_color',
-                        user_chat_bg_input: 'user_message_box_color'
-                    };
-                    for (const [inputKey, dbKey] of Object.entries(colorFields)) {
-                        if (formElements[inputKey] && universalRecord[dbKey]) {
-                            formElements[inputKey].value = universalRecord[dbKey];
-                            // Call the appropriate setter
-                            switch (inputKey) {
-                                case 'char_narr_input': setCharacterNarrationColor(universalRecord[dbKey]); break;
-                                case 'user_name_color_input': setUserNameColor(universalRecord[dbKey]); break;
-                                case 'char_chat_input': setCharacterDialogueColor(universalRecord[dbKey], character_dialogue); break;
-                                case 'user_chat_input': setUserChatColor(universalRecord[dbKey], user_message); break;
-                                case 'char_chat_bg_input': setCharacterChatBgColor(universalRecord[dbKey], character_chat_bubble_background); break;
-                                case 'user_chat_bg_input': setUserChatBgColor(universalRecord[dbKey], user_chat_bubble_background); break;
-                            }
+    formElements.noUniversalCheckbox?.addEventListener('change', async function () {
+        if (formElements.noUniversalCheckbox.checked) {
+            // Checked: reset to hardcoded defaults and update temp_form_data
+            resetColorSettings(formElements);
+            updateTemp('no_universal_colors', true);
+        } else {
+            // Unchecked: restore universal color settings from DB
+            const universalRecord = await getCharacterRecord('Universal');
+            if (universalRecord) {
+                // Only update color fields
+                const colorFields = {
+                    char_narr_input: 'character_narration_color',
+                    user_name_color_input: 'username_color',
+                    char_chat_input: 'character_message_color',
+                    user_chat_input: 'user_message_color',
+                    char_chat_bg_input: 'character_message_box_color',
+                    user_chat_bg_input: 'user_message_box_color'
+                };
+                for (const [inputKey, dbKey] of Object.entries(colorFields)) {
+                    if (formElements[inputKey] && universalRecord[dbKey]) {
+                        formElements[inputKey].value = universalRecord[dbKey];
+                        // Update temp_form_data as well
+                        updateTemp(dbKey, universalRecord[dbKey]);
+                        // Call the appropriate setter
+                        switch (inputKey) {
+                            case 'char_narr_input': setCharacterNarrationColor(universalRecord[dbKey]); break;
+                            case 'user_name_color_input': setUserNameColor(universalRecord[dbKey]); break;
+                            case 'char_chat_input': setCharacterDialogueColor(universalRecord[dbKey], character_dialogue); break;
+                            case 'user_chat_input': setUserChatColor(universalRecord[dbKey], user_message); break;
+                            case 'char_chat_bg_input': setCharacterChatBgColor(universalRecord[dbKey], character_chat_bubble_background); break;
+                            case 'user_chat_bg_input': setUserChatBgColor(universalRecord[dbKey], user_chat_bubble_background); break;
                         }
                     }
-                    showInjectionNotification(notification_resource_name, null, 'Universal color settings restored!');
-                } else {
-                    showInjectionNotification(notification_resource_name, null, 'No universal color settings found.');
                 }
+                updateTemp('no_universal_colors', false);
+                showInjectionNotification(notification_resource_name, null, 'Universal color settings restored!');
+            } else {
+                updateTemp('no_universal_colors', false);
+                showInjectionNotification(notification_resource_name, null, 'No universal color settings found.');
             }
-        });
-    }
+        }
+    });
 }
 
 /**
@@ -425,10 +433,19 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
     const fields = [
         'character_alias', 'character_image', 'background_image', 'default_background_image',
         'character_name_color', 'character_narration_color', 'character_message_color',
+        'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color',
+        'no_universal_colors'
+    ];
+
+    const colorFields = [
+        'character_name_color', 'character_narration_color', 'character_message_color',
         'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color'
     ];
 
     const mergedSettings = {};
+
+    // Check if no_universal_colors is set in chat or character record
+    const noUniversal = (chatRecord && chatRecord.no_universal_colors) || (charRecord && charRecord.no_universal_colors);
 
     fields.forEach(field => {
         // Priority: Chat > Character > Universal
@@ -436,8 +453,10 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
             mergedSettings[field] = chatRecord[field];
         } else if (charRecord && charRecord[field] !== undefined && charRecord[field] !== null) {
             mergedSettings[field] = charRecord[field];
-        } else if (universalRecord && universalRecord[field] !== undefined && universalRecord[field] !== null) {
-            mergedSettings[field] = universalRecord[field];
+        } else if (!noUniversal || !colorFields.includes(field)) {
+            if (universalRecord && universalRecord[field] !== undefined && universalRecord[field] !== null) {
+                mergedSettings[field] = universalRecord[field];
+            }
         }
     });
 
@@ -622,6 +641,14 @@ async function populateCustomizerPopup(form, CHAR_ID) {
                 temp_form_data[tempKey] = value;
             }
         });
+
+        // Handle no-universal checkbox
+        if (formElements.noUniversalCheckbox) {
+            formElements.noUniversalCheckbox.checked = formData.no_universal_colors || false;
+            if (!hasModifications) {
+                temp_form_data.no_universal_colors = formData.no_universal_colors || false;
+            }
+        }
 
         // Handle background image URL
         const bgImageUrl = handleBackgroundImageUrl(formElements.bgUrlInput, formData);

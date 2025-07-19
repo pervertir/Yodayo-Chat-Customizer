@@ -19,7 +19,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [username_color]
  * @property {string} [user_message_color]
  * @property {string} [user_message_box_color]
- * @property {boolean} [no_universal_colors] // Whether to exclude universal colors
+ * @property {boolean} [no_universal_colors] // When true, excludes universal color settings from hierarchical merging, forcing fallback to application defaults
  * @property {'chat'|'character'|'universal'} [record_type] // Added for type tracking
  */
 
@@ -177,10 +177,14 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
             /** @type {CharacterRecord} */
             let record = event.target.result || { CHAR_ID };
             
-            // Update all provided fields
+            // Always store no_universal_colors as boolean (even if false) for consistency
+            // This flag controls whether universal color settings should be excluded during hierarchical merging
             Object.keys(fields).forEach(field => {
                 const value = fields[field];
-                if (value !== null && value !== undefined) {
+                if (field === 'no_universal_colors') {
+                    // Always store as boolean, even if false
+                    record[field] = Boolean(value);
+                } else if (value !== null && value !== undefined) {
                     record[field] = value;
                 }
             });

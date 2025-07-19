@@ -52,3 +52,14 @@ const card_layout_resource_name = 'card_layout';
 const DB_NAME = 'MYChatCustomizerDB';
 const DB_VERSION = 2; // Incremented for new schema with record type tracking
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';
+
+// Default color constants (centralized)
+const DEFAULT_COLORS = {
+    characterName: '#ffffff',
+    characterNarration: '#b0d8fb',
+    userNameColor: '#000000',
+    characterChat: '#ffffff',
+    userChat: '#000000',
+    characterChatBg: '#000000',
+    userChatBg: '#ffffff'
+};

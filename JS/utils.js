@@ -1,5 +1,25 @@
 // utility functions
 
+// Capture the original background image from the DOM
+function captureOriginalBackgroundImage(default_background_image, temp_form_data, bg_img) {
+    if (default_background_image !== null) return; // Already captured
+    let targetDivs = document.querySelectorAll(bg_img);
+    if (targetDivs.length > 0) {
+        let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
+        if (divElements.length > 0) {
+            default_background_image = divElements[0].style.backgroundImage || '';
+            console.log('Captured original background image:', default_background_image);
+            const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
+            if (urlMatch && urlMatch[1]) {
+                temp_form_data.default_background_image = urlMatch[1];
+            }
+        }
+    }
+    return default_background_image;
+}
+
+
+
 function waitForElement(selector, callback) {
     console.log("Waiting for:", selector);
     let element_observer = new MutationObserver((mutations, element_observer) => {

@@ -146,6 +146,8 @@
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
+        let pickr_css = GM_getResourceText('pickr_css');
+        GM_addStyle(pickr_css);
         // Add Alt + Shift + / keyboard shortcut to open chat customizer popup
         window.addEventListener('keydown', function(e) {
             // Fix: use e.code for '/' key and check for focus on input/textarea

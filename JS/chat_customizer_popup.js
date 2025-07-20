@@ -4,10 +4,213 @@
 // =========================
 let default_background_image = null;
 let temp_form_data = {};
+let pickrInstances = {}; // Store Pickr instances
 
 // =========================
 // UTILITY & HELPER FUNCTIONS
 // =========================
+
+/**
+ * Creates a Pickr instance for a color input element
+ * @param {string} elementId - The ID of the element to attach Pickr to
+ * @param {string} defaultColor - The default color value
+ * @param {Function} onChange - Callback function when color changes
+ * @returns {Object} Pickr instance
+ */
+function createPickrInstance(elementId, defaultColor, onChange) {
+    const element = document.querySelector(`#${elementId}`);
+    if (!element) {
+        console.warn(`Element with ID ${elementId} not found`);
+        return null;
+    }
+
+    const pickr = Pickr.create({
+        el: element,
+        theme: 'nano',
+        default: defaultColor || '#ffffff',
+        
+        swatches: [
+            'rgba(244, 67, 54, 1)',
+            'rgba(233, 30, 99, 1)',
+            'rgba(156, 39, 176, 1)',
+            'rgba(103, 58, 183, 1)',
+            'rgba(63, 81, 181, 1)',
+            'rgba(33, 150, 243, 1)',
+            'rgba(3, 169, 244, 1)',
+            'rgba(0, 188, 212, 1)',
+            'rgba(0, 150, 136, 1)',
+            'rgba(76, 175, 80, 1)',
+            'rgba(139, 195, 74, 1)',
+            'rgba(205, 220, 57, 1)',
+            'rgba(255, 235, 59, 1)',
+            'rgba(255, 193, 7, 1)'
+        ],
+
+        components: {
+            // Main components
+            preview: true,
+            opacity: true,
+            hue: true,
+
+            // Input / output Options
+            interaction: {
+                hex: true,
+                rgba: true,
+                hsla: false,
+                hsva: false,
+                cmyk: false,
+                input: true,
+                clear: false,
+                save: true
+            }
+        }
+    });
+
+    // Set up event handlers
+    pickr.on('change', (color, source, instance) => {
+        const colorString = color.toHEXA().toString();
+        if (onChange) {
+            onChange(colorString);
+        }
+    });
+
+    pickr.on('save', (color, instance) => {
+        if (color) {
+            const colorString = color.toHEXA().toString();
+            if (onChange) {
+                onChange(colorString);
+            }
+        }
+        instance.hide();
+    });
+
+    pickr.on('swatchselect', (color, instance) => {
+        if (color) {
+            const colorString = color.toHEXA().toString();
+            if (onChange) {
+                onChange(colorString);
+            }
+        }
+    });
+
+    return pickr;
+}
+
+/**
+ * Initializes all Pickr instances for color inputs
+ * @param {HTMLElement} form - The form element containing color inputs
+ */
+function initializePickrInstances(form) {
+    const colorInputConfigs = [
+        {
+            id: 'name-color-input',
+            key: 'char_name_color_input',
+            handler: (value) => {
+                setCharacterAliasColor(value);
+                temp_form_data.character_name_color = value;
+            }
+        },
+        {
+            id: 'character-narration-color-input',
+            key: 'char_narr_input',
+            handler: (value) => {
+                setCharacterNarrationColor(value);
+                temp_form_data.character_narration_color = value;
+            }
+        },
+        {
+            id: 'character-chat-color-input',
+            key: 'char_chat_input',
+            handler: (value) => {
+                setCharacterDialogueColor(value, character_dialogue);
+                temp_form_data.character_message_color = value;
+            }
+        },
+        {
+            id: 'user-chat-color-input',
+            key: 'user_chat_input',
+            handler: (value) => {
+                setUserChatColor(value, user_message);
+                temp_form_data.user_message_color = value;
+            }
+        },
+        {
+            id: 'character-chat-bg-color-input',
+            key: 'char_chat_bg_input',
+            handler: (value) => {
+                setCharacterChatBgColor(value, character_chat_bubble_background);
+                temp_form_data.character_message_box_color = value;
+            }
+        },
+        {
+            id: 'user-chat-bg-color-input',
+            key: 'user_chat_bg_input',
+            handler: (value) => {
+                setUserChatBgColor(value, user_chat_bubble_background);
+                temp_form_data.user_message_box_color = value;
+            }
+        },
+        {
+            id: 'user-name-color-input',
+            key: 'user_name_color_input',
+            handler: (value) => {
+                setUserNameColor(value);
+                temp_form_data.username_color = value;
+            }
+        }
+    ];
+
+    // Create Pickr instances
+    colorInputConfigs.forEach(config => {
+        const pickr = createPickrInstance(config.id, '#ffffff', config.handler);
+        if (pickr) {
+            pickrInstances[config.key] = pickr;
+        }
+    });
+}
+
+/**
+ * Sets a Pickr instance color without triggering events
+ * @param {string} key - The key of the Pickr instance
+ * @param {string} color - The color to set
+ */
+function setPickrColor(key, color) {
+    if (pickrInstances[key] && color) {
+        try {
+            // Set color silently without triggering events
+            pickrInstances[key].setColor(color, false);
+        } catch (error) {
+            console.warn(`Failed to set Pickr color for ${key}:`, error);
+        }
+    }
+}
+
+/**
+ * Destroys all Pickr instances (cleanup)
+ */
+function destroyPickrInstances() {
+    Object.values(pickrInstances).forEach(pickr => {
+        if (pickr && pickr.destroy) {
+            pickr.destroy();
+        }
+    });
+    pickrInstances = {};
+}
+
+/**
+ * Helper function to set form element value
+ * @param {HTMLElement} element - The form element
+ * @param {*} value - The value to set
+ * @param {boolean} suppressEvents - Whether to suppress events
+ */
+function setFormElementValue(element, value, suppressEvents = false) {
+    if (!element || value === null || value === undefined) return;
+    
+    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT') {
+        element.value = value;
+    }
+}
+
 // Reset character settings to default
 function resetCharacterSettings(formElements, character_name_title, setCharacterAlias, setCharacterAliasColor, notification_resource_name, temp_form_data, character_image_container_resource_name, showInjectionNotification) {
     const originalCharacterName = document.querySelector(character_name_title)?.textContent?.trim() || '';
@@ -16,8 +219,8 @@ function resetCharacterSettings(formElements, character_name_title, setCharacter
         setCharacterAlias(originalCharacterName);
         delete temp_form_data.character_alias;
     }
-    if (formElements.char_name_color_input) {
-        formElements.char_name_color_input.value = '#ffffff';
+    if (pickrInstances.char_name_color_input) {
+        setPickrColor('char_name_color_input', '#ffffff');
         setCharacterAliasColor('#ffffff');
         delete temp_form_data.character_name_color;
     }
@@ -108,50 +311,50 @@ function validateNoUniversalColorsFunction() {
  */
 function resetColorSettings(formElements, updateTempData = true) {
     // Character name color
-    if (formElements.char_name_color_input) {
-        formElements.char_name_color_input.value = DEFAULT_COLORS.characterName;
+    if (pickrInstances.char_name_color_input) {
+        setPickrColor('char_name_color_input', DEFAULT_COLORS.characterName);
         setCharacterAliasColor(DEFAULT_COLORS.characterName);
         if (updateTempData) temp_form_data.character_name_color = DEFAULT_COLORS.characterName;
     }
     
     // Character narration color
-    if (formElements.char_narr_input) {
-        formElements.char_narr_input.value = DEFAULT_COLORS.characterNarration;
+    if (pickrInstances.char_narr_input) {
+        setPickrColor('char_narr_input', DEFAULT_COLORS.characterNarration);
         setCharacterNarrationColor(DEFAULT_COLORS.characterNarration);
         if (updateTempData) temp_form_data.character_narration_color = DEFAULT_COLORS.characterNarration;
     }
     
     // User name color
-    if (formElements.user_name_color_input) {
-        formElements.user_name_color_input.value = DEFAULT_COLORS.userNameColor;
+    if (pickrInstances.user_name_color_input) {
+        setPickrColor('user_name_color_input', DEFAULT_COLORS.userNameColor);
         setUserNameColor(DEFAULT_COLORS.userNameColor);
         if (updateTempData) temp_form_data.username_color = DEFAULT_COLORS.userNameColor;
     }
     
     // Character chat color
-    if (formElements.char_chat_input) {
-        formElements.char_chat_input.value = DEFAULT_COLORS.characterChat;
+    if (pickrInstances.char_chat_input) {
+        setPickrColor('char_chat_input', DEFAULT_COLORS.characterChat);
         setCharacterDialogueColor(DEFAULT_COLORS.characterChat, character_dialogue);
         if (updateTempData) temp_form_data.character_message_color = DEFAULT_COLORS.characterChat;
     }
     
     // User chat color
-    if (formElements.user_chat_input) {
-        formElements.user_chat_input.value = DEFAULT_COLORS.userChat;
+    if (pickrInstances.user_chat_input) {
+        setPickrColor('user_chat_input', DEFAULT_COLORS.userChat);
         setUserChatColor(DEFAULT_COLORS.userChat, user_message);
         if (updateTempData) temp_form_data.user_message_color = DEFAULT_COLORS.userChat;
     }
     
     // Character chat background color
-    if (formElements.char_chat_bg_input) {
-        formElements.char_chat_bg_input.value = DEFAULT_COLORS.characterChatBg;
+    if (pickrInstances.char_chat_bg_input) {
+        setPickrColor('char_chat_bg_input', DEFAULT_COLORS.characterChatBg);
         setCharacterChatBgColor(DEFAULT_COLORS.characterChatBg, character_chat_bubble_background);
         if (updateTempData) temp_form_data.character_message_box_color = DEFAULT_COLORS.characterChatBg;
     }
     
     // User chat background color
-    if (formElements.user_chat_bg_input) {
-        formElements.user_chat_bg_input.value = DEFAULT_COLORS.userChatBg;
+    if (pickrInstances.user_chat_bg_input) {
+        setPickrColor('user_chat_bg_input', DEFAULT_COLORS.userChatBg);
         setUserChatBgColor(DEFAULT_COLORS.userChatBg, user_chat_bubble_background);
         if (updateTempData) temp_form_data.user_message_box_color = DEFAULT_COLORS.userChatBg;
     }
@@ -170,6 +373,9 @@ function resetColorSettings(formElements, updateTempData = true) {
 function initializeCloseButtonEventHandler(form, formBody) {
     console.log(formBody);
     const closeModal = () => {
+        // Clean up Pickr instances before closing
+        destroyPickrInstances();
+        
         document.documentElement.style.overflow = '';
         document.documentElement.style.paddingRight = '';
         let main = document.querySelector('body > main');
@@ -187,10 +393,14 @@ function initializeCloseButtonEventHandler(form, formBody) {
 
     let mouseDownOutside = false;
     const handleMouseDown = (event) => {
-        mouseDownOutside = !formBody.contains(event.target);
+        // Check if the click is on a Pickr color picker element
+        const isPickrElement = event.target.closest('.pcr-app, .pcr-button, .pcr-palette, .pcr-slider, .pcr-interaction, .pcr-picker');
+        mouseDownOutside = !formBody.contains(event.target) && !isPickrElement;
     };
     const handleMouseUp = (event) => {
-        if (mouseDownOutside && !formBody.contains(event.target)) {
+        // Check if the click is on a Pickr color picker element
+        const isPickrElement = event.target.closest('.pcr-app, .pcr-button, .pcr-palette, .pcr-slider, .pcr-interaction, .pcr-picker');
+        if (mouseDownOutside && !formBody.contains(event.target) && !isPickrElement) {
             closeModal();
         }
         mouseDownOutside = false;
@@ -212,21 +422,17 @@ function initializeCharacterSettingsEventHandlers(form) {
     // Helper to update temp_form_data
     const updateTemp = (key, value) => temp_form_data[key] = value;
 
+    // Initialize Pickr instances first
+    initializePickrInstances(form);
+
     // Cache all form elements once with error handling
     const formElements = {};
     const elementSelectors = {
         char_name_input: '#name-input',
-        char_name_color_input: '#name-color-input',
         char_image_url_input: '#character-image-url-input',
         char_image_file_input: '#character-image-file-input',
         bg_url_input: '#bg-url-input',
         bg_file_input: '#bg-file-input',
-        char_narr_input: '#character-narration-color-input',
-        char_chat_input: '#character-chat-color-input',
-        user_chat_input: '#user-chat-color-input',
-        char_chat_bg_input: '#character-chat-bg-color-input',
-        user_chat_bg_input: '#user-chat-bg-color-input',
-        user_name_color_input: '#user-name-color-input',
         saveButton: '#save-button',
         applyToAllCheckbox: '#apply-to-all-checkbox',
         charThemeCheckbox: '#character-theme-checkbox',
@@ -243,7 +449,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         formElements[key] = form.querySelector(selector);
     });
 
-    // Optimized event handler mapping
+    // Optimized event handler mapping (removed color inputs since they're handled by Pickr)
     const inputHandlers = {
         'name-input': (value) => {
             setCharacterAlias(value);
@@ -266,10 +472,6 @@ function initializeCharacterSettingsEventHandlers(form) {
     };
 
     const changeHandlers = {
-        'name-color-input': (value) => {
-            setCharacterAliasColor(value);
-            updateTemp('character_name_color', value);
-        },
         'character-image-file-input': async (target) => {
             if (target.files[0]) {
                 const imageBase64 = await fileToBase64(target.files[0]);
@@ -283,30 +485,6 @@ function initializeCharacterSettingsEventHandlers(form) {
                 setBackgroundImage(bgBase64);
                 updateTemp('background_image', bgBase64);
             }
-        },
-        'character-narration-color-input': (value) => {
-            setCharacterNarrationColor(value);
-            updateTemp('character_narration_color', value);
-        },
-        'character-chat-color-input': (value) => {
-            setCharacterDialogueColor(value, character_dialogue);
-            updateTemp('character_message_color', value);
-        },
-        'user-chat-color-input': (value) => {
-            setUserChatColor(value, user_message);
-            updateTemp('user_message_color', value);
-        },
-        'character-chat-bg-color-input': (value) => {
-            setCharacterChatBgColor(value, character_chat_bubble_background);
-            updateTemp('character_message_box_color', value);
-        },
-        'user-chat-bg-color-input': (value) => {
-            setUserChatBgColor(value, user_chat_bubble_background);
-            updateTemp('user_message_box_color', value);
-        },
-        'user-name-color-input': (value) => {
-            setUserNameColor(value);
-            updateTemp('username_color', value);
         },
         'character-theme-checkbox': (target) => {
             // This checkbox determines save target: checked = character theme, unchecked = chat-specific
@@ -404,7 +582,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             // Unchecked: allow universal colors, restore from DB if available
             const universalRecord = await getCharacterRecord('Universal');
             if (universalRecord) {
-                // Comprehensive color field mapping
+                // Comprehensive color field mapping with Pickr instances
                 const colorFieldMappings = {
                     char_name_color_input: ['character_name_color', setCharacterAliasColor],
                     char_narr_input: ['character_narration_color', setCharacterNarrationColor],
@@ -415,13 +593,12 @@ function initializeCharacterSettingsEventHandlers(form) {
                     user_chat_bg_input: ['user_message_box_color', (color) => setUserChatBgColor(color, user_chat_bubble_background)]
                 };
 
-                // Apply universal colors to form and UI
-                for (const [inputKey, [dbKey, setterFunction]] of Object.entries(colorFieldMappings)) {
-                    const element = formElements[inputKey];
+                // Apply universal colors to Pickr instances and UI
+                for (const [pickrKey, [dbKey, setterFunction]] of Object.entries(colorFieldMappings)) {
                     const universalValue = universalRecord[dbKey];
                     
-                    if (element && universalValue) {
-                        element.value = universalValue;
+                    if (universalValue) {
+                        setPickrColor(pickrKey, universalValue);
                         setterFunction(universalValue);
                         updateTemp(dbKey, universalValue);
                     }
@@ -670,18 +847,12 @@ async function loadHierarchicalData(CHAR_ID) {
  * @returns {Promise<void>}
  */
 async function populateCustomizerPopup(form, CHAR_ID) {
-    // Single DOM query with better caching
+    // Single DOM query with better caching (only for non-color inputs)
     const formElements = {
         nameInput: form.querySelector('#name-input'),
-        nameColorInput: form.querySelector('#name-color-input'),
-        narrationColorInput: form.querySelector('#character-narration-color-input'),
-        chatColorInput: form.querySelector('#character-chat-color-input'),
-        chatBgColorInput: form.querySelector('#character-chat-bg-color-input'),
-        userNameColorInput: form.querySelector('#user-name-color-input'),
-        userChatColorInput: form.querySelector('#user-chat-color-input'),
-        userChatBgColorInput: form.querySelector('#user-chat-bg-color-input'),
         characterImageUrlInput: form.querySelector('#character-image-url-input'),
-        bgUrlInput: form.querySelector('#bg-url-input')
+        bgUrlInput: form.querySelector('#bg-url-input'),
+        noUniversalCheckbox: form.querySelector('#no-universal-checkbox')
     };
 
     // Check for meaningful data in temp_form_data (user has made changes)
@@ -721,25 +892,41 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         });
     }
 
-    // Batch form population for better performance
+    // Batch form population for better performance (non-color inputs)
     const formMapping = [
-        [formElements.nameInput, formData.character_alias, 'character_alias'],
-        [formElements.nameColorInput, formData.character_name_color, 'character_name_color'],
-        [formElements.narrationColorInput, formData.character_narration_color, 'character_narration_color'],
-        [formElements.chatColorInput, formData.character_message_color, 'character_message_color'],
-        [formElements.chatBgColorInput, formData.character_message_box_color, 'character_message_box_color'],
-        [formElements.userNameColorInput, formData.username_color, 'username_color'],
-        [formElements.userChatColorInput, formData.user_message_color, 'user_message_color'],
-        [formElements.userChatBgColorInput, formData.user_message_box_color, 'user_message_box_color']
+        [formElements.nameInput, formData.character_alias, 'character_alias']
+    ];
+
+    // Color input mapping for Pickr instances
+    const colorMapping = [
+        ['char_name_color_input', formData.character_name_color, 'character_name_color'],
+        ['char_narr_input', formData.character_narration_color, 'character_narration_color'],
+        ['char_chat_input', formData.character_message_color, 'character_message_color'],
+        ['char_chat_bg_input', formData.character_message_box_color, 'character_message_box_color'],
+        ['user_name_color_input', formData.username_color, 'username_color'],
+        ['user_chat_input', formData.user_message_color, 'user_message_color'],
+        ['user_chat_bg_input', formData.user_message_box_color, 'user_message_box_color']
     ];
 
     // Batch DOM updates to minimize reflows
     requestAnimationFrame(() => {
+        // Handle regular form inputs
         formMapping.forEach(([element, value, tempKey]) => {
             setFormElementValue(element, value, true); // Suppress events during batch
             // Also update temp_form_data to ensure values are tracked for saving
             if (value !== null && value !== undefined && !hasModifications) {
                 temp_form_data[tempKey] = value;
+            }
+        });
+
+        // Handle Pickr color inputs
+        colorMapping.forEach(([pickrKey, value, tempKey]) => {
+            if (value) {
+                setPickrColor(pickrKey, value);
+                // Also update temp_form_data to ensure values are tracked for saving
+                if (!hasModifications) {
+                    temp_form_data[tempKey] = value;
+                }
             }
         });
 
@@ -763,7 +950,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
             temp_form_data.character_image = charImageUrl;
         }
 
-        // Fire events after all DOM updates
+        // Fire events after all DOM updates (only for non-color inputs)
         formMapping.forEach(([element, value]) => {
             if (element && value !== null && value !== undefined) {
                 const eventType = element.type === 'color' ? 'change' : 'input';
@@ -880,7 +1067,7 @@ function handleFormAdded(mutationsList, observer) {
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(formRoot);
 
-                // Load data from DB
+                // Load data from DB (this will populate Pickr instances as well)
                 loadCustomizerData(formRoot);
 
                 // Disconnect the observer once the form is found

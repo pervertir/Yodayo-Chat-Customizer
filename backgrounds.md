@@ -10,7 +10,8 @@ This document contains links to all the default background images available in t
 
 ## Available Backgrounds
 
-### Basic Backgrounds
+
+## Basic Backgrounds
 
 #### Transparent
 ![Transparent Background](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/__transparent.png)
@@ -30,7 +31,7 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/_white.jpg
 ```
 
-### Bedroom Scenes
+## Bedroom Scenes
 
 #### Clean Bedroom
 ![Clean Bedroom](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_clean.jpg)
@@ -56,7 +57,25 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_tatami.jpg
 ```
 
-### Cityscapes
+#### Modern Bedroom
+![Modern Bedroom](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/modern_bedroom.jpg)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/modern_bedroom.jpg
+```
+
+#### Girl's Real Bedroom
+![Girl's Real Bedroom](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/girl_bedroom_real.jpg)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/girl_bedroom_real.jpg
+```
+
+#### Anime Living Room
+![Anime Living Room](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/anime_living%20room.png)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/anime_living%20room.png
+```
+
+## Cityscapes
 
 #### Medieval Market
 ![Medieval Market](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/cityscape_medieval_market.jpg)
@@ -76,16 +95,13 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/cityscape_postapoc.jpg
 ```
 
-### Fantasy & Nature
-
-#### Forest Treehouse with Fireworks
-![Forest Treehouse](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/forest_treehouse_fireworks_air_baloons_by_kallmeflocc.jpg)
+#### Konoha Wallpaper
+![Konoha Wallpaper](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/konoha_wallpaper.jpg)
 ```
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/forest_treehouse_fireworks_air_baloons_by_kallmeflocc.jpg
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/konoha_wallpaper.jpg
 ```
-- **Credit:** by kallmeflocc
 
-### Japanese Settings
+## Japanese Settings
 
 #### Classroom
 ![Japan Classroom](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_classroom.jpg)
@@ -111,7 +127,28 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_university.jpg
 ```
 
-### Landscapes
+#### Indian Blue
+![Indian Blue](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/indian_blue.png)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/indian_blue.png
+```
+
+#### Indian Warm
+![Indian Warm](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/indian_warm.png)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/indian_warm.png
+```
+
+## Fantasy & Nature
+
+#### Forest Treehouse with Fireworks
+![Forest Treehouse](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/forest_treehouse_fireworks_air_baloons_by_kallmeflocc.jpg)
+```
+https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/forest_treehouse_fireworks_air_baloons_by_kallmeflocc.jpg
+```
+- **Credit:** by kallmeflocc
+
+## Landscapes
 
 #### Autumn Great Tree
 ![Autumn Great Tree](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_autumn_great_tree.jpg)
@@ -149,7 +186,7 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_winter_lake_house.jpg
 ```
 
-### Special Locations
+## Special Locations
 
 #### Royal
 ![Royal](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/royal.jpg)
@@ -162,37 +199,6 @@ https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universa
 ```
 https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/tavern_day.jpg
 ```
-
-## Quick Copy Links
-
-For easy copying, here are all the raw URLs in a simple list format:
-
-```
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/__transparent.png
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/_black.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/_white.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_clean.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_cyberpunk.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_red.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/bedroom_tatami.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/cityscape_medieval_market.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/cityscape_medieval_night.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/cityscape_postapoc.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/forest_treehouse_fireworks_air_baloons_by_kallmeflocc.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_classroom.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_classroom_side.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_path_cherry_blossom.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/japan_university.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_autumn_great_tree.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_beach_day.png
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_beach_night.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_mountain_lake.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_postapoc.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/landscape_winter_lake_house.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/royal.jpg
-https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/tavern_day.jpg
-```
-
 ## Notes
 
 - All images are hosted on the `feat/universal-bg` branch of the repository

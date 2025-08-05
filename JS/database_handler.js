@@ -206,3 +206,125 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
         getRequest.onerror = function(e) { reject(e.target.error); };
     });
 }
+
+/**
+ * Exports all character records from the database as JSON
+ * @returns {Promise<string>} JSON string containing all records
+ */
+async function exportDatabase() {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getAllRequest = objectStore.getAll();
+        
+        getAllRequest.onsuccess = function(event) {
+            const allRecords = event.target.result;
+            const exportData = {
+                version: DB_VERSION,
+                timestamp: new Date().toISOString(),
+                records: allRecords
+            };
+            resolve(JSON.stringify(exportData, null, 2));
+        };
+        
+        getAllRequest.onerror = function(e) {
+            reject(e.target.error);
+        };
+    });
+}
+
+/**
+ * Imports character records from JSON data into the database
+ * @param {string} jsonData - JSON string containing the records to import
+ * @param {boolean} [clearExisting=false] - Whether to clear existing data before import
+ * @returns {Promise<{imported: number, errors: string[]}>}
+ */
+async function importDatabase(jsonData, clearExisting = false) {
+    if (!db) await openDatabase();
+    
+    return new Promise((resolve, reject) => {
+        let importData;
+        try {
+            importData = JSON.parse(jsonData);
+        } catch (e) {
+            reject(new Error('Invalid JSON data: ' + e.message));
+            return;
+        }
+        
+        if (!importData.records || !Array.isArray(importData.records)) {
+            reject(new Error('Invalid import format: missing or invalid records array'));
+            return;
+        }
+        
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        
+        let imported = 0;
+        const errors = [];
+        
+        const processImport = () => {
+            const promises = [];
+            
+            // Clear existing data if requested
+            if (clearExisting) {
+                promises.push(new Promise((clearResolve, clearReject) => {
+                    const clearRequest = objectStore.clear();
+                    clearRequest.onsuccess = () => clearResolve();
+                    clearRequest.onerror = (e) => clearReject(e.target.error);
+                }));
+            }
+            
+            Promise.all(promises).then(() => {
+                // Import each record
+                importData.records.forEach((record, index) => {
+                    if (!record.CHAR_ID) {
+                        errors.push(`Record ${index}: Missing CHAR_ID`);
+                        return;
+                    }
+                    
+                    try {
+                        const putRequest = objectStore.put(record);
+                        putRequest.onsuccess = () => imported++;
+                        putRequest.onerror = (e) => {
+                            errors.push(`Record ${record.CHAR_ID}: ${e.target.error.message}`);
+                        };
+                    } catch (e) {
+                        errors.push(`Record ${record.CHAR_ID}: ${e.message}`);
+                    }
+                });
+                
+                transaction.oncomplete = () => {
+                    resolve({ imported, errors });
+                };
+                
+                transaction.onerror = (e) => {
+                    reject(e.target.error);
+                };
+            }).catch(reject);
+        };
+        
+        processImport();
+    });
+}
+
+/**
+ * Gets all character records from the database
+ * @returns {Promise<CharacterRecord[]>}
+ */
+async function getAllCharacterRecords() {
+    if (!db) await openDatabase();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        const getAllRequest = objectStore.getAll();
+        
+        getAllRequest.onsuccess = function(event) {
+            resolve(event.target.result || []);
+        };
+        
+        getAllRequest.onerror = function(e) {
+            reject(e.target.error);
+        };
+    });
+}

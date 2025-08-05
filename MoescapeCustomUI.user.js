@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.6.2
+// @version      1.6.3
 
 // @namespace    MOESCAPE
 
@@ -36,8 +36,10 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/ui_setters.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/chat_customizer_popup.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_viewer_popup.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/png_chunk_handler.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/moescape_chat_customizer.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
+// @require      https://cdn.jsdelivr.net/npm/png-chunk-text/index.js
 
 // @icon         https://moescape.ai/assets/images/logo.svg
 

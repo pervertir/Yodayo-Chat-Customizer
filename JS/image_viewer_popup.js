@@ -85,6 +85,13 @@ function closeImageViewerModal() {
  * @returns {void}
  */
 function handleClickOutside(event) {
+    // Don't close if clicking on settings modal
+    /** @type {HTMLElement|null} */
+    const settingsModal = document.getElementById('settings-modal');
+    if (settingsModal && !settingsModal.classList.contains('hidden')) {
+        return; // Settings modal is open, don't close main modal
+    }
+    
     if (ImageViewerCache.currentViewer && !ImageViewerCache.currentViewer.contains(/** @type {Node} */(event.target))) {
         closeImageViewerModal();
     }
@@ -107,6 +114,9 @@ function initializeImageViewerCloseButtonEventHandler(imageViewer) {
 
     // Use event delegation for better performance
     closeButton.addEventListener('click', closeImageViewerModal);
+
+    // Initialize settings modal handlers
+    initializeSettingsModal(imageViewer);
 
     // Add click outside handler with a small delay to avoid immediate closing
     setTimeout(() => {
@@ -603,3 +613,239 @@ function injectCardFlipCSS() {
 
 // Inject CSS for card flip animations
 injectCardFlipCSS();
+
+/**
+ * Initialize settings modal event handlers
+ * @param {HTMLElement} imageViewer
+ * @returns {void}
+ */
+function initializeSettingsModal(imageViewer) {
+    /** @type {HTMLElement|null} */
+    const settingsButton = imageViewer.querySelector('#settings-button');
+    /** @type {HTMLElement|null} */
+    const settingsModal = imageViewer.querySelector('#settings-modal');
+    /** @type {HTMLElement|null} */
+    const settingsModalClose = imageViewer.querySelector('#settings-modal-close');
+    /** @type {HTMLElement|null} */
+    const exportJsonBtn = imageViewer.querySelector('#export-json-btn');
+    /** @type {HTMLElement|null} */
+    const exportPngBtn = imageViewer.querySelector('#export-png-btn');
+    /** @type {HTMLElement|null} */
+    const importFileInput = imageViewer.querySelector('#import-file-input');
+    /** @type {HTMLElement|null} */
+    const importUrlInput = imageViewer.querySelector('#import-url-input');
+    /** @type {HTMLElement|null} */
+    const importUrlBtn = imageViewer.querySelector('#import-url-btn');
+    /** @type {HTMLElement|null} */
+    const clearExistingCheckbox = imageViewer.querySelector('#clear-existing-data');
+
+    if (!settingsButton || !settingsModal) {
+        console.error('Settings modal elements not found');
+        return;
+    }
+
+    // Open settings modal
+    settingsButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        settingsModal.classList.remove('hidden');
+    });
+
+    // Close settings modal
+    const closeModal = () => {
+        settingsModal.classList.add('hidden');
+        clearImportStatus();
+    };
+
+    if (settingsModalClose) {
+        settingsModalClose.addEventListener('click', closeModal);
+    }
+
+    // Close modal when clicking outside
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            closeModal();
+        }
+    });
+
+    // Export as JSON
+    if (exportJsonBtn) {
+        exportJsonBtn.addEventListener('click', async () => {
+            try {
+                showImportStatus('Exporting database...', 'info');
+                const dbData = await exportDatabase();
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+                const filename = `yodayo-chat-customizer-export-${timestamp}.json`;
+                downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
+                showImportStatus('Database exported successfully!', 'success');
+                setTimeout(clearImportStatus, 3000);
+            } catch (error) {
+                console.error('Export failed:', error);
+                showImportStatus('Export failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Export as PNG
+    if (exportPngBtn) {
+        exportPngBtn.addEventListener('click', async () => {
+            try {
+                showImportStatus('Exporting database to PNG...', 'info');
+                await exportDatabaseToPNG();
+                showImportStatus('Database exported to PNG successfully!', 'success');
+                setTimeout(clearImportStatus, 3000);
+            } catch (error) {
+                console.error('PNG export failed:', error);
+                showImportStatus('PNG export failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Import from file
+    if (importFileInput) {
+        importFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
+                showImportStatus('Importing database...', 'info');
+                
+                let result;
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    const jsonData = await file.text();
+                    result = await importDatabase(jsonData, clearExisting);
+                } else if (file.type === 'image/png' || file.name.endsWith('.png')) {
+                    result = await importDatabaseFromPNG(file, clearExisting);
+                } else {
+                    throw new Error('Unsupported file type. Please use JSON or PNG files.');
+                }
+
+                let message = `Import successful! ${result.imported} records imported.`;
+                if (result.errors.length > 0) {
+                    message += ` ${result.errors.length} errors occurred.`;
+                }
+                showImportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
+                
+                // Refresh the cards display
+                setTimeout(() => {
+                    renderAllCardsInDiv();
+                    clearImportStatus();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Import failed:', error);
+                showImportStatus('Import failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Import from URL
+    if (importUrlBtn && importUrlInput) {
+        const importFromUrl = async () => {
+            const url = importUrlInput.value.trim();
+            if (!url) {
+                showImportStatus('Please enter a valid URL', 'error');
+                return;
+            }
+
+            try {
+                const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
+                showImportStatus('Downloading and importing...', 'info');
+
+                // Fetch the image
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                if (!blob.type.startsWith('image/')) {
+                    throw new Error('URL does not point to an image file');
+                }
+
+                const result = await importDatabaseFromPNG(new File([blob], 'import.png', { type: blob.type }), clearExisting);
+                
+                let message = `Import successful! ${result.imported} records imported.`;
+                if (result.errors.length > 0) {
+                    message += ` ${result.errors.length} errors occurred.`;
+                }
+                showImportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
+                
+                // Clear the URL input
+                importUrlInput.value = '';
+                
+                // Refresh the cards display
+                setTimeout(() => {
+                    renderAllCardsInDiv();
+                    clearImportStatus();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('URL import failed:', error);
+                showImportStatus('Import failed: ' + error.message, 'error');
+            }
+        };
+
+        importUrlBtn.addEventListener('click', importFromUrl);
+        
+        // Allow Enter key to trigger import
+        importUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                importFromUrl();
+            }
+        });
+    }
+}
+
+/**
+ * Show import/export status message
+ * @param {string} message
+ * @param {'info'|'success'|'warning'|'error'} type
+ */
+function showImportStatus(message, type) {
+    /** @type {HTMLElement|null} */
+    const statusDiv = document.getElementById('import-status');
+    /** @type {HTMLElement|null} */
+    const messageDiv = document.getElementById('import-message');
+    
+    if (!statusDiv || !messageDiv) return;
+
+    const colors = {
+        info: 'bg-blue-100 border-blue-400 text-blue-700',
+        success: 'bg-green-100 border-green-400 text-green-700',
+        warning: 'bg-yellow-100 border-yellow-400 text-yellow-700',
+        error: 'bg-red-100 border-red-400 text-red-700'
+    };
+
+    statusDiv.className = `rounded-md p-3 text-sm border-l-4 ${colors[type] || colors.info}`;
+    messageDiv.textContent = message;
+    statusDiv.classList.remove('hidden');
+}
+
+/**
+ * Clear import/export status message
+ */
+function clearImportStatus() {
+    /** @type {HTMLElement|null} */
+    const statusDiv = document.getElementById('import-status');
+    if (statusDiv) {
+        statusDiv.classList.add('hidden');
+    }
+}
+
+/**
+ * Download a blob as a file (utility function for JSON export)
+ * @param {Blob} blob - The blob to download
+ * @param {string} filename - The filename for the download
+ */
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}

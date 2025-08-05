@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.6.15
+// @version      1.6.16
 
 // @namespace    MOESCAPE
 
@@ -28,7 +28,6 @@
 // @resource     image_viewer_popup          https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/image_viewer_popup.html
 // @resource     injection_notification      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/notification.html
 // @resource     card_layout                 https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/card_layout.html
-// @resource     ycc_default_image           https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/resources/ycc.png
 // @resource     pickr_css                https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css
 
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/constants.js
@@ -37,12 +36,7 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/ui_setters.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/chat_customizer_popup.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/image_viewer_popup.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/png_chunk_handler.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/moescape_chat_customizer.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/crc32.min.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/png_chunks_extract.min.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/decode.min.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/encode.min.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
 // @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
 

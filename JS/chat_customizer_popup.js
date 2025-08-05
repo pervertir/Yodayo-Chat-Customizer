@@ -1145,13 +1145,7 @@ function setupImportExportHandlers() {
     /** @type {HTMLElement|null} */
     const exportJsonBtn = document.getElementById('export-json-btn');
     /** @type {HTMLElement|null} */
-    const exportPngBtn = document.getElementById('export-png-btn');
-    /** @type {HTMLElement|null} */
     const importFileInput = document.getElementById('import-file-input');
-    /** @type {HTMLElement|null} */
-    const importUrlInput = document.getElementById('import-url-input');
-    /** @type {HTMLElement|null} */
-    const importUrlBtn = document.getElementById('import-url-btn');
     /** @type {HTMLElement|null} */
     const clearExistingCheckbox = document.getElementById('clear-existing-data');
 
@@ -1173,24 +1167,6 @@ function setupImportExportHandlers() {
         });
     }
 
-    // Export as PNG
-    if (exportPngBtn) {
-        exportPngBtn.addEventListener('click', async () => {
-            try {
-                showImportExportStatus('Exporting database to PNG with YCC logo...', 'info');
-                
-                // Always use default YCC logo as base image
-                await exportDatabaseToPNG();
-                
-                showImportExportStatus('Database exported to PNG successfully!', 'success');
-                setTimeout(clearImportExportStatus, 3000);
-            } catch (error) {
-                console.error('PNG export failed:', error);
-                showImportExportStatus('PNG export failed: ' + error.message, 'error');
-            }
-        });
-    }
-
     // Import from file
     if (importFileInput) {
         importFileInput.addEventListener('change', async (e) => {
@@ -1201,86 +1177,27 @@ function setupImportExportHandlers() {
                 const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
                 showImportExportStatus('Importing database...', 'info');
                 
-                let result;
                 if (file.type === 'application/json' || file.name.endsWith('.json')) {
                     const jsonData = await file.text();
-                    result = await importDatabase(jsonData, clearExisting);
-                } else if (file.type === 'image/png' || file.name.endsWith('.png')) {
-                    result = await importDatabaseFromPNG(file, clearExisting);
+                    const result = await importDatabase(jsonData, clearExisting);
+                    
+                    let message = `Import successful! ${result.imported} records imported.`;
+                    if (result.errors.length > 0) {
+                        message += ` ${result.errors.length} errors occurred.`;
+                    }
+                    showImportExportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
+                    
+                    // Refresh the current UI to show imported data
+                    setTimeout(() => {
+                        location.reload(); // Simple way to refresh all data
+                    }, 2000);
                 } else {
-                    throw new Error('Unsupported file type. Please use JSON or PNG files.');
+                    throw new Error('Unsupported file type. Please use JSON files.');
                 }
-
-                let message = `Import successful! ${result.imported} records imported.`;
-                if (result.errors.length > 0) {
-                    message += ` ${result.errors.length} errors occurred.`;
-                }
-                showImportExportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
-                
-                // Refresh the current UI to show imported data
-                setTimeout(() => {
-                    location.reload(); // Simple way to refresh all data
-                }, 2000);
                 
             } catch (error) {
                 console.error('Import failed:', error);
                 showImportExportStatus('Import failed: ' + error.message, 'error');
-            }
-        });
-    }
-
-    // Import from URL
-    if (importUrlBtn && importUrlInput) {
-        const importFromUrl = async () => {
-            const url = importUrlInput.value.trim();
-            if (!url) {
-                showImportExportStatus('Please enter a valid URL', 'error');
-                return;
-            }
-
-            try {
-                const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
-                showImportExportStatus('Downloading and importing...', 'info');
-
-                // Fetch the image
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
-                }
-
-                const blob = await response.blob();
-                if (!blob.type.startsWith('image/')) {
-                    throw new Error('URL does not point to an image file');
-                }
-
-                const result = await importDatabaseFromPNG(new File([blob], 'import.png', { type: blob.type }), clearExisting);
-                
-                let message = `Import successful! ${result.imported} records imported.`;
-                if (result.errors.length > 0) {
-                    message += ` ${result.errors.length} errors occurred.`;
-                }
-                showImportExportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
-                
-                // Clear the URL input
-                importUrlInput.value = '';
-                
-                // Refresh the current UI to show imported data
-                setTimeout(() => {
-                    location.reload(); // Simple way to refresh all data
-                }, 2000);
-                
-            } catch (error) {
-                console.error('URL import failed:', error);
-                showImportExportStatus('Import failed: ' + error.message, 'error');
-            }
-        };
-
-        importUrlBtn.addEventListener('click', importFromUrl);
-        
-        // Allow Enter key to trigger import
-        importUrlInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                importFromUrl();
             }
         });
     }

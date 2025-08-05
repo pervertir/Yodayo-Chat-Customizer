@@ -10,20 +10,23 @@ const DB_CHUNK_DESCRIPTION = 'Yodayo Chat Customizer Database Export';
 /**
  * Creates properly formatted text chunk data for PNG tEXt chunks
  * @param {string} keyword - The keyword (max 79 characters)
- * @param {string} text - The text data to embed
+ * @param {string} text - The text data to embed (will be base64 encoded)
  * @returns {Uint8Array} Formatted text chunk data
  */
 function createTextChunk(keyword, text) {
     // Ensure keyword doesn't exceed PNG limit
-    if (keyword.length > 79) {
-        throw new Error(`Keyword "${keyword}" is longer than the 79-character limit imposed by the PNG specification`);
+    if (keyword.length >= 80) {
+        throw new Error(`Keyword "${keyword}" is longer than the 80-character limit imposed by the PNG specification`);
     }
+    
+    // Base64 encode the text data to ensure only Latin-1 characters
+    const base64Text = btoa(unescape(encodeURIComponent(text)));
     
     // Convert strings to UTF-8 bytes
     const keywordBytes = new TextEncoder().encode(keyword);
-    const textBytes = new TextEncoder().encode(text);
+    const textBytes = new TextEncoder().encode(base64Text);
     
-    // Create the chunk data: keyword + null separator + text
+    // Create the chunk data: keyword + null separator + base64-encoded text
     const chunkData = new Uint8Array(keywordBytes.length + 1 + textBytes.length);
     
     // Copy keyword
@@ -32,7 +35,7 @@ function createTextChunk(keyword, text) {
     // Add null separator
     chunkData[keywordBytes.length] = 0;
     
-    // Copy text data
+    // Copy base64-encoded text data
     chunkData.set(textBytes, keywordBytes.length + 1);
     
     return chunkData;
@@ -126,7 +129,7 @@ async function extractDataFromPNG(pngFile) {
 }
 
 /**
- * Parses text chunk data to extractChunks keyword and text
+ * Parses text chunk data to extract keyword and text
  * @param {Uint8Array} chunkData - Raw text chunk data
  * @returns {Object|null} Object with keyword and text properties, or null if invalid
  */
@@ -145,14 +148,22 @@ function parseTextChunk(chunkData) {
             return null; // No separator found
         }
         
-        // Extract keyword and text
+        // Extract keyword and base64-encoded text
         const keywordBytes = chunkData.slice(0, separatorIndex);
         const textBytes = chunkData.slice(separatorIndex + 1);
         
         const keyword = new TextDecoder().decode(keywordBytes);
-        const text = new TextDecoder().decode(textBytes);
+        const base64Text = new TextDecoder().decode(textBytes);
         
-        return { keyword, text };
+        // Decode the base64 text back to original
+        try {
+            const decodedText = decodeURIComponent(escape(atob(base64Text)));
+            return { keyword, text: decodedText };
+        } catch (base64Error) {
+            console.warn('Failed to decode base64 text, trying as plain text:', base64Error);
+            // Fallback: try as plain text for backward compatibility
+            return { keyword, text: base64Text };
+        }
     } catch (error) {
         console.warn('Failed to parse text chunk:', error);
         return null;

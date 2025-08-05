@@ -329,21 +329,45 @@
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-medium text-primaryText">Export Database</span>
                   </div>
-                  <div class="flex gap-2">
+                  <div class="flex gap-2 mb-3">
                     <button
                       type="button"
                       id="export-json-btn"
-                      class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                      class="flex-1 border border-blue-600 hover:border-blue-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
                     >
                       Export JSON
                     </button>
                     <button
                       type="button"
                       id="export-png-btn"
-                      class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                      class="flex-1 border border-green-600 hover:border-green-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
                     >
                       Export PNG
                     </button>
+                  </div>
+                  
+                  <!-- PNG Export Options -->
+                  <div class="border border-separator/20 rounded p-3 bg-tertiaryBg/50">
+                    <label class="block text-xs font-medium text-secondaryText mb-2">
+                      Custom Base Image for PNG Export (Optional)
+                    </label>
+                    <div class="space-y-2">
+                      <input
+                        type="file"
+                        id="export-base-image-input"
+                        accept="image/png,image/jpeg,image/jpg"
+                        class="block w-full text-xs text-primaryText file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-600 file:text-white hover:file:bg-green-700 file:cursor-pointer bg-tertiaryBg rounded"
+                      />
+                      <input
+                        type="url"
+                        id="export-base-image-url"
+                        placeholder="Or enter image URL"
+                        class="w-full bg-tertiaryBg border border-separator/20 rounded px-2 py-1 text-primaryText placeholder-secondaryText focus:outline-none focus:border-primaryBtn text-xs"
+                      />
+                    </div>
+                    <p class="text-xs text-secondaryText mt-1">
+                      If no image is provided, the default YCC logo will be used.
+                    </p>
                   </div>
                 </div>
 

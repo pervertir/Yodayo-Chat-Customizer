@@ -23,12 +23,12 @@ async function embedDataIntoPNG(pngFile, dbData) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract existing chunks
-                const chunks = pngChunkText.encode(uint8Array);
+                const chunks = encode(uint8Array);
                 
                 // Create new text chunk with our data
                 const textChunk = {
                     name: 'tEXt',
-                    data: pngChunkText.createTextChunk(DB_CHUNK_KEYWORD, dbData)
+                    data: createTextChunk(DB_CHUNK_KEYWORD, dbData)
                 };
                 
                 // Add our chunk before the IEND chunk
@@ -40,7 +40,7 @@ async function embedDataIntoPNG(pngFile, dbData) {
                 }
                 
                 // Encode back to PNG
-                const modifiedPNG = pngChunkText.encode(chunks);
+                const modifiedPNG = encode(chunks);
                 const blob = new Blob([modifiedPNG], { type: 'image/png' });
                 
                 resolve(blob);
@@ -69,13 +69,13 @@ async function extractDataFromPNG(pngFile) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract chunks
-                const chunks = pngChunkText.decode(uint8Array);
+                const chunks = decode(uint8Array);
                 
                 // Find our text chunk
                 const textChunks = chunks.filter(chunk => chunk.name === 'tEXt');
                 
                 for (const chunk of textChunks) {
-                    const textData = pngChunkText.decodeTextChunk(chunk.data);
+                    const textData = decode(chunk.data);
                     if (textData.keyword === DB_CHUNK_KEYWORD) {
                         resolve(textData.text);
                         return;
@@ -97,7 +97,7 @@ async function extractDataFromPNG(pngFile) {
 /**
  * Creates a PNG file with embedded database data from a base PNG
  * @param {string} dbData - JSON string of the database export
- * @param {File|Blob} [basePNG] - Optional base PNG image, creates minimal PNG if not provided
+ * @param {File|Blob} [basePNG] - Optional base PNG image, uses default YCC image if not provided
  * @returns {Promise<Blob>} PNG file with embedded data
  */
 async function createPNGWithData(dbData, basePNG = null) {
@@ -105,9 +105,31 @@ async function createPNGWithData(dbData, basePNG = null) {
         return embedDataIntoPNG(basePNG, dbData);
     }
     
-    // Create a minimal 1x1 transparent PNG if no base image provided
-    const minimalPNG = createMinimalPNG();
-    return embedDataIntoPNG(minimalPNG, dbData);
+    // Use default YCC image instead of minimal PNG
+    const defaultImage = await getDefaultBaseImage();
+    return embedDataIntoPNG(defaultImage, dbData);
+}
+
+/**
+ * Gets the default YCC base image from resources
+ * @returns {Promise<Blob>} Default YCC image blob
+ */
+async function getDefaultBaseImage() {
+    try {
+        // Get the resource URL and fetch the image
+        const imageUrl = GM_getResourceURL(ycc_default_image_resource_name);
+        const response = await fetch(imageUrl);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch default image');
+        }
+        
+        return await response.blob();
+    } catch (error) {
+        console.warn('Failed to load default YCC image, falling back to minimal PNG:', error);
+        // Fallback to minimal PNG if default image fails
+        return createMinimalPNG();
+    }
 }
 
 /**
@@ -191,7 +213,7 @@ function downloadBlob(blob, filename) {
 /**
  * High-level function to export database to PNG
  * @param {string} [filename] - Optional filename, defaults to timestamp-based name
- * @param {File|Blob} [basePNG] - Optional base PNG image
+ * @param {File|Blob} [basePNG] - Optional base PNG image, uses default YCC image if not provided
  * @returns {Promise<void>}
  */
 async function exportDatabaseToPNG(filename = null, basePNG = null) {
@@ -199,7 +221,7 @@ async function exportDatabaseToPNG(filename = null, basePNG = null) {
         // Get database export
         const dbData = await exportDatabase();
         
-        // Create PNG with embedded data
+        // Create PNG with embedded data (will use default YCC image if basePNG is null)
         const pngWithData = await createPNGWithData(dbData, basePNG);
         
         // Generate filename if not provided

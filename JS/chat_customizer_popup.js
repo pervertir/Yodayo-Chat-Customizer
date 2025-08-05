@@ -614,6 +614,9 @@ function initializeCharacterSettingsEventHandlers(form) {
             }
         }
     });
+
+    // Import/Export event handlers
+    setupImportExportHandlers();
 }
 
 /**
@@ -1132,6 +1135,124 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
  */
 function clearTempFormData() {
     temp_form_data = {};
+}
+
+/**
+ * Sets up import/export event handlers
+ * @returns {void}
+ */
+function setupImportExportHandlers() {
+    /** @type {HTMLElement|null} */
+    const exportJsonBtn = document.getElementById('export-json-btn');
+    /** @type {HTMLElement|null} */
+    const importFileInput = document.getElementById('import-file-input');
+    /** @type {HTMLElement|null} */
+    const clearExistingCheckbox = document.getElementById('clear-existing-data');
+
+    // Export as JSON
+    if (exportJsonBtn) {
+        exportJsonBtn.addEventListener('click', async () => {
+            try {
+                showImportExportStatus('Exporting database...', 'info');
+                const dbData = await exportDatabase();
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+                const filename = `YCC-export-${timestamp}.json`;
+                downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
+                showImportExportStatus('Database exported successfully!', 'success');
+                setTimeout(clearImportExportStatus, 3000);
+            } catch (error) {
+                console.error('Export failed:', error);
+                showImportExportStatus('Export failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Import from file
+    if (importFileInput) {
+        importFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
+                showImportExportStatus('Importing database...', 'info');
+                
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    const jsonData = await file.text();
+                    const result = await importDatabase(jsonData, clearExisting);
+                    
+                    let message = `Import successful! ${result.imported} records imported.`;
+                    if (result.errors.length > 0) {
+                        message += ` ${result.errors.length} errors occurred.`;
+                    }
+                    showImportExportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
+                    
+                    // Refresh the current UI to show imported data
+                    setTimeout(() => {
+                        location.reload(); // Simple way to refresh all data
+                    }, 2000);
+                } else {
+                    throw new Error('Unsupported file type. Please use JSON files.');
+                }
+                
+            } catch (error) {
+                console.error('Import failed:', error);
+                showImportExportStatus('Import failed: ' + error.message, 'error');
+            }
+        });
+    }
+}
+
+/**
+ * Show import/export status message
+ * @param {string} message
+ * @param {'info'|'success'|'warning'|'error'} type
+ */
+function showImportExportStatus(message, type) {
+    /** @type {HTMLElement|null} */
+    const statusDiv = document.getElementById('import-status');
+    /** @type {HTMLElement|null} */
+    const messageDiv = document.getElementById('import-message');
+    
+    if (!statusDiv || !messageDiv) return;
+
+    const colors = {
+        info: 'bg-blue-100 border-blue-400 text-blue-700',
+        success: 'bg-green-100 border-green-400 text-green-700',
+        warning: 'bg-yellow-100 border-yellow-400 text-yellow-700',
+        error: 'bg-red-100 border-red-400 text-red-700'
+    };
+
+    statusDiv.className = `rounded-md p-2 text-xs border-l-4 ${colors[type] || colors.info}`;
+    messageDiv.textContent = message;
+    statusDiv.classList.remove('hidden');
+}
+
+/**
+ * Clear import/export status message
+ */
+function clearImportExportStatus() {
+    /** @type {HTMLElement|null} */
+    const statusDiv = document.getElementById('import-status');
+    if (statusDiv) {
+        statusDiv.classList.add('hidden');
+    }
+}
+
+/**
+ * Download a blob as a file (utility function for JSON export)
+ * @param {Blob} blob - The blob to download
+ * @param {string} filename - The filename for the download
+ */
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 // --- INITIALIZATION AND OBSERVERS ---

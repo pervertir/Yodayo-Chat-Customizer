@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.6.2
+// @version      1.7.1
 
 // @namespace    MOESCAPE
 
@@ -38,6 +38,9 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_viewer_popup.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/moescape_chat_customizer.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
+// @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
+
+
 
 // @icon         https://moescape.ai/assets/images/logo.svg
 

@@ -54,7 +54,7 @@ async function embedDataIntoPNG(pngFile, dbData) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract existing chunks
-                const chunks = extract(uint8Array);
+                const chunks = extractChunks(uint8Array);
                 
                 // Create new text chunk with our data
                 const textChunk = {
@@ -100,7 +100,7 @@ async function extractDataFromPNG(pngFile) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract chunks
-                const chunks = extract(uint8Array);
+                const chunks = extractChunks(uint8Array);
                 
                 // Find our text chunk
                 const textChunks = chunks.filter(chunk => chunk.name === 'tEXt');
@@ -116,7 +116,7 @@ async function extractDataFromPNG(pngFile) {
                 // No matching chunk found
                 resolve(null);
             } catch (error) {
-                reject(new Error('Failed to extract data from PNG: ' + error.message));
+                reject(new Error('Failed to extractChunks data from PNG: ' + error.message));
             }
         };
         
@@ -126,7 +126,7 @@ async function extractDataFromPNG(pngFile) {
 }
 
 /**
- * Parses text chunk data to extract keyword and text
+ * Parses text chunk data to extractChunks keyword and text
  * @param {Uint8Array} chunkData - Raw text chunk data
  * @returns {Object|null} Object with keyword and text properties, or null if invalid
  */
@@ -176,15 +176,31 @@ async function createPNGWithData(dbData) {
  */
 async function getDefaultBaseImage() {
     try {
-        // Get the resource URL and fetch the image
+        // Get the resource URL and fetch the image using GM_xmlhttpRequest
         const imageUrl = GM_getResourceURL(ycc_default_image_resource_name);
-        const response = await fetch(imageUrl);
         
-        if (!response.ok) {
-            throw new Error('Failed to fetch default image');
-        }
-        
-        return await response.blob();
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: imageUrl,
+                responseType: 'blob',
+                timeout: 10000,
+                onload: function (response) {
+                    if (response.status === 200) {
+                        resolve(response.response);
+                    } else {
+                        reject(new Error(`Failed to fetch default image. Status: ${response.status}`));
+                    }
+                },
+                onerror: function (error) {
+                    console.error('Error fetching default YCC image:', error);
+                    reject(new Error('Network error while fetching default image'));
+                },
+                ontimeout: function() {
+                    reject(new Error('Timeout while fetching default image'));
+                }
+            });
+        });
     } catch (error) {
         console.warn('Failed to load default YCC image, falling back to minimal PNG:', error);
         // Fallback to minimal PNG if default image fails

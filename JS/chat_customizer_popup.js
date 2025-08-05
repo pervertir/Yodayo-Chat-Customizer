@@ -1177,38 +1177,10 @@ function setupImportExportHandlers() {
     if (exportPngBtn) {
         exportPngBtn.addEventListener('click', async () => {
             try {
-                showImportExportStatus('Exporting database to PNG...', 'info');
+                showImportExportStatus('Exporting database to PNG with YCC logo...', 'info');
                 
-                // Get base image from file input or URL
-                let baseImage = null;
-                const baseImageFileInput = document.getElementById('export-base-image-input');
-                const baseImageUrlInput = document.getElementById('export-base-image-url');
-                
-                if (baseImageFileInput && baseImageFileInput.files[0]) {
-                    baseImage = baseImageFileInput.files[0];
-                } else if (baseImageUrlInput && baseImageUrlInput.value.trim()) {
-                    try {
-                        const response = await fetch(baseImageUrlInput.value.trim());
-                        if (response.ok) {
-                            const blob = await response.blob();
-                            baseImage = new File([blob], 'base-image.png', { type: blob.type });
-                        }
-                    } catch (urlError) {
-                        console.warn('Failed to fetch base image from URL:', urlError);
-                        showImportExportStatus('Warning: Could not fetch base image from URL, using default', 'warning');
-                    }
-                }
-                
-                // Export with or without base image
-                if (baseImage) {
-                    const dbData = await exportDatabase();
-                    const pngWithData = await createPNGWithData(dbData, baseImage);
-                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-                    const filename = `yodayo-chat-customizer-export-${timestamp}.png`;
-                    downloadBlob(pngWithData, filename);
-                } else {
-                    await exportDatabaseToPNG();
-                }
+                // Always use default YCC logo as base image
+                await exportDatabaseToPNG();
                 
                 showImportExportStatus('Database exported to PNG successfully!', 'success');
                 setTimeout(clearImportExportStatus, 3000);

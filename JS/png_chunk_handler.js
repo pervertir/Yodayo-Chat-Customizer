@@ -8,6 +8,37 @@ const DB_CHUNK_KEYWORD = 'MYChatCustomizer';
 const DB_CHUNK_DESCRIPTION = 'Yodayo Chat Customizer Database Export';
 
 /**
+ * Creates properly formatted text chunk data for PNG tEXt chunks
+ * @param {string} keyword - The keyword (max 79 characters)
+ * @param {string} text - The text data to embed
+ * @returns {Uint8Array} Formatted text chunk data
+ */
+function createTextChunk(keyword, text) {
+    // Ensure keyword doesn't exceed PNG limit
+    if (keyword.length > 79) {
+        throw new Error(`Keyword "${keyword}" is longer than the 79-character limit imposed by the PNG specification`);
+    }
+    
+    // Convert strings to UTF-8 bytes
+    const keywordBytes = new TextEncoder().encode(keyword);
+    const textBytes = new TextEncoder().encode(text);
+    
+    // Create the chunk data: keyword + null separator + text
+    const chunkData = new Uint8Array(keywordBytes.length + 1 + textBytes.length);
+    
+    // Copy keyword
+    chunkData.set(keywordBytes, 0);
+    
+    // Add null separator
+    chunkData[keywordBytes.length] = 0;
+    
+    // Copy text data
+    chunkData.set(textBytes, keywordBytes.length + 1);
+    
+    return chunkData;
+}
+
+/**
  * Embeds database export data into a PNG image
  * @param {File|Blob} pngFile - The PNG image file
  * @param {string} dbData - JSON string of the database export
@@ -23,7 +54,7 @@ async function embedDataIntoPNG(pngFile, dbData) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract existing chunks
-                const chunks = encode(uint8Array);
+                const chunks = extract(uint8Array);
                 
                 // Create new text chunk with our data
                 const textChunk = {
@@ -69,15 +100,15 @@ async function extractDataFromPNG(pngFile) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 // Extract chunks
-                const chunks = decode(uint8Array);
+                const chunks = extract(uint8Array);
                 
                 // Find our text chunk
                 const textChunks = chunks.filter(chunk => chunk.name === 'tEXt');
                 
                 for (const chunk of textChunks) {
-                    const textData = decode(chunk.data);
-                    if (textData.keyword === DB_CHUNK_KEYWORD) {
-                        resolve(textData.text);
+                    const parsedData = parseTextChunk(chunk.data);
+                    if (parsedData && parsedData.keyword === DB_CHUNK_KEYWORD) {
+                        resolve(parsedData.text);
                         return;
                     }
                 }
@@ -95,17 +126,46 @@ async function extractDataFromPNG(pngFile) {
 }
 
 /**
- * Creates a PNG file with embedded database data from a base PNG
+ * Parses text chunk data to extract keyword and text
+ * @param {Uint8Array} chunkData - Raw text chunk data
+ * @returns {Object|null} Object with keyword and text properties, or null if invalid
+ */
+function parseTextChunk(chunkData) {
+    try {
+        // Find the null separator
+        let separatorIndex = -1;
+        for (let i = 0; i < chunkData.length; i++) {
+            if (chunkData[i] === 0) {
+                separatorIndex = i;
+                break;
+            }
+        }
+        
+        if (separatorIndex === -1) {
+            return null; // No separator found
+        }
+        
+        // Extract keyword and text
+        const keywordBytes = chunkData.slice(0, separatorIndex);
+        const textBytes = chunkData.slice(separatorIndex + 1);
+        
+        const keyword = new TextDecoder().decode(keywordBytes);
+        const text = new TextDecoder().decode(textBytes);
+        
+        return { keyword, text };
+    } catch (error) {
+        console.warn('Failed to parse text chunk:', error);
+        return null;
+    }
+}
+
+/**
+ * Creates a PNG file with embedded database data using the default YCC logo
  * @param {string} dbData - JSON string of the database export
- * @param {File|Blob} [basePNG] - Optional base PNG image, uses default YCC image if not provided
  * @returns {Promise<Blob>} PNG file with embedded data
  */
-async function createPNGWithData(dbData, basePNG = null) {
-    if (basePNG) {
-        return embedDataIntoPNG(basePNG, dbData);
-    }
-    
-    // Use default YCC image instead of minimal PNG
+async function createPNGWithData(dbData) {
+    // Always use default YCC image
     const defaultImage = await getDefaultBaseImage();
     return embedDataIntoPNG(defaultImage, dbData);
 }
@@ -211,18 +271,17 @@ function downloadBlob(blob, filename) {
 }
 
 /**
- * High-level function to export database to PNG
+ * High-level function to export database to PNG with YCC logo
  * @param {string} [filename] - Optional filename, defaults to timestamp-based name
- * @param {File|Blob} [basePNG] - Optional base PNG image, uses default YCC image if not provided
  * @returns {Promise<void>}
  */
-async function exportDatabaseToPNG(filename = null, basePNG = null) {
+async function exportDatabaseToPNG(filename = null) {
     try {
         // Get database export
         const dbData = await exportDatabase();
         
-        // Create PNG with embedded data (will use default YCC image if basePNG is null)
-        const pngWithData = await createPNGWithData(dbData, basePNG);
+        // Create PNG with embedded data using default YCC image
+        const pngWithData = await createPNGWithData(dbData);
         
         // Generate filename if not provided
         if (!filename) {

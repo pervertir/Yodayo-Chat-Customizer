@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.6.19
+// @version      1.6.3
 
 // @namespace    MOESCAPE
 
@@ -8,8 +8,8 @@
 // @author       Pervertir
 
 // @homepageURL  https://github.com/pervertir/Yodayo-Chat-Customizer
-// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/MoescapeCustomUI.user.js
-// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/MoescapeCustomUI.user.js
+// @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/MoescapeCustomUI.user.js
+// @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/MoescapeCustomUI.user.js
 // @supportURL   https://github.com/pervertir/Yodayo-Chat-Customizer/issues
 
 // @match        https://moescape.ai/*
@@ -21,22 +21,22 @@
 // @grant        GM_getResourceText
 // @grant        GM_xmlhttpRequest
 
-// @resource     chat_customizer_body        https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/chat_customizer_popup.html
-// @resource     customize_chat_button       https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/customize_chat_button.html
-// @resource     db_connect                  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/db_connect_button.html
-// @resource     character_image_container   https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/character_image_container.html
-// @resource     image_viewer_popup          https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/image_viewer_popup.html
-// @resource     injection_notification      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/notification.html
-// @resource     card_layout                 https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/HTML/card_layout.html
+// @resource     chat_customizer_body        https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/chat_customizer_popup.html
+// @resource     customize_chat_button       https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/customize_chat_button.html
+// @resource     db_connect                  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/db_connect_button.html
+// @resource     character_image_container   https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/character_image_container.html
+// @resource     image_viewer_popup          https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/image_viewer_popup.html
+// @resource     injection_notification      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/notification.html
+// @resource     card_layout                 https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/card_layout.html
 // @resource     pickr_css                https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css
 
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/constants.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/database_handler.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/utils.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/ui_setters.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/chat_customizer_popup.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/image_viewer_popup.js
-// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/moescape_chat_customizer.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/constants.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/database_handler.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/utils.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/ui_setters.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/chat_customizer_popup.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_viewer_popup.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/moescape_chat_customizer.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
 // @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
 

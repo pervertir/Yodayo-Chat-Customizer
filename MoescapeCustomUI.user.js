@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.6.9
+// @version      1.6.10
 
 // @namespace    MOESCAPE
 
@@ -43,6 +43,7 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/decode.min.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/feat/export-db/JS/encode.min.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
+// @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
 
 
 

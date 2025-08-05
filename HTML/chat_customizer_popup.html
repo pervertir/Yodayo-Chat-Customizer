@@ -319,6 +319,98 @@
               </div>
 
               <hr class="my-6 border-t border-separator/10" />
+              
+              <!-- Import/Export Section -->
+              <div class="mb-6">
+                <p class="font-bold text-primaryText pb-3">Import/Export Settings</p>
+                
+                <!-- Export Section -->
+                <div class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-primaryText">Export Database</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      id="export-json-btn"
+                      class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                    >
+                      Export JSON
+                    </button>
+                    <button
+                      type="button"
+                      id="export-png-btn"
+                      class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                    >
+                      Export PNG
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Import Section -->
+                <div class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-primaryText">Import Database</span>
+                  </div>
+                  
+                  <!-- File Upload -->
+                  <div class="mb-3">
+                    <label class="block text-xs font-medium text-secondaryText mb-1">
+                      Upload File (JSON or PNG)
+                    </label>
+                    <input
+                      type="file"
+                      id="import-file-input"
+                      accept=".json,.png"
+                      class="block w-full text-xs text-primaryText file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer bg-tertiaryBg rounded"
+                    />
+                  </div>
+
+                  <!-- URL Input -->
+                  <div class="mb-3">
+                    <label class="block text-xs font-medium text-secondaryText mb-1">
+                      Or Enter Image URL
+                    </label>
+                    <div class="flex gap-2">
+                      <input
+                        type="url"
+                        id="import-url-input"
+                        placeholder="https://example.com/image.png"
+                        class="flex-1 bg-tertiaryBg border border-separator/20 rounded px-2 py-2 text-primaryText placeholder-secondaryText focus:outline-none focus:border-primaryBtn text-sm"
+                      />
+                      <button
+                        type="button"
+                        id="import-url-btn"
+                        class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        Import
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Import Options -->
+                  <div class="mb-3">
+                    <label class="flex items-center text-xs text-primaryText">
+                      <input
+                        type="checkbox"
+                        id="clear-existing-data"
+                        class="mr-2 rounded"
+                      />
+                      Clear existing data before import
+                    </label>
+                  </div>
+
+                  <!-- Import Status -->
+                  <div id="import-status" class="hidden">
+                    <div class="rounded-md p-2 text-xs">
+                      <div id="import-message"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-6 border-t border-separator/10" />
+              
               <button
                 type="button"
                 id="save-button"

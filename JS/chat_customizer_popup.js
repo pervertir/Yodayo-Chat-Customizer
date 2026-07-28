@@ -1138,36 +1138,78 @@ function clearTempFormData() {
 }
 
 /**
+ * Update database statistics display
+ * @returns {Promise<void>}
+ */
+async function updateDatabaseStats() {
+    try {
+        const stats = getStatistics?.();
+        const statsEl = document.getElementById('db-stats');
+        if (statsEl && stats) {
+            statsEl.textContent = `${stats.characters} chars • ${stats.databaseSize}`;
+        }
+    } catch (error) {
+        console.debug('Stats update error:', error);
+    }
+}
+
+/**
  * Sets up import/export event handlers
  * @returns {void}
  */
 function setupImportExportHandlers() {
     /** @type {HTMLElement|null} */
-    const exportJsonBtn = document.getElementById('export-json-btn');
+    const exportSqliteBtn = document.getElementById('export-sqlite-btn');
+    /** @type {HTMLElement|null} */
+    const exportJsonBackupBtn = document.getElementById('export-json-backup-btn');
     /** @type {HTMLElement|null} */
     const importFileInput = document.getElementById('import-file-input');
     /** @type {HTMLElement|null} */
     const clearExistingCheckbox = document.getElementById('clear-existing-data');
 
-    // Export as JSON
-    if (exportJsonBtn) {
-        exportJsonBtn.addEventListener('click', async () => {
+    // Update stats on load
+    updateDatabaseStats();
+
+    // Export as SQLite
+    if (exportSqliteBtn) {
+        exportSqliteBtn.addEventListener('click', async () => {
             try {
-                showImportExportStatus('Exporting database...', 'info');
-                const dbData = await exportDatabase();
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-                const filename = `YCC-export-${timestamp}.json`;
-                downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
-                showImportExportStatus('Database exported successfully!', 'success');
+                showImportExportStatus('Exporting SQLite database...', 'info');
+                await downloadSqliteDatabase('YCC-database-' + new Date().toISOString().split('T')[0] + '.sqlite');
+                showImportExportStatus('SQLite database exported successfully!', 'success');
                 setTimeout(clearImportExportStatus, 3000);
             } catch (error) {
-                console.error('Export failed:', error);
+                console.error('SQLite export failed:', error);
                 showImportExportStatus('Export failed: ' + error.message, 'error');
             }
         });
     }
 
-    // Import from file
+    // Export as JSON backup
+    if (exportJsonBackupBtn) {
+        exportJsonBackupBtn.addEventListener('click', async () => {
+            try {
+                showImportExportStatus('Creating JSON backup...', 'info');
+                const backup = await exportIndexedDBBackup?.();
+                if (!backup) {
+                    // Fallback: export from IndexedDB
+                    const dbData = await exportDatabase?.();
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+                    const filename = `YCC-backup-${timestamp}.json`;
+                    downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
+                } else {
+                    downloadIndexedDBBackup(backup, 'YCC-backup-' + new Date().toISOString().split('T')[0] + '.json');
+                }
+                showImportExportStatus('JSON backup exported successfully!', 'success');
+                setTimeout(clearImportExportStatus, 3000);
+            } catch (error) {
+                console.error('JSON backup failed:', error);
+                showImportExportStatus('Backup failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Import from file - Support both SQLite and JSON
     if (importFileInput) {
         importFileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1177,9 +1219,39 @@ function setupImportExportHandlers() {
                 const clearExisting = clearExistingCheckbox ? clearExistingCheckbox.checked : false;
                 showImportExportStatus('Importing database...', 'info');
                 
-                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                if (file.name.endsWith('.sqlite') || file.name.endsWith('.db')) {
+                    // Import SQLite file
+                    const buffer = await file.arrayBuffer();
+                    await importSqliteDatabase(new Uint8Array(buffer));
+                    
+                    const stats = getStatistics?.();
+                    let message = 'SQLite database imported successfully!';
+                    if (stats) {
+                        message += ` ${stats.characters} characters loaded.`;
+                    }
+                    showImportExportStatus(message, 'success');
+                    
+                    // Update stats
+                    updateDatabaseStats();
+                    
+                    // Refresh the current UI to show imported data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                    
+                } else if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    // Import JSON file - try both formats
                     const jsonData = await file.text();
-                    const result = await importDatabase(jsonData, clearExisting);
+                    
+                    // Try importing as IndexedDB format first
+                    let result;
+                    try {
+                        result = await importDatabase?.(jsonData, clearExisting);
+                    } catch (e) {
+                        console.debug('IndexedDB import failed, trying SQLite format:', e);
+                        // If that fails, the JSON might be in a different format
+                        throw new Error('JSON file format not recognized. Please use YCC export files.');
+                    }
                     
                     let message = `Import successful! ${result.imported} records imported.`;
                     if (result.errors.length > 0) {
@@ -1187,12 +1259,15 @@ function setupImportExportHandlers() {
                     }
                     showImportExportStatus(message, result.errors.length > 0 ? 'warning' : 'success');
                     
+                    // Update stats
+                    updateDatabaseStats();
+                    
                     // Refresh the current UI to show imported data
                     setTimeout(() => {
-                        location.reload(); // Simple way to refresh all data
+                        location.reload();
                     }, 2000);
                 } else {
-                    throw new Error('Unsupported file type. Please use JSON files.');
+                    throw new Error('Unsupported file type. Please use .sqlite or .json files.');
                 }
                 
             } catch (error) {

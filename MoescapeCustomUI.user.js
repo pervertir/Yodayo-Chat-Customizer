@@ -36,6 +36,7 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/database_handler.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/sqlite_database_handler.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/sqlite_migration_phase3.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/sqlite_auto_migration.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/utils.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/ui_setters.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/chat_customizer_popup.js
@@ -50,3 +51,31 @@
 
 // @connect      *
 // ==/UserScript==
+
+/**
+ * ================================================================
+ * PHASE 4: AUTO-MIGRATION & DATABASE INITIALIZATION
+ * ================================================================
+ * On first userscript install/update:
+ * - Check if IndexedDB data exists but SQLite doesn't
+ * - Automatically migrate to SQLite silently in background
+ * - Set migration flag to prevent re-running
+ * - User gets notified in console when complete
+ */
+
+// Initialize auto-migration after DOM is ready
+(async function() {
+    try {
+        // Give dependencies time to load
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Initialize auto-migration if needed
+        if (typeof initializeAutoMigration === 'function') {
+            await initializeAutoMigration();
+        } else {
+            console.warn('[Yodayo Chat Customizer] Auto-migration module not loaded');
+        }
+    } catch (error) {
+        console.error('[Yodayo Chat Customizer] Auto-migration initialization error:', error);
+    }
+})();

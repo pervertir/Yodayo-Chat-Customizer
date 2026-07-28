@@ -322,20 +322,41 @@
               
               <!-- Import/Export Section -->
               <div class="mb-6">
-                <p class="font-bold text-primaryText pb-3">Import/Export Settings</p>
+                <div class="flex items-center justify-between mb-3">
+                  <p class="font-bold text-primaryText">Database Management</p>
+                  <span id="db-stats" class="text-xs text-secondaryText"></span>
+                </div>
+                
+                <!-- Database Type Display -->
+                <div class="mb-4 p-2 bg-tertiaryBg rounded text-xs text-primaryText">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                    Using <strong>SQLite Database</strong> for efficient storage
+                  </div>
+                </div>
                 
                 <!-- Export Section -->
                 <div class="mb-4">
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-medium text-primaryText">Export Database</span>
                   </div>
-                  <button
-                    type="button"
-                    id="export-json-btn"
-                    class="w-full border border-blue-600 hover:border-blue-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
-                  >
-                    Export JSON
-                  </button>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      id="export-sqlite-btn"
+                      class="flex-1 border border-green-600 hover:border-green-700 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                    >
+                      Export SQLite
+                    </button>
+                    <button
+                      type="button"
+                      id="export-json-backup-btn"
+                      class="flex-1 border border-gray-500 hover:border-gray-600 text-white font-medium py-2 px-3 rounded text-sm transition-colors"
+                      title="Backup as JSON for compatibility"
+                    >
+                      Backup JSON
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Import Section -->
@@ -347,13 +368,13 @@
                   <!-- File Upload -->
                   <div class="mb-3">
                     <label class="block text-xs font-medium text-secondaryText mb-1">
-                      Upload JSON File
+                      Upload SQLite or JSON File
                     </label>
                     <input
                       type="file"
                       id="import-file-input"
-                      accept=".json"
-                      class="block w-full text-xs text-primaryText file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-400/40 file:text-white hover:file:bg-blue-400/80 file:cursor-pointer bg-tertiaryBg rounded"
+                      accept=".sqlite,.json,.db"
+                      class="block w-full text-xs text-primaryText file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-400/40 file:text-white hover:file:bg-green-400/80 file:cursor-pointer bg-tertiaryBg rounded"
                     />
                   </div>
 

@@ -1,0 +1,48 @@
+#!/bin/bash
+# Commit-msg hook: Adjust version bump based on commit message
+# - [major] in commit message -> Major version bump (X.0.0)
+# - [minor] in commit message -> Minor version bump (0.Y.0)
+# - Default -> Patch version bump (0.0.Z)
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG_FULL=$(cat "$COMMIT_MSG_FILE")
+COMMIT_TITLE=$(head -n 1 "$COMMIT_MSG_FILE")
+USERSCRIPT="MoescapeCustomUI.user.js"
+
+if [ ! -f "$USERSCRIPT" ]; then
+    exit 0
+fi
+
+# Extract current version (after pre-commit may have modified it)
+CURRENT_VERSION=$(grep -m1 "@version" "$USERSCRIPT" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+if [ -z "$CURRENT_VERSION" ]; then
+    exit 0
+fi
+
+# Parse version components
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+# Check for version bump keywords in commit TITLE only (not body)
+if echo "$COMMIT_TITLE" | grep -qi "\[major\]"; then
+    # Major version bump
+    NEW_MAJOR=$((MAJOR + 1))
+    NEW_VERSION="$NEW_MAJOR.0.0"
+    BUMP_TYPE="MAJOR"
+elif echo "$COMMIT_TITLE" | grep -qi "\[minor\]"; then
+    # Minor version bump
+    NEW_MINOR=$((MINOR + 1))
+    NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+    BUMP_TYPE="MINOR"
+else
+    # Patch bump was already done by pre-commit, no change needed
+    exit 0
+fi
+
+# Update the version in userscript
+sed -i '' -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" "$USERSCRIPT"
+
+# Stage the updated file
+git add "$USERSCRIPT"
+
+echo "✓ Version adjusted: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"

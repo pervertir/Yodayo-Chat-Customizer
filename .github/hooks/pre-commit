@@ -1,0 +1,35 @@
+#!/bin/bash
+# Pre-commit hook: Automatically bump patch version
+# This runs before each commit and increments the patch version
+
+set -e
+
+USERSCRIPT="MoescapeCustomUI.user.js"
+
+if [ ! -f "$USERSCRIPT" ]; then
+    echo "Warning: $USERSCRIPT not found, skipping version bump"
+    exit 0
+fi
+
+# Extract current version
+CURRENT_VERSION=$(grep -m1 "@version" "$USERSCRIPT" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+if [ -z "$CURRENT_VERSION" ]; then
+    echo "Error: Could not find version in $USERSCRIPT"
+    exit 1
+fi
+
+# Parse version components
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+# Start with patch bump (default)
+NEW_PATCH=$((PATCH + 1))
+NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+
+# Update the version in userscript
+sed -i '' -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" "$USERSCRIPT"
+
+# Stage the updated file
+git add "$USERSCRIPT"
+
+echo "✓ Version bumped: $CURRENT_VERSION -> $NEW_VERSION"

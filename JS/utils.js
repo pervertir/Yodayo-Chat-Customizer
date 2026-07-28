@@ -37,8 +37,14 @@ function waitForElement(selector, callback) {
     });
 }
 
-// Function to convert URL to Base64 with improved error handling
-async function urlToBase64(url) {
+/**
+ * Converts a URL to WebP base64 with fallback to PNG
+ * Fetches the image from the URL and converts it using Canvas
+ * @param {string} url - The image URL to fetch and convert
+ * @param {number} quality - Quality level (0-1, default from WEBP_CONFIG)
+ * @returns {Promise<string>} Base64 string without data URL prefix
+ */
+async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
     if (!url || typeof url !== 'string') {
         throw new Error('Invalid URL provided');
     }
@@ -48,14 +54,38 @@ async function urlToBase64(url) {
             method: 'GET',
             url: url,
             responseType: 'blob',
-            timeout: 10000, // Add timeout for better UX
-            onload: function (response) {
+            timeout: 10000,
+            onload: async function (response) {
                 if (response.status === 200) {
-                    const blob = response.response;
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = () => reject(new Error('Failed to read image data'));
-                    reader.readAsDataURL(blob);
+                    try {
+                        const blob = response.response;
+                        const reader = new FileReader();
+                        reader.onload = async (e) => {
+                            try {\n                                const img = new Image();
+                                img.onload = async () => {
+                                    try {
+                                        const base64 = await convertImageToWebP(img, quality);
+                                        resolve(base64);
+                                    } catch (error) {
+                                        console.error('WebP conversion error:', error);
+                                        // Fallback to PNG
+                                        resolve(e.target.result.split(',')[1]);
+                                    }
+                                };
+                                img.onerror = () => {
+                                    console.warn('Failed to load image from URL, returning raw base64');\n                                    resolve(e.target.result.split(',')[1]);
+                                };
+                                img.src = e.target.result;
+                            } catch (error) {
+                                console.error('Error in URL image conversion:', error);
+                                reject(error);
+                            }
+                        };
+                        reader.onerror = () => reject(new Error('Failed to read image data'));
+                        reader.readAsDataURL(blob);
+                    } catch (error) {
+                        reject(error);
+                    }
                 } else {
                     reject(new Error(`HTTP error! Status: ${response.status}`));
                 }
@@ -72,10 +102,115 @@ async function urlToBase64(url) {
 }
 
 
-function fileToBase64(file) {
+/**
+ * Checks if the browser supports WebP format via Canvas
+ * @returns {boolean} True if WebP is supported, false otherwise
+ */
+function isWebPSupported() {
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        return canvas.toDataURL('image/webp').indexOf('image/webp') === 5;
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * Converts an Image object to WebP base64 with optional quality and resizing
+ * Falls back to original format if WebP is not supported
+ * @param {HTMLImageElement} img - The image element to convert
+ * @param {number} quality - Quality level (0-1, default from WEBP_CONFIG)
+ * @returns {Promise<string>} Base64 string without data URL prefix
+ */
+async function convertImageToWebP(img, quality = WEBP_CONFIG.quality) {
     return new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
+        try {
+            const canvas = document.createElement('canvas');
+            let width = img.naturalWidth || img.width;
+            let height = img.naturalHeight || img.height;
+            
+            // Resize if image exceeds max dimensions (maintains aspect ratio)
+            if (WEBP_CONFIG.maxImageWidth > 0 && width > WEBP_CONFIG.maxImageWidth) {
+                const ratio = WEBP_CONFIG.maxImageWidth / width;
+                width = WEBP_CONFIG.maxImageWidth;
+                height = Math.round(height * ratio);
+            }
+            if (WEBP_CONFIG.maxImageHeight > 0 && height > WEBP_CONFIG.maxImageHeight) {
+                const ratio = WEBP_CONFIG.maxImageHeight / height;
+                height = WEBP_CONFIG.maxImageHeight;
+                width = Math.round(width * ratio);
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error('Failed to get canvas context');
+            }
+            
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Try WebP conversion if supported and enabled
+            if (WEBP_CONFIG.enabled && isWebPSupported()) {
+                const webpDataUrl = canvas.toDataURL('image/webp', quality);
+                // Check if conversion actually worked (some browsers may not support it)
+                if (webpDataUrl && webpDataUrl.indexOf('image/webp') > -1) {
+                    const base64 = webpDataUrl.split(',')[1];
+                    console.log(`Converted image to WebP (quality: ${quality}). Size reduction estimate: ~25-40%`);
+                    resolve(base64);
+                    return;
+                }
+            }
+            
+            // Fallback to PNG if WebP not supported or conversion failed
+            console.log('WebP not supported or conversion failed, falling back to PNG');
+            const pngDataUrl = canvas.toDataURL('image/png');
+            const base64 = pngDataUrl.split(',')[1];
+            resolve(base64);
+        } catch (error) {
+            console.error('Error converting image:', error);
+            reject(error);
+        }
+    });
+}
+
+/**
+ * Converts a File object to WebP base64 with fallback to PNG
+ * @param {File} file - The file to convert
+ * @param {number} quality - Quality level (0-1, default from WEBP_CONFIG)
+ * @returns {Promise<string>} Base64 string without data URL prefix
+ */
+function fileToBase64(file, quality = WEBP_CONFIG.quality) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const img = new Image();
+                img.onload = async () => {
+                    try {
+                        const base64 = await convertImageToWebP(img, quality);
+                        resolve(base64);
+                    } catch (error) {
+                        console.error('WebP conversion error:', error);
+                        // Fallback: return original base64 data
+                        resolve(e.target.result.split(',')[1]);
+                    }
+                };
+                img.onerror = () => {
+                    console.warn('Failed to load image from file, returning raw base64');
+                    // Return raw base64 if image loading fails
+                    resolve(e.target.result.split(',')[1]);
+                };
+                img.src = e.target.result;
+            } catch (error) {
+                console.error('Error in fileToBase64:', error);
+                // Last resort fallback
+                resolve(e.target.result.split(',')[1]);
+            }
+        };
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
     });

@@ -63,3 +63,11 @@ const DEFAULT_COLORS = {
     characterChatBg: '#000000',
     userChatBg: '#ffffff'
 };
+
+// WebP Compression Constants
+const WEBP_CONFIG = {
+    enabled: true,
+    quality: 1.0, // 1.0 = lossless, 0.92 = ~8% quality loss (imperceptible)
+    maxImageWidth: 1200, // Resize if wider (optional, set to 0 to disable)
+    maxImageHeight: 1200  // Resize if taller (optional, set to 0 to disable)
+};

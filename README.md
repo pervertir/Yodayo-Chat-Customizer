@@ -149,6 +149,20 @@ Contributions are welcome! The codebase has been recently refactored for better 
 - Performance optimizations are in place for better user experience
 - Modular architecture makes it easier to add new features
 
+### Setting Up Git Hooks (Contributors)
+This repository uses automated git hooks for semantic versioning. When you clone the repo, you'll need to initialize the git hooks with one command:
+
+```bash
+bash .github/setup-git-hooks.sh
+```
+
+Once set up, version bumping is automatic:
+- `git commit -m 'your message'` → Patch version bump (1.7.4 → 1.7.5)
+- `git commit -m '[minor] new feature'` → Minor version bump (1.7.4 → 1.8.0)
+- `git commit -m '[major] breaking change'` → Major version bump (1.7.4 → 2.0.0)
+
+The hooks live in `.github/hooks/` and are version-controlled, so they work across all git worktrees.
+
 ## Changelog
 
 ### Latest Updates

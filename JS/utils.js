@@ -61,7 +61,7 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
                         const blob = response.response;
                         const reader = new FileReader();
                         reader.onload = async (e) => {
-                            try {\n                                const img = new Image();
+                            try {                                const img = new Image();
                                 img.onload = async () => {
                                     try {
                                         const base64 = await convertImageToWebP(img, quality);
@@ -73,7 +73,7 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
                                     }
                                 };
                                 img.onerror = () => {
-                                    console.warn('Failed to load image from URL, returning raw base64');\n                                    resolve(e.target.result.split(',')[1]);
+                                    console.warn('Failed to load image from URL, returning raw base64');                                    resolve(e.target.result.split(',')[1]);
                                 };
                                 img.src = e.target.result;
                             } catch (error) {

@@ -67,7 +67,7 @@ const DEFAULT_COLORS = {
 // WebP Compression Constants
 const WEBP_CONFIG = {
     enabled: true,
-    quality: 1.0, // 1.0 = lossless, 0.92 = ~8% quality loss (imperceptible)
-    maxImageWidth: 1200, // Resize if wider (optional, set to 0 to disable)
-    maxImageHeight: 1200  // Resize if taller (optional, set to 0 to disable)
+    quality: 0.92, // 1.0 = lossless, 0.92 = ~8% quality loss (imperceptible)
+    maxImageWidth: 2000, // Resize if wider (optional, set to 0 to disable)
+    maxImageHeight: 2000  // Resize if taller (optional, set to 0 to disable)
 };

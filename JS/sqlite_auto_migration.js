@@ -172,6 +172,60 @@ async function performAutoMigration() {
 }
 
 /**
+ * Export IndexedDB data as JSON backup
+ * Used for creating safety backups during migration
+ * @returns {Promise<Object>} Backup object with records
+ */
+async function exportIndexedDBBackup() {
+    try {
+        const db = await openDatabase('MYChatCustomizerDB');
+        const store = db.transaction('Characters').objectStore('Characters');
+        const records = await new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+        
+        const backup = {
+            timestamp: new Date().toISOString(),
+            source: 'IndexedDB',
+            database: 'MYChatCustomizerDB',
+            recordCount: records.length,
+            records: records
+        };
+        
+        return backup;
+    } catch (error) {
+        console.error('[Auto-Migration] Backup export failed:', error);
+        throw error;
+    }
+}
+
+/**
+ * Download IndexedDB backup as JSON file
+ * @param {Object} backup - Backup object to download
+ * @param {string} filename - Name for the downloaded file
+ */
+function downloadIndexedDBBackup(backup, filename = 'indexeddb_backup.json') {
+    try {
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('[Auto-Migration] Backup download failed:', error);
+        throw error;
+    }
+}
+
+/**
  * Initialize auto-migration on userscript load
  * This runs automatically when the userscript loads
  */

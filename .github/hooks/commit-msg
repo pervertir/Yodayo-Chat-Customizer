@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Adjust version bump type based on commit message keywords
+# [major] - major version bump
+# [minor] - minor version bump
+# (default is patch)
+
+COMMIT_MSG_FILE=$1
+COMMIT_TITLE=$(head -n 1 "$COMMIT_MSG_FILE")
+
+USERSCRIPT="MoescapeCustomUI.user.js"
+
+# Check if userscript exists
+if [ ! -f "$USERSCRIPT" ]; then
+    exit 0
+fi
+
+# Extract current version
+CURRENT_VERSION=$(grep -m1 "@version" "$USERSCRIPT" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+# Check if version was found
+if [ -z "$CURRENT_VERSION" ]; then
+    exit 0
+fi
+
+# Parse version components
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+# Determine version bump type from commit message (check title only)
+NEW_VERSION=""
+if [[ "$COMMIT_TITLE" =~ \[major\] ]]; then
+    NEW_MAJOR=$((MAJOR + 1))
+    NEW_VERSION="$NEW_MAJOR.0.0"
+elif [[ "$COMMIT_TITLE" =~ \[minor\] ]]; then
+    NEW_MINOR=$((MINOR + 1))
+    NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+fi
+
+# Only update if a keyword was found (pre-commit handles patch by default)
+if [ -n "$NEW_VERSION" ]; then
+    sed -i '' -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" "$USERSCRIPT"
+    git add "$USERSCRIPT"
+fi
+
+exit 0

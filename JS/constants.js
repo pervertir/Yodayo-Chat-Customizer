@@ -71,3 +71,29 @@ const WEBP_CONFIG = {
     maxImageWidth: 1200, // Resize if wider (optional, set to 0 to disable)
     maxImageHeight: 1200  // Resize if taller (optional, set to 0 to disable)
 };
+
+// SQLite Export/Import Constants
+const SQLITE_CONFIG = {
+    enabled: true,
+    databaseName: 'yodayo_customizer.sqlite',
+    version: '1.0',
+    allowExportFormat: 'sqlite', // 'sqlite' or 'json' for fallback
+    schema: {
+        characters: {
+            name: 'Characters',
+            columns: 'CHAR_ID TEXT PRIMARY KEY, NAME TEXT, CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP'
+        },
+        characterCustomizations: {
+            name: 'CharacterCustomizations',
+            columns: 'ID INTEGER PRIMARY KEY AUTOINCREMENT, CHAR_ID TEXT, CHAT_ID TEXT, COLOR_DATA TEXT, IMAGE_DATA TEXT, ALIAS TEXT, CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(CHAR_ID, CHAT_ID)'
+        },
+        universalSettings: {
+            name: 'UniversalSettings',
+            columns: 'KEY TEXT PRIMARY KEY, VALUE TEXT, CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP'
+        },
+        metadata: {
+            name: 'Metadata',
+            columns: 'KEY TEXT PRIMARY KEY, VALUE TEXT'
+        }
+    }
+};

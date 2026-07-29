@@ -16,6 +16,19 @@ const ImageViewerCache = {
 };
 
 /**
+ * State for card display (sorting, filtering)
+ * @typedef {Object} CardDisplayStateType
+ * @property {'date_desc'|'date_asc'|'name_asc'|'name_desc'} sortBy
+ * @property {string} searchTerm
+ */
+
+/** @type {CardDisplayStateType} */
+const CardDisplayState = {
+    sortBy: 'date_desc',
+    searchTerm: ''
+};
+
+/**
  * Initialize the image viewer observer
  * @returns {void}
  */
@@ -134,6 +147,7 @@ function handleImageViewerAdded(mutationsList, observer) {
 
                 // Initialize handlers and render cards
                 initializeImageViewerCloseButtonEventHandler(imageViewer);
+                createSearchSortToolbar();
                 renderAllCardsInDiv();
 
                 // Disconnect observer
@@ -146,6 +160,142 @@ function handleImageViewerAdded(mutationsList, observer) {
 
 // Start observing on script load
 initializeImageViewerObserver();
+
+/**
+ * Creates and injects the sort/search toolbar
+ * @returns {void}
+ */
+function createSearchSortToolbar() {
+    /** @type {HTMLElement|null} */
+    const imageViewer = document.querySelector('#image-viewer-ui-popup');
+    if (!imageViewer) return;
+
+    // Find the header div and insert toolbar after it
+    const headerDiv = imageViewer.querySelector('.relative.p-2.bg-secondaryBg');
+    if (!headerDiv) return;
+
+    // Check if toolbar already exists
+    if (imageViewer.querySelector('#sort-search-toolbar')) return;
+
+    const toolbar = document.createElement('div');
+    toolbar.id = 'sort-search-toolbar';
+    toolbar.className = 'flex gap-4 p-4 bg-secondaryBg border-b border-[#22242b] items-center flex-wrap';
+    toolbar.innerHTML = `
+        <div class="flex gap-2 items-center flex-1">
+            <label for="search-input" class="text-white text-sm whitespace-nowrap">Search:</label>
+            <input
+                type="text"
+                id="search-input"
+                placeholder="Search by name..."
+                class="px-3 py-2 rounded bg-primaryBg text-white border border-[#22242b] text-sm flex-1 min-w-[200px]"
+                value="${CardDisplayState.searchTerm}"
+            />
+        </div>
+        <div class="flex gap-2 items-center">
+            <label for="sort-select" class="text-white text-sm whitespace-nowrap">Sort by:</label>
+            <select
+                id="sort-select"
+                class="px-3 py-2 rounded bg-primaryBg text-white border border-[#22242b] text-sm"
+            >
+                <option value="date_desc">Date (Latest First)</option>
+                <option value="date_asc">Date (Oldest First)</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+            </select>
+        </div>
+    `;
+
+    // Insert toolbar after header
+    headerDiv.parentNode.insertBefore(toolbar, headerDiv.nextSibling);
+
+    // Add event listeners
+    const searchInput = toolbar.querySelector('#search-input');
+    const sortSelect = toolbar.querySelector('#sort-select');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            CardDisplayState.searchTerm = e.target.value;
+            renderAllCardsInDiv();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.value = CardDisplayState.sortBy;
+        sortSelect.addEventListener('change', (e) => {
+            CardDisplayState.sortBy = e.target.value;
+            renderAllCardsInDiv();
+        });
+    }
+}
+
+/**
+ * Filters records by search term
+ * @param {CharacterRecord[]} records
+ * @returns {CharacterRecord[]}
+ */
+function filterRecordsBySearch(records) {
+    if (!CardDisplayState.searchTerm.trim()) {
+        return records;
+    }
+    const searchTerm = CardDisplayState.searchTerm.toLowerCase();
+    return records.filter(record =>
+        (record.character_alias && record.character_alias.toLowerCase().includes(searchTerm)) ||
+        (record.character_name && record.character_name.toLowerCase().includes(searchTerm))
+    );
+}
+
+/**
+ * Sorts records based on current sort setting
+ * @param {CharacterRecord[]} records
+ * @returns {CharacterRecord[]}
+ */
+function sortRecords(records) {
+    const sorted = [...records]; // Create a copy to avoid mutating original
+    
+    switch (CardDisplayState.sortBy) {
+        case 'date_desc':
+            // Latest first (descending)
+            sorted.sort((a, b) => {
+                const timeA = a.timestamp || 0;
+                const timeB = b.timestamp || 0;
+                return timeB - timeA;
+            });
+            break;
+        case 'date_asc':
+            // Oldest first (ascending)
+            sorted.sort((a, b) => {
+                const timeA = a.timestamp || 0;
+                const timeB = b.timestamp || 0;
+                return timeA - timeB;
+            });
+            break;
+        case 'name_asc':
+            // A-Z
+            sorted.sort((a, b) => {
+                const nameA = (a.character_alias || a.character_name || '').toLowerCase();
+                const nameB = (b.character_alias || b.character_name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            break;
+        case 'name_desc':
+            // Z-A
+            sorted.sort((a, b) => {
+                const nameA = (a.character_alias || a.character_name || '').toLowerCase();
+                const nameB = (b.character_alias || b.character_name || '').toLowerCase();
+                return nameB.localeCompare(nameA);
+            });
+            break;
+        default:
+            // Default to date descending
+            sorted.sort((a, b) => {
+                const timeA = a.timestamp || 0;
+                const timeB = b.timestamp || 0;
+                return timeB - timeA;
+            });
+    }
+    
+    return sorted;
+}
 
 /**
  * Loads all character records from the db and renders a card for each in the #cards div.
@@ -172,7 +322,13 @@ async function renderAllCardsInDiv() {
     request.onsuccess = async function (event) {
         try {
             /** @type {CharacterRecord[]} */
-            const records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
+            let records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
+            
+            // Apply search filter
+            records = filterRecordsBySearch(records);
+            
+            // Apply sorting
+            records = sortRecords(records);
             
             // Create document fragment for batch DOM manipulation
             const fragment = document.createDocumentFragment();
@@ -186,6 +342,12 @@ async function renderAllCardsInDiv() {
             
             // Clear loading animation and add cards
             cardContainer.innerHTML = '';
+            
+            // Show message if no results found
+            if (processedCards.length === 0) {
+                cardContainer.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">No cards found matching your search.</div>';
+                return;
+            }
             
             // Batch append all cards to fragment, then to container
             processedCards.forEach(cardElement => {
@@ -595,6 +757,62 @@ function injectCardFlipCSS() {
         
         .retry-button:active {
             transform: scale(0.98);
+        }
+
+        /* Sort/Search Toolbar Styles */
+        #sort-search-toolbar {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #1a1d24;
+            border-bottom: 1px solid #22242b;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #sort-search-toolbar label {
+            color: #ffffff;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        #search-input,
+        #sort-select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            background-color: #141820;
+            color: #ffffff;
+            border: 1px solid #22242b;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        #search-input:focus,
+        #sort-select:focus {
+            outline: none;
+            border-color: #3498db;
+            background-color: #1a1d24;
+        }
+
+        #search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #search-input::placeholder {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            #sort-search-toolbar {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            #search-input,
+            #sort-select {
+                width: 100%;
+            }
         }
     `;
     

@@ -245,6 +245,26 @@ function filterRecordsBySearch(records) {
 }
 
 /**
+ * Converts timestamp (ISO string or number) to milliseconds
+ * @param {string|number|null|undefined} timestamp
+ * @returns {number}
+ */
+function getTimestampMs(timestamp) {
+    if (!timestamp) return 0;
+    
+    // If it's already a number, return it
+    if (typeof timestamp === 'number') return timestamp;
+    
+    // If it's an ISO string, parse it to milliseconds
+    if (typeof timestamp === 'string') {
+        const ms = new Date(timestamp).getTime();
+        return isNaN(ms) ? 0 : ms;
+    }
+    
+    return 0;
+}
+
+/**
  * Sorts records based on current sort setting
  * @param {CharacterRecord[]} records
  * @returns {CharacterRecord[]}
@@ -256,16 +276,16 @@ function sortRecords(records) {
         case 'date_desc':
             // Latest first (descending)
             sorted.sort((a, b) => {
-                const timeA = a.timestamp || 0;
-                const timeB = b.timestamp || 0;
+                const timeA = getTimestampMs(a.timestamp);
+                const timeB = getTimestampMs(b.timestamp);
                 return timeB - timeA;
             });
             break;
         case 'date_asc':
             // Oldest first (ascending)
             sorted.sort((a, b) => {
-                const timeA = a.timestamp || 0;
-                const timeB = b.timestamp || 0;
+                const timeA = getTimestampMs(a.timestamp);
+                const timeB = getTimestampMs(b.timestamp);
                 return timeA - timeB;
             });
             break;
@@ -288,8 +308,8 @@ function sortRecords(records) {
         default:
             // Default to date descending
             sorted.sort((a, b) => {
-                const timeA = a.timestamp || 0;
-                const timeB = b.timestamp || 0;
+                const timeA = getTimestampMs(a.timestamp);
+                const timeB = getTimestampMs(b.timestamp);
                 return timeB - timeA;
             });
     }

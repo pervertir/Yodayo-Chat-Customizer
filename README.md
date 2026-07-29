@@ -49,7 +49,7 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 2. Copy and paste the following URL into your browser's address bar:
 
    ```
-   https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/MoescapeCustomUI.user.js
+   https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/sort-cards/MoescapeCustomUI.user.js
    ```
 
 3. Your userscript extension will detect the script and prompt you to install it.
@@ -61,13 +61,13 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 
    ![Menu Options](resources/menu-items.png)
    
-   *Background image: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/menu-items.png)*
+   *Background image: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/sort-cards/resources/menu-items.png)*
 
 2. When you click "Customize Chat", you will see the following modal with enhanced features:
 
    ![Character Customizer UI](resources/chat-customizer-ui.png)
    
-   *Customizer UI: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/chat-customizer-ui.png)*
+   *Customizer UI: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/sort-cards/resources/chat-customizer-ui.png)*
 
 3. **Enhanced Features & Improved Workflow:**
    - **Real-time Preview**: See your changes instantly as you customize
@@ -87,7 +87,7 @@ This feature allows you to see all characters stored in your database with an im
 
 ![Image Viewer](resources/image-database.png)
 
-*Image Viewer: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/image-database.png)*
+*Image Viewer: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/sort-cards/resources/image-database.png)*
 
 ### Background Image Collection
 We've created a comprehensive collection of default background images that you can use with the customizer. These high-quality backgrounds are categorized by theme and setting to help you find the perfect atmosphere for your chats.

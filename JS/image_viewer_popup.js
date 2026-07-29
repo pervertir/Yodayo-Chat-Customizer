@@ -270,6 +270,14 @@ function getTimestampMs(timestamp) {
  * @returns {CharacterRecord[]}
  */
 function sortRecords(records) {
+    console.log('sortRecords called with', records.length, 'records');
+    console.log('Current sort mode:', CardDisplayState.sortBy);
+    console.log('Records before sort:', records.map(r => ({
+        name: r.character_alias || r.character_name,
+        timestamp: r.timestamp,
+        timestampMs: getTimestampMs(r.timestamp)
+    })));
+    
     const sorted = [...records]; // Create a copy to avoid mutating original
     
     switch (CardDisplayState.sortBy) {
@@ -278,7 +286,9 @@ function sortRecords(records) {
             sorted.sort((a, b) => {
                 const timeA = getTimestampMs(a.timestamp);
                 const timeB = getTimestampMs(b.timestamp);
-                return timeB - timeA;
+                const result = timeB - timeA;
+                console.log('Comparing', a.character_alias || a.character_name, 'vs', b.character_alias || b.character_name, ':', timeB - timeA);
+                return result;
             });
             break;
         case 'date_asc':
@@ -314,6 +324,12 @@ function sortRecords(records) {
             });
     }
     
+    console.log('Records after sort:', sorted.map(r => ({
+        name: r.character_alias || r.character_name,
+        timestamp: r.timestamp,
+        timestampMs: getTimestampMs(r.timestamp)
+    })));
+    
     return sorted;
 }
 
@@ -343,12 +359,15 @@ async function renderAllCardsInDiv() {
         try {
             /** @type {CharacterRecord[]} */
             let records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
+            console.log('Raw records from DB:', records.length);
             
             // Apply search filter
             records = filterRecordsBySearch(records);
+            console.log('Records after search filter:', records.length);
             
             // Apply sorting
             records = sortRecords(records);
+            console.log('Records after sorting:', records.length);
             
             // Create document fragment for batch DOM manipulation
             const fragment = document.createDocumentFragment();

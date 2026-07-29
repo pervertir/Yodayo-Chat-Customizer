@@ -360,6 +360,13 @@ async function renderAllCardsInDiv() {
             /** @type {CharacterRecord[]} */
             let records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
             console.log('Raw records from DB:', records.length);
+            console.log('First record full details:', records[0]);
+            console.log('All records timestamps:', records.map(r => ({
+                charId: r.CHAR_ID,
+                name: r.character_alias || r.character_name,
+                timestamp: r.timestamp,
+                allFields: Object.keys(r)
+            })));
             
             // Apply search filter
             records = filterRecordsBySearch(records);

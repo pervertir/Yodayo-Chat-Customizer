@@ -21,6 +21,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string} [user_message_box_color]
  * @property {boolean} [no_universal_colors] // When true, excludes universal color settings from hierarchical merging, forcing fallback to application defaults
  * @property {'chat'|'character'|'universal'} [record_type] // Added for type tracking
+ * @property {string} [timestamp] // ISO timestamp when record was created/last updated
  */
 
 /**
@@ -96,6 +97,7 @@ function createInitialSchema() {
     objectStore.createIndex('user_message_box_color', 'user_message_box_color', { unique: false });
     objectStore.createIndex('no_universal_colors', 'no_universal_colors', { unique: false });
     objectStore.createIndex('record_type', 'record_type', { unique: false });
+    objectStore.createIndex('timestamp', 'timestamp', { unique: false });
 
     console.log('Initial schema (v1) created');
 }
@@ -197,6 +199,11 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
                 record.record_type = 'chat';
             } else {
                 record.record_type = 'character'; // Default
+            }
+            
+            // Add or update timestamp - use existing timestamp if updating, otherwise create new one
+            if (!record.timestamp) {
+                record.timestamp = new Date().toISOString();
             }
             
             const putRequest = objectStore.put(record);

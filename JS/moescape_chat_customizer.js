@@ -15,6 +15,18 @@
     'use strict';
 
     console.log('Chat Customizer script initialized.');
+
+    // The injected Tailwind v4 moves/scales elements with the standalone `translate`/`scale`/`rotate`
+    // properties, while the site's own Tailwind v3 uses `transform`. With both applied, site
+    // elements such as toggle switch knobs move twice as far. Tailwind v4 rules live in
+    // cascade layers, so this unlayered reset wins and leaves the site's `transform` intact.
+    GM_addStyle(`
+        [class*="translate-"], [class*="scale-"], [class*="rotate-"] {
+            translate: none;
+            scale: none;
+            rotate: none;
+        }
+    `);
     let scriptLoaded = false;
     let urlCheckInterval = null;
     let menuItemsAdded = false;

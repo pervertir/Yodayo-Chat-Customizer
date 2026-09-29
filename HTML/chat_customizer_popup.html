@@ -369,6 +369,22 @@
                     </label>
                   </div>
 
+                  <!-- Automatic Backups (Tampermonkey storage) -->
+                  <div class="mb-3">
+                    <span class="text-sm font-medium text-primaryText">Automatic Backups</span>
+                    <p id="backup-info" class="text-xs text-secondaryText mt-1"></p>
+                    <div class="flex gap-2 mt-2">
+                      <select id="backup-snapshot-select" class="flex-1 text-xs bg-tertiaryBg text-primaryText rounded p-2"></select>
+                      <button
+                        type="button"
+                        id="backup-restore-btn"
+                        class="border border-blue-600 hover:border-blue-700 text-white font-medium py-1 px-3 rounded text-xs transition-colors"
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  </div>
+
                   <!-- Import Status -->
                   <div id="import-status" class="hidden">
                     <div class="rounded-md p-2 text-xs">

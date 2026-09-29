@@ -60,8 +60,13 @@ function openDatabase() {
             reject(event.target.error);
         };
 
-        request.onsuccess = (event) => {
+        request.onsuccess = async (event) => {
             db = event.target.result;
+            try {
+                await syncWithMirror();
+            } catch (e) {
+                console.error('Backup sync failed:', e);
+            }
             resolve(db);
         };
 
@@ -71,6 +76,72 @@ function openDatabase() {
             console.log('Initial schema (v1) created');
         };
     });
+}
+
+/**
+ * Keeps IndexedDB and the Tampermonkey mirror in step on startup.
+ * - IndexedDB empty, mirror has data -> site data was wiped: restore from mirror.
+ * - Otherwise IndexedDB is the source of truth: refresh the mirror from it.
+ * @returns {Promise<void>}
+ */
+async function syncWithMirror() {
+    if (!isMirrorAvailable()) return;
+    const records = await readAllRecords();
+    const mirrored = mirrorGetAllRecords();
+
+    if (records.length === 0 && mirrored.length > 0) {
+        await writeRecords(mirrored, false);
+        console.warn(`IndexedDB was empty: restored ${mirrored.length} records from Tampermonkey backup`);
+        takeSnapshotIfDue(mirrored);
+        return;
+    }
+    mirrorReplaceAll(records);
+    takeSnapshotIfDue(records);
+}
+
+/**
+ * @returns {Promise<CharacterRecord[]>}
+ */
+function readAllRecords() {
+    return new Promise((resolve, reject) => {
+        const request = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly')
+            .objectStore(CHARACTER_OBJECT_STORE_NAME).getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+/**
+ * Writes records to IndexedDB only (no mirroring) in one transaction.
+ * @param {CharacterRecord[]} records
+ * @param {boolean} clearExisting
+ * @returns {Promise<void>}
+ */
+function writeRecords(records, clearExisting) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
+        const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+        if (clearExisting) objectStore.clear();
+        records.forEach(record => objectStore.put(record));
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = (e) => reject(e.target.error);
+    });
+}
+
+/**
+ * Restores a Tampermonkey snapshot into IndexedDB (replacing current data) and the mirror.
+ * @param {string} key - snapshot key from listSnapshots()
+ * @returns {Promise<number>} number of restored records
+ */
+async function restoreSnapshot(key) {
+    if (!db) await openDatabase();
+    const snapshot = getSnapshot(key);
+    if (!snapshot || !Array.isArray(snapshot.records)) throw new Error('Snapshot not found');
+    // Keep a copy of the current state so the restore itself can be undone
+    takeSnapshotIfDue(await readAllRecords(), true);
+    await writeRecords(snapshot.records, true);
+    mirrorReplaceAll(snapshot.records);
+    return snapshot.records.length;
 }
 
 /**
@@ -137,7 +208,7 @@ async function deleteCharacterRecord(CHAR_ID) {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const deleteRequest = objectStore.delete(CHAR_ID);
-        deleteRequest.onsuccess = function() { resolve(); };
+        deleteRequest.onsuccess = function() { mirrorDeleteRecord(CHAR_ID); resolve(); };
         deleteRequest.onerror = function(e) { reject(e.target.error); };
     });
 }
@@ -207,7 +278,7 @@ async function saveCharacterFieldsBatch(CHAR_ID, fields) {
             }
             
             const putRequest = objectStore.put(record);
-            putRequest.onsuccess = function() { resolve(); };
+            putRequest.onsuccess = function() { mirrorSaveRecord(record); resolve(); };
             putRequest.onerror = function(e) { reject(e.target.error); };
         };
         getRequest.onerror = function(e) { reject(e.target.error); };
@@ -302,6 +373,7 @@ async function importDatabase(jsonData, clearExisting = false) {
                 });
                 
                 transaction.oncomplete = () => {
+                    readAllRecords().then(mirrorReplaceAll).catch(e => console.error('Mirror refresh failed:', e));
                     resolve({ imported, errors });
                 };
                 

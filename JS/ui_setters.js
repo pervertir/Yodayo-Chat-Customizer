@@ -149,7 +149,8 @@ function setCharacterNarrationColor(color) {
  */
 function setCharacterDialogueColor(color, regex) {
     // Use dynamic stylesheet for better performance
-    applyDynamicStyle('*[class*="text-primaryText"]', { color });
+    // Only the dialogue text (text-primaryText/90), not every primary-coloured element on the site
+    applyDynamicStyle('[class*="text-primaryText/90"]', { color });
 
     // Fallback: iterate through cached stylesheets only if needed
     const styleSheets = getCachedStyleSheets();

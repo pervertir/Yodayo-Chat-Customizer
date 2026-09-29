@@ -20,6 +20,8 @@
     // properties, while the site's own Tailwind v3 uses `transform`. With both applied, site
     // elements such as toggle switch knobs move twice as far. Tailwind v4 rules live in
     // cascade layers, so this unlayered reset wins and leaves the site's `transform` intact.
+    // Caveat: this disables every v4 translate/scale/rotate utility, so such a class in our own
+    // HTML (e.g. `-translate-x-1/2` for centring) only works if the site's v3 CSS also has it.
     GM_addStyle(`
         [class*="translate-"], [class*="scale-"], [class*="rotate-"] {
             translate: none;

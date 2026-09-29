@@ -98,6 +98,9 @@ function takeSnapshotIfDue(records, force = false) {
     const snapshots = listSnapshots();
     const newest = snapshots[0];
     if (!force && newest && Date.now() - new Date(newest.timestamp).getTime() < SNAPSHOT_INTERVAL_MS) return;
+    // Don't fill the rotation with identical copies
+    if (newest && newest.count === records.length &&
+        JSON.stringify(getSnapshot(newest.key)?.records) === JSON.stringify(records)) return;
 
     const timestamp = new Date().toISOString();
     try {

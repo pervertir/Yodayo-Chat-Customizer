@@ -492,6 +492,8 @@ function handleMutations(mutationsList) {
 // --- PERFORMANCE UTILITIES ---
 let cachedStyleSheets = null;
 let dynamicStyleSheet = null;
+/** @type {Map<string, CSSStyleRule>} */
+const dynamicStyleRules = new Map();
 
 /**
  * Gets filtered stylesheets, excluding Google Fonts for performance.
@@ -531,14 +533,18 @@ function getDynamicStyleSheet() {
  */
 function applyDynamicStyle(selector, styles) {
     const sheet = getDynamicStyleSheet();
-    const styleString = Object.entries(styles).map(([prop, value]) => `${prop}: ${value}`).join('; ');
-    const rule = `${selector} { ${styleString} !important; }`;
-
-    try {
-        sheet.insertRule(rule, sheet.cssRules.length);
-    } catch (e) {
-        console.warn('Failed to insert CSS rule:', rule, e);
+    // Reuse one rule per selector so repeated calls (e.g. dragging a colour picker) don't pile up rules
+    let rule = dynamicStyleRules.get(selector);
+    if (!rule || !Array.from(sheet.cssRules).includes(rule)) {
+        try {
+            rule = sheet.cssRules[sheet.insertRule(`${selector} {}`, sheet.cssRules.length)];
+        } catch (e) {
+            console.warn('Failed to insert CSS rule for selector:', selector, e);
+            return;
+        }
+        dynamicStyleRules.set(selector, rule);
     }
+    Object.entries(styles).forEach(([prop, value]) => rule.style.setProperty(prop, value, 'important'));
 }
 
 /**

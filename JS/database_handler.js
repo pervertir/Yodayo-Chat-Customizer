@@ -335,6 +335,24 @@ async function importDatabase(jsonData, clearExisting = false) {
             return;
         }
         
+        resolve(runImport(importData, clearExisting));
+    });
+}
+
+/**
+ * @param {{records: CharacterRecord[]}} importData
+ * @param {boolean} clearExisting
+ * @returns {Promise<{imported: number, errors: string[]}>}
+ */
+async function runImport(importData, clearExisting) {
+    // Snapshot the pre-import state so the import can be undone from "Recover"
+    try {
+        takeSnapshotIfDue(await readAllRecords(), true);
+    } catch (e) {
+        console.error('Pre-import snapshot failed:', e);
+    }
+
+    return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         
@@ -373,8 +391,14 @@ async function importDatabase(jsonData, clearExisting = false) {
                 });
                 
                 transaction.oncomplete = () => {
-                    readAllRecords().then(mirrorReplaceAll).catch(e => console.error('Mirror refresh failed:', e));
-                    resolve({ imported, errors });
+                    // Mirror and snapshot the imported state before resolving (the UI reloads right after)
+                    readAllRecords()
+                        .then(records => {
+                            mirrorReplaceAll(records);
+                            takeSnapshotIfDue(records, true);
+                        })
+                        .catch(e => console.error('Mirror refresh failed:', e))
+                        .finally(() => resolve({ imported, errors }));
                 };
                 
                 transaction.onerror = (e) => {

@@ -617,6 +617,7 @@ function initializeCharacterSettingsEventHandlers(form) {
 
     // Import/Export event handlers
     setupImportExportHandlers();
+    setupBackupHandlers();
 }
 
 /**
@@ -1158,6 +1159,8 @@ function setupImportExportHandlers() {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
                 const filename = `YCC-export-${timestamp}.json`;
                 downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
+                markFileExported();
+                refreshBackupInfo();
                 showImportExportStatus('Database exported successfully!', 'success');
                 setTimeout(clearImportExportStatus, 3000);
             } catch (error) {
@@ -1201,6 +1204,62 @@ function setupImportExportHandlers() {
             }
         });
     }
+}
+
+/**
+ * Fills the automatic backup info line and snapshot dropdown
+ * @returns {void}
+ */
+function refreshBackupInfo() {
+    /** @type {HTMLElement|null} */
+    const info = document.getElementById('backup-info');
+    /** @type {HTMLSelectElement|null} */
+    const select = document.getElementById('backup-snapshot-select');
+    if (!info || !select) return;
+
+    if (!isMirrorAvailable()) {
+        info.textContent = 'Tampermonkey storage unavailable — export JSON regularly.';
+        return;
+    }
+    const lastExport = getLastFileExport();
+    info.textContent = `Every change is backed up to Tampermonkey storage (${mirrorGetAllRecords().length} records) ` +
+        `and restored automatically if site data is cleared. Last JSON export: ` +
+        (lastExport ? new Date(lastExport).toLocaleString() : 'never') + '.';
+
+    select.innerHTML = '';
+    listSnapshots().forEach(snapshot => {
+        const option = document.createElement('option');
+        option.value = snapshot.key;
+        option.textContent = `${new Date(snapshot.timestamp).toLocaleString()} (${snapshot.count} records)`;
+        select.appendChild(option);
+    });
+    if (!select.options.length) select.innerHTML = '<option value="">No snapshots yet</option>';
+}
+
+/**
+ * Sets up the automatic backup restore handler
+ * @returns {void}
+ */
+function setupBackupHandlers() {
+    refreshBackupInfo();
+    /** @type {HTMLElement|null} */
+    const restoreBtn = document.getElementById('backup-restore-btn');
+    /** @type {HTMLSelectElement|null} */
+    const select = document.getElementById('backup-snapshot-select');
+    if (!restoreBtn || !select) return;
+
+    restoreBtn.addEventListener('click', async () => {
+        if (!select.value) return;
+        if (!confirm('Replace all current settings with this snapshot? (Current data is snapshotted first.)')) return;
+        try {
+            const count = await restoreSnapshot(select.value);
+            showImportExportStatus(`Restored ${count} records. Reloading...`, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch (error) {
+            console.error('Restore failed:', error);
+            showImportExportStatus('Restore failed: ' + error.message, 'error');
+        }
+    });
 }
 
 /**

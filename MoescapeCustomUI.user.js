@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.9.3
+// @version      1.9.4
 
 // @namespace    MOESCAPE
 
@@ -34,6 +34,10 @@
 // @resource     card_layout                 https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/HTML/card_layout.html
 // @resource     pickr_css                https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css
 
+// Pickr ends with a "//# sourceMappingURL" comment and no newline, so it must come first: whatever
+// follows it on the same line is commented out (constants.js starts with a comment, so that is harmless).
+// Tailwind is pinned to the unminified file, which ends with a newline and no comment, so it is safe last.
+// @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr@1.9.1/dist/pickr.min.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/constants.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/backup_storage.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/database_handler.js
@@ -42,8 +46,7 @@
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/chat_customizer_popup.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_viewer_popup.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/moescape_chat_customizer.js
-// @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
-// @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
+// @require      https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/dist/index.global.js
 
 
 

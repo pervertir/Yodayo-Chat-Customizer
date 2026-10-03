@@ -16,13 +16,16 @@
 
     console.log('Chat Customizer script initialized.');
 
+    // Our <style> elements. Kept only on tavern chat pages, so other pages look stock.
+    const YCC_STYLE_IDS = ['card-flip-styles', 'chat-customizer-dynamic-styles', 'dynamic-styles'];
+
     // The injected Tailwind v4 moves/scales elements with the standalone `translate`/`scale`/`rotate`
     // properties, while the site's own Tailwind v3 uses `transform`. With both applied, site
     // elements such as toggle switch knobs move twice as far. Tailwind v4 rules live in
     // cascade layers, so this unlayered reset wins and leaves the site's `transform` intact.
     // Caveat: this disables every v4 translate/scale/rotate utility, so such a class in our own
     // HTML (e.g. `-translate-x-1/2` for centring) only works if the site's v3 CSS also has it.
-    GM_addStyle(`
+    addScopedStyle(`
         [class*="translate-"], [class*="scale-"], [class*="rotate-"] {
             translate: none;
             scale: none;
@@ -31,9 +34,57 @@
     `);
     let scriptLoaded = false;
     let urlCheckInterval = null;
+    // Re-apply the style scope whenever a <style> in <head> is added or rewritten
+    // (Tailwind regenerates its sheet as the DOM changes).
+    new MutationObserver(mutations => {
+        if (mutations.some(m => m.target.nodeName === 'STYLE' || [...m.addedNodes].some(n => n.nodeName === 'STYLE'))) {
+            applyStyleScope();
+        }
+    }).observe(document.head, { childList: true, subtree: true });
     let menuItemsAdded = false;
     let observer = null;
     
+    /**
+     * Adds a stylesheet that is only active on tavern chat pages.
+     * @param {string} css
+     * @returns {HTMLStyleElement|undefined}
+     */
+    function addScopedStyle(css) {
+        const style = GM_addStyle(css);
+        if (style && style.setAttribute) style.setAttribute('data-ycc', '');
+        applyStyleScope();
+        return style;
+    }
+
+    /**
+     * @param {Element} el
+     * @returns {boolean} true for stylesheets added by this script (incl. the @require'd Tailwind)
+     */
+    function isYccStyle(el) {
+        return el.hasAttribute('data-ycc') || YCC_STYLE_IDS.includes(el.id) ||
+            el.textContent.startsWith('/*! tailwindcss v4');
+    }
+
+    /**
+     * Turns our stylesheets on for tavern chat pages and off everywhere else.
+     * @returns {void}
+     */
+    function applyStyleScope() {
+        const onChat = isTargetUrl();
+        document.querySelectorAll('style').forEach(el => {
+            if (!isYccStyle(el)) return;
+            if (onChat) { if (el.media === 'not all') el.removeAttribute('media'); }
+            else if (el.media !== 'not all') el.media = 'not all';
+        });
+        if (!onChat) {
+            // Leftover "customizations loaded" toasts carry their own <style>
+            let note;
+            while ((note = document.getElementById('notification'))) {
+                (note.parentElement && note.parentElement !== document.body ? note.parentElement : note).remove();
+            }
+        }
+    }
+
     /**
      * Checks if the current URL matches the target chat page pattern.
      * @returns {boolean} True if on a supported chat page, false otherwise.
@@ -75,6 +126,7 @@
      * @returns {void}
      */
     function initializeScript() {
+        applyStyleScope();
         if (isTargetUrl()) {
             if (!scriptLoaded) {
                 scriptLoaded = true;
@@ -161,7 +213,7 @@
         await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
         let pickr_css = GM_getResourceText('pickr_css');
-        GM_addStyle(pickr_css);
+        addScopedStyle(pickr_css);
         // Add Alt + Shift + / keyboard shortcut to open chat customizer popup
         window.addEventListener('keydown', function(e) {
             // Fix: use e.code for '/' key and check for focus on input/textarea

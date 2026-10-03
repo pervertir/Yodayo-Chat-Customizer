@@ -43,6 +43,8 @@
     }).observe(document.head, { childList: true, subtree: true });
     let menuItemsAdded = false;
     let observer = null;
+    let loadedChatId = null; // chat whose customizations are currently applied
+    let onceSetupDone = false; // Pickr CSS and the keyboard shortcut are added only once
     
     /**
      * Adds a stylesheet that is only active on tavern chat pages.
@@ -128,8 +130,12 @@
     function initializeScript() {
         applyStyleScope();
         if (isTargetUrl()) {
-            if (!scriptLoaded) {
+            const chatId = getChatIdFromUrl();
+            // Re-run for a different chat too: the site switches chats without a page reload
+            if (!scriptLoaded || chatId !== loadedChatId) {
                 scriptLoaded = true;
+                loadedChatId = chatId;
+                CHAT_ID = chatId;
                 // Place your script's main logic here
                 console.log('Moescape Chat Customizer script is running');
                 waitForElement(char_id_selector, onLoad);
@@ -138,6 +144,7 @@
         } else if (!isTargetUrl() && scriptLoaded) {
             console.log('Exited chat page, hiding menu items.');
             scriptLoaded = false; // Reset scriptLoaded flag
+            loadedChatId = null;
             menuItemsAdded = false; // Reset menu items flag so they are re-added on next chat
             if (observer) { observer.disconnect(); observer = null; }
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
@@ -204,6 +211,8 @@
      * @returns {Promise<void>}
      */
     async function onLoad(element) {
+        // The user may have left the chat before its elements appeared
+        if (!isTargetUrl() || getChatIdFromUrl() !== loadedChatId) return;
         console.log('Page loaded');
 
         let CHAR_ID = findCharacterID(element);
@@ -212,10 +221,15 @@
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         await loadCustomizedUI(CHAR_ID);
         showInjectionNotification(notification_resource_name, CHAR_ID);
+        if (onceSetupDone) {
+            // Pickr CSS and the shortcut are already in place from an earlier chat
+        } else {
+        onceSetupDone = true;
         let pickr_css = GM_getResourceText('pickr_css');
         addScopedStyle(pickr_css);
         // Add Alt + Shift + / keyboard shortcut to open chat customizer popup
         window.addEventListener('keydown', function(e) {
+            if (!isTargetUrl()) return;
             // Fix: use e.code for '/' key and check for focus on input/textarea
             if (e.altKey && e.shiftKey && (e.key === '/' || e.code === 'Slash')) {
                 // Prevent default if not in input/textarea
@@ -229,7 +243,9 @@
                 formAdded_observer.observe(document.body, { childList: true, subtree: true });
             }
         });
+        }
         if (!menuItemsAdded){ 
+            if (observer) observer.disconnect();
             observer = new MutationObserver((mutations) => {
                 if (isTargetUrl()) {
                     for (const mutation of mutations) {

@@ -86,11 +86,13 @@ function openDatabase() {
  */
 async function syncWithMirror() {
     if (!isMirrorAvailable()) return;
+    compactBackupStorage();
     const records = await readAllRecords();
     const mirrored = mirrorGetAllRecords();
 
     if (records.length === 0 && mirrored.length > 0) {
-        await writeRecords(mirrored, false);
+        // Backups hold settings only; embedded images can't come back from them
+        await writeRecords(restoreOmittedFields(mirrored, []), false);
         console.warn(`IndexedDB was empty: restored ${mirrored.length} records from Tampermonkey backup`);
         takeSnapshotIfDue(mirrored);
         return;
@@ -137,11 +139,14 @@ async function restoreSnapshot(key) {
     if (!db) await openDatabase();
     const snapshot = getSnapshot(key);
     if (!snapshot || !Array.isArray(snapshot.records)) throw new Error('Snapshot not found');
+    const current = await readAllRecords();
     // Keep a copy of the current state so the restore itself can be undone
-    takeSnapshotIfDue(await readAllRecords(), true);
-    await writeRecords(snapshot.records, true);
-    mirrorReplaceAll(snapshot.records);
-    return snapshot.records.length;
+    takeSnapshotIfDue(current, true);
+    // Snapshots leave out embedded images: keep the current ones for matching records
+    const records = restoreOmittedFields(snapshot.records, current);
+    await writeRecords(records, true);
+    mirrorReplaceAll(records);
+    return records.length;
 }
 
 /**

@@ -1222,8 +1222,9 @@ function refreshBackupInfo() {
         return;
     }
     const lastExport = getLastFileExport();
-    info.textContent = `Every change is backed up to Tampermonkey storage (${mirrorGetAllRecords().length} records) ` +
-        `and restored automatically if site data is cleared. Last JSON export: ` +
+    info.textContent = `Settings are backed up to Tampermonkey storage (${mirrorGetAllRecords().length} records) ` +
+        `and restored automatically if site data is cleared. Uploaded images are too large for it ` +
+        `and are only kept in JSON exports. Last JSON export: ` +
         (lastExport ? new Date(lastExport).toLocaleString() : 'never') + '.';
 
     select.innerHTML = '';

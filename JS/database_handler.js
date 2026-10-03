@@ -1,5 +1,15 @@
 // database handler
-const CHAT_ID = window.location.pathname.split('/').filter(Boolean).pop();
+/**
+ * Chat ID from the current URL (the last path segment of /tavern/chat/<id>).
+ * @returns {string|undefined}
+ */
+function getChatIdFromUrl() {
+    return window.location.pathname.split('/').filter(Boolean).pop();
+}
+
+// The site navigates between pages without reloading, so the entry script refreshes this
+// whenever a chat page is entered (see initializeScript).
+let CHAT_ID = getChatIdFromUrl();
 
 console.log('Chat ID: ', CHAT_ID);
 /**
@@ -186,6 +196,7 @@ function createInitialSchema() {
  * @returns {Promise<CharacterRecord[K] | null>}
  */
 async function getCharacterField(CHAR_ID, field) {
+    if (!CHAR_ID) return null; // IndexedDB throws on an undefined key
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
@@ -224,6 +235,7 @@ async function deleteCharacterRecord(CHAR_ID) {
  * @returns {Promise<CharacterRecord|null>}
  */
 async function getCharacterRecord(CHAR_ID) {
+    if (!CHAR_ID) return null; // IndexedDB throws on an undefined key
     if (!db) await openDatabase();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');

@@ -213,10 +213,9 @@ function setFormElementValue(element, value, suppressEvents = false) {
 
 // Reset character settings to default
 function resetCharacterSettings(formElements, character_name_title, setCharacterAlias, setCharacterAliasColor, notification_resource_name, temp_form_data, character_image_container_resource_name, showInjectionNotification) {
-    const originalCharacterName = document.querySelector(character_name_title)?.textContent?.trim() || '';
     if (formElements.char_name_input) {
         formElements.char_name_input.value = '';
-        setCharacterAlias(originalCharacterName);
+        setCharacterAlias(''); // restores the site's own names
         delete temp_form_data.character_alias;
     }
     if (pickrInstances.char_name_color_input) {
@@ -726,9 +725,8 @@ async function applySettingsToUI(settings) {
         await applyImageSetting(settings.background_image, 'background');
     }
 
-    if (settings.character_alias) {
-        setCharacterAlias(settings.character_alias);
-    }
+    // Always call it: an empty alias clears one left over from a previous chat
+    setCharacterAlias(settings.character_alias || '');
 
     // Apply colors - use defaults if no_universal_colors is true and no explicit color is set
     const shouldUseDefaults = settings.no_universal_colors;
@@ -1019,8 +1017,7 @@ function handleCharacterImageUrl(characterImageUrlInput, formData) {
  * Gets character name from page elements
  */
 async function getCharacterNameFromPage() {
-    const characterNameElement = document.querySelector(character_name_title);
-    return characterNameElement?.textContent?.trim() || null;
+    return getOriginalCharacterName() || null;
 }
 
 /**

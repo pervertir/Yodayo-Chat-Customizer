@@ -77,18 +77,66 @@ async function setCharacterImage(imageData) {
     }
 }
 
+/** @type {string} alias currently shown; '' means the site's own names */
+let currentCharacterAlias = '';
+/** @type {MutationObserver|null} */
+let characterAliasObserver = null;
+let characterAliasQueued = false;
+
 /**
- * Sets the alias (character name) in the UI.
+ * Elements showing the character's name: the chat header title and the name above each message.
+ * @returns {HTMLElement[]}
+ */
+function getCharacterNameElements() {
+    const title = document.querySelector(character_name_title);
+    return [...document.querySelectorAll(character_name_selector), ...(title ? [title] : [])];
+}
+
+/**
+ * Original (site) character name, even while an alias is shown.
+ * @returns {string}
+ */
+function getOriginalCharacterName() {
+    const el = getCharacterNameElements()[0];
+    if (!el) return '';
+    return el.dataset.yccOriginalName ?? el.textContent.trim();
+}
+
+/**
+ * Writes the current alias (or the original names) into every name element.
+ * @returns {void}
+ */
+function applyCharacterAlias() {
+    characterAliasQueued = false;
+    getCharacterNameElements().forEach(el => {
+        if (currentCharacterAlias) {
+            if (el.dataset.yccOriginalName === undefined) el.dataset.yccOriginalName = el.textContent.trim();
+            if (el.textContent !== currentCharacterAlias) el.textContent = currentCharacterAlias;
+        } else if (el.dataset.yccOriginalName !== undefined) {
+            el.textContent = el.dataset.yccOriginalName;
+            delete el.dataset.yccOriginalName;
+        }
+    });
+}
+
+/**
+ * Sets the alias (character name) in the UI, including messages added or re-rendered later.
+ * An empty alias restores the site's own names.
  * @param {string} alias
  * @returns {void}
  */
 function setCharacterAlias(alias) {
-    const character_names = document.querySelectorAll(character_name_selector);
-    character_names.forEach((name) => {
-        name.textContent = alias;
-    });
-    const name_title = document.querySelector(character_name_title);
-    if (name_title) name_title.textContent = alias;
+    currentCharacterAlias = (alias || '').trim();
+    applyCharacterAlias();
+    if (!characterAliasObserver) {
+        // New and streamed messages, and React re-renders that put the original name back
+        characterAliasObserver = new MutationObserver(() => {
+            if (!currentCharacterAlias || characterAliasQueued) return;
+            characterAliasQueued = true;
+            requestAnimationFrame(applyCharacterAlias);
+        });
+        characterAliasObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    }
 }
 
 /**

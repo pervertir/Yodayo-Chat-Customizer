@@ -157,3 +157,27 @@ if (!document.documentElement.hasAttribute(CONTEXT_TRACKING_ATTR)) {
         if (e.target instanceof Element) e.target.setAttribute(CONTEXT_TARGET_ATTR, '');
     }, true);
 }
+
+// The 'Remove background' right-click script sends its result here, so it is kept for the
+// Save button even though right-clicking outside Customize Chat closes the popup.
+const SET_CHARACTER_IMAGE_EVENT = 'ycc:set-character-image';
+document.addEventListener(SET_CHARACTER_IMAGE_EVENT, (e) => {
+    const dataUrl = e.detail;
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) return;
+    e.preventDefault(); // tells the sender the Customizer took it
+    (async () => {
+        const blob = dataUrlToBlob(dataUrl); // the site's security policy blocks fetch() of data: URLs
+        const imageBase64 = await fileToBase64(new File([blob], 'character.png', { type: 'image/png' }));
+        setCharacterImage(imageBase64);
+        temp_form_data.character_image = imageBase64;
+        const urlInput = document.querySelector('#character-image-url-input');
+        if (urlInput) urlInput.value = '';
+    })().catch(err => console.error('Setting the character image failed:', err));
+});
+
+/** @param {string} dataUrl @returns {Blob} */
+function dataUrlToBlob(dataUrl) {
+    const [meta, data] = dataUrl.split(',', 2);
+    const type = (meta.match(/^data:([^;,]+)/) || [])[1] || 'image/png';
+    return new Blob([Uint8Array.from(atob(data), c => c.charCodeAt(0))], { type });
+}

@@ -54,7 +54,7 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
             method: 'GET',
             url: url,
             responseType: 'blob',
-            timeout: 10000,
+            timeout: 30000, // collection backgrounds are 2-4 MB
             onload: async function (response) {
                 if (response.status === 200) {
                     try {

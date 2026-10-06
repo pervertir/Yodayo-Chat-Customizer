@@ -394,12 +394,14 @@ function initializeCloseButtonEventHandler(form, formBody) {
     const handleMouseDown = (event) => {
         // Check if the click is on a Pickr color picker element
         const isPickrElement = event.target.closest('.pcr-app, .pcr-button, .pcr-palette, .pcr-slider, .pcr-interaction, .pcr-picker');
-        mouseDownOutside = !formBody.contains(event.target) && !isPickrElement;
+        // Clicks in the background browser (opened from this form) must not close the form
+        const isBgBrowser = event.target.closest('#' + BG_BROWSER_ID);
+        mouseDownOutside = !formBody.contains(event.target) && !isPickrElement && !isBgBrowser;
     };
     const handleMouseUp = (event) => {
         // Check if the click is on a Pickr color picker element
         const isPickrElement = event.target.closest('.pcr-app, .pcr-button, .pcr-palette, .pcr-slider, .pcr-interaction, .pcr-picker');
-        if (mouseDownOutside && !formBody.contains(event.target) && !isPickrElement) {
+        if (mouseDownOutside && !formBody.contains(event.target) && !isPickrElement && !event.target.closest('#' + BG_BROWSER_ID)) {
             closeModal();
         }
         mouseDownOutside = false;
@@ -423,6 +425,7 @@ function initializeCharacterSettingsEventHandlers(form) {
 
     // Initialize Pickr instances first
     initializePickrInstances(form);
+    addBrowseCollectionButton(form);
 
     // Cache all form elements once with error handling
     const formElements = {};
@@ -789,7 +792,7 @@ async function applyImageSetting(imageData, type) {
         try {
             const imageBase64 = await Promise.race([
                 urlToBase64(imageData),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 30000))
             ]);
             // Apply the converted base64 using standardized handling
             if (type === 'character') {

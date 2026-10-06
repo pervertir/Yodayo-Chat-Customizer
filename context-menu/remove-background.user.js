@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.2.0
+// @version      1.3.0
 // @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/*
@@ -33,6 +33,7 @@
     const CONTEXT_TARGET_ATTR = 'data-ycc-context-target';
     const CONTEXT_TRACKING_ATTR = 'data-ycc-context-tracking';
     const MAX_IMAGE_DEPTH = 3;
+    const SET_CHARACTER_IMAGE_EVENT = 'ycc:set-character-image';
     const CHARACTER_CONTAINER = '.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2';
 
     let note = null;
@@ -214,19 +215,14 @@
     }
 
     /**
-     * If the Customize Chat popup is open, hands it the PNG as if it had been picked in its
-     * character image field, so its Save button stores it.
-     * @param {Blob} png
-     * @returns {boolean}
+     * Hands the PNG to the Customizer, which shows it and keeps it for Customize Chat's Save button.
+     * The event is cancelled by the Customizer when it takes the image.
+     * @param {string} dataUrl
+     * @returns {boolean} whether the Customizer took it
      */
-    function giveToCustomizer(png) {
-        const input = document.querySelector('#character-image-file-input');
-        if (!input) return false;
-        const dt = new DataTransfer();
-        dt.items.add(new File([png], 'character.png', { type: 'image/png' }));
-        input.files = dt.files;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
+    function giveToCustomizer(dataUrl) {
+        const event = new CustomEvent(SET_CHARACTER_IMAGE_EVENT, { detail: dataUrl, cancelable: true });
+        return !document.dispatchEvent(event);
     }
 
     /**
@@ -272,10 +268,13 @@
 
         notify('Uploading image…', true);
         const png = await removeBackground(key, await loadImage(src));
-        showCharacterImage(await toDataUrl(png));
-        notify(giveToCustomizer(png)
-            ? 'Character image set. Press Save in Customize Chat to keep it.'
-            : 'Character image set for now. Run this with Customize Chat open to be able to save it.');
+        const dataUrl = await toDataUrl(png);
+        if (giveToCustomizer(dataUrl)) {
+            notify('Character image set. Open Customize Chat and press Save to keep it.');
+        } else {
+            showCharacterImage(dataUrl);
+            notify('Character image set until reload (the Customizer is needed to save it).');
+        }
     }
 
     // The menu command can't see what was right-clicked, so the element is remembered on right-click.

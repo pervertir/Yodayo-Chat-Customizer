@@ -17,7 +17,6 @@ const BG_COLLECTION = {
 };
 const BG_BROWSER_ID = 'ycc-bg-browser';
 const BG_INDEX_CACHE_KEY = 'ycc_bg_index';
-const BG_INDEX_TTL_MS = 60 * 60 * 1000;
 const BG_THUMB_WIDTH = 480;
 const BG_THUMB_CONCURRENCY = 6;
 
@@ -26,12 +25,17 @@ const bgThumbCache = new Map();
 
 /**
  * @param {string} path - repo path of the image
+ * @param {string} [sha] - git blob SHA; changes when the image is replaced, so the URL does too
  * @returns {string}
  */
-function bgRawUrl(path) {
+function bgRawUrl(path, sha) {
     const { owner, repo, branch } = BG_COLLECTION;
-    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path.split('/').map(encodeURIComponent).join('/')}`;
+    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path.split('/').map(encodeURIComponent).join('/')}`;
+    return sha ? `${url}?v=${sha.slice(0, 7)}` : url;
 }
+
+/** @param {string} url @returns {string} the URL without its ?v= version */
+const bgUrlKey = url => (url || '').split('?')[0];
 
 /**
  * @param {string} url
@@ -51,16 +55,20 @@ function bgRequest(url, responseType, timeout = 20000) {
 }
 
 /**
- * Lists the collection from the GitHub tree API (cached for an hour; one request per hour
- * keeps well inside GitHub's anonymous rate limit).
- * @param {boolean} [refresh=false]
+ * The list saved by the last successful fetch, shown instantly while a fresh one loads.
+ * @returns {{name: string, category: string, path: string, url: string}[]|null}
+ */
+function getCachedBackgroundCollection() {
+    const cached = GM_getValue(BG_INDEX_CACHE_KEY, null);
+    return cached && Array.isArray(cached.items) ? cached.items : null;
+}
+
+/**
+ * Lists the collection from the GitHub tree API (one request per opening of the browser,
+ * well inside GitHub's anonymous limit of 60 an hour) and saves it for next time.
  * @returns {Promise<{name: string, category: string, path: string, url: string}[]>}
  */
-async function getBackgroundCollection(refresh = false) {
-    const cached = GM_getValue(BG_INDEX_CACHE_KEY, null);
-    if (!refresh && cached && Date.now() - cached.time < BG_INDEX_TTL_MS && Array.isArray(cached.items)) {
-        return cached.items;
-    }
+async function fetchBackgroundCollection() {
     const { owner, repo, branch, dir, categories } = BG_COLLECTION;
     const tree = await bgRequest(
         `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`, 'json');
@@ -68,7 +76,7 @@ async function getBackgroundCollection(refresh = false) {
         .filter(n => n.type === 'blob' && n.path.startsWith(dir + '/') && /\.(jpe?g|png|webp)$/i.test(n.path))
         .map(n => {
             const rel = n.path.slice(dir.length + 1).split('/');
-            return { file: rel[rel.length - 1], category: rel.length > 1 ? rel[0] : '', path: n.path };
+            return { file: rel[rel.length - 1], category: rel.length > 1 ? rel[0] : '', path: n.path, sha: n.sha };
         })
         .filter(n => categories.includes(n.category))          // top-level files are plain fills
         .map(n => ({
@@ -76,7 +84,8 @@ async function getBackgroundCollection(refresh = false) {
                 .replace(/\b\w/g, c => c.toUpperCase()),
             category: n.category,
             path: n.path,
-            url: bgRawUrl(n.path),
+            sha: n.sha,
+            url: bgRawUrl(n.path, n.sha),
         }))
         // "bedroom clean.jpg" and "bedroom_clean.jpg" are the same image stored twice: list it once
         .filter((item, i, all) => all.findIndex(o => o.category === item.category && o.name === item.name) === i)
@@ -200,6 +209,14 @@ async function openBackgroundBrowser() {
                 <button data-cat="anime" class="rounded-md px-3 py-1.5 text-sm">Anime</button>
                 <button data-cat="realistic" class="rounded-md px-3 py-1.5 text-sm">Realistic</button>
               </div>
+              <button data-ycc-update type="button" title="Check GitHub for new or changed backgrounds"
+                class="flex items-center gap-1 rounded-md bg-tertiaryBg px-3 py-1.5 text-sm text-secondaryText hover:text-primaryText">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4" aria-hidden="true" style="pointer-events:none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                </svg>
+                Update
+              </button>
+              <span data-ycc-status class="text-xs text-secondaryText"></span>
               <input data-ycc-search type="search" placeholder="Search backgrounds…"
                 class="ml-auto w-64 rounded-md bg-tertiaryBg py-1.5 px-3 text-sm text-primaryText" />
             </div>
@@ -217,6 +234,8 @@ async function openBackgroundBrowser() {
     const search = root.querySelector('[data-ycc-search]');
     const tabs = root.querySelector('[data-ycc-tabs]');
     const footer = root.querySelector('[data-ycc-footer]');
+    const updateButton = root.querySelector('[data-ycc-update]');
+    const status = root.querySelector('[data-ycc-status]');
     const loader = new BgThumbLoader(grid);
     const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); closeBackgroundBrowser(); } };
     root._ycc = { loader, onKey };
@@ -241,7 +260,9 @@ async function openBackgroundBrowser() {
 
     let items = [];
     let category = '';
-    const current = (document.getElementById('bg-url-input') || {}).value || '';
+    /** @type {Map<string, 'New'|'Updated'>} path -> badge, set by the last Update */
+    const badges = new Map();
+    const current = bgUrlKey((document.getElementById('bg-url-input') || {}).value);
 
     const render = () => {
         const q = search.value.trim().toLowerCase();
@@ -256,12 +277,14 @@ async function openBackgroundBrowser() {
         }
         for (const item of shown) {
             const card = document.createElement('div');
-            const isCurrent = item.url === current;
+            const isCurrent = bgUrlKey(item.url) === current;
+            const badge = badges.get(item.path);
             card.className = 'flex flex-col overflow-hidden rounded-lg bg-secondaryBg shadow-md border ' +
                 (isCurrent ? 'border-primaryBtn' : 'border-[#22242b]');
             card.innerHTML = `
               <div class="relative w-full bg-tertiaryBg" style="aspect-ratio:16/9">
                 <img data-src="${item.url}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"/>
+                ${badge ? `<span class="absolute left-2 top-2 rounded bg-primaryBtn px-2 py-0.5 text-xs font-medium text-white">${badge}</span>` : ''}
               </div>
               <div class="flex items-center gap-2 p-3">
                 <div class="min-w-0 flex-1">
@@ -290,16 +313,46 @@ async function openBackgroundBrowser() {
     });
     search.addEventListener('input', render);
 
-    try {
-        items = await getBackgroundCollection();
-    } catch (e) {
-        console.error('Background collection failed to load:', e);
-        grid.innerHTML = `<p class="col-span-full text-center text-secondaryText">Couldn't load the collection (${e.message}). Try again in a minute.</p>`;
-        setFooter('Collection unavailable');
-        return;
-    }
-    render();
+    // Fetch the list from GitHub; when there was one before, mark what's new or changed
+    const update = async () => {
+        updateButton.disabled = true;
+        status.textContent = 'Checking GitHub…';
+        try {
+            const fresh = await fetchBackgroundCollection();
+            if (document.getElementById(BG_BROWSER_ID) !== root) return;
+            const before = new Map(items.map(i => [i.path, i.sha]));
+            let added = 0, changed = 0;
+            badges.clear();
+            for (const i of fresh) {
+                if (!before.has(i.path)) { if (before.size) { badges.set(i.path, 'New'); } added++; }
+                else if (before.get(i.path) && before.get(i.path) !== i.sha) { badges.set(i.path, 'Updated'); changed++; }
+            }
+            const removed = [...before.keys()].filter(p => !fresh.some(i => i.path === p)).length;
+            items = fresh;
+            render();
+            const parts = [];
+            if (before.size && added) parts.push(`${added} new`);
+            if (changed) parts.push(`${changed} updated`);
+            if (removed) parts.push(`${removed} removed`);
+            status.textContent = !before.size ? '' : parts.length ? parts.join(', ') : 'Up to date';
+        } catch (e) {
+            console.error('Background collection failed to load:', e);
+            status.textContent = `Update failed (${e.message})`;
+            if (!items.length) {
+                grid.innerHTML = `<p class="col-span-full text-center text-secondaryText">Couldn't load the collection (${e.message}). Try again in a minute.</p>`;
+                setFooter('Collection unavailable');
+            }
+        } finally {
+            updateButton.disabled = false;
+        }
+    };
+    updateButton.addEventListener('click', update);
+
+    // Open instantly from the saved list; only the first time (nothing saved) goes to GitHub
+    const cached = getCachedBackgroundCollection();
     search.focus();
+    if (cached && cached.length) { items = cached; render(); }
+    else await update();
 }
 
 /**

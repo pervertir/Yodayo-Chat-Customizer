@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.1.0
-// @description  Right-click an image (or the chat) > Tampermonkey > remove its background and show it as the character image
+// @version      1.2.0
+// @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
-// @match        https://yodayo.com/tavern/chat/*
-// @match        https://moescape.ai/tavern/chat/*
+// @match        https://yodayo.com/*
+// @match        https://moescape.ai/*
 // @icon         https://yodayo.com/favicon.ico
-// @run-at       context-menu
+// @run-at       document-idle
+// @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -261,6 +262,7 @@
     }
 
     async function run() {
+        if (!location.pathname.startsWith('/tavern/chat/')) return notify('Open a chat to set its character image.');
         // The right-clicked image (or one up to 3 levels inside the clicked element), else the chat background
         const src = clickedImageSrc() || chatBackgroundSrc();
         if (!src) return notify('No image found to remove the background from.');
@@ -276,9 +278,8 @@
             : 'Character image set for now. Run this with Customize Chat open to be able to save it.');
     }
 
-    // A context-menu script only starts after the menu is clicked, so the right-clicked element is
-    // remembered on right-click. The Customizer records it too; this listener covers pages where it
-    // isn't installed (the first use on such a page falls back to the chat background).
+    // The menu command can't see what was right-clicked, so the element is remembered on right-click.
+    // (The Customizer records it the same way; whichever loads first adds the listener.)
     if (!document.documentElement.hasAttribute(CONTEXT_TRACKING_ATTR)) {
         document.documentElement.setAttribute(CONTEXT_TRACKING_ATTR, '');
         window.addEventListener('contextmenu', (e) => {
@@ -287,5 +288,9 @@
         }, true);
     }
 
-    run().catch(e => notify('Remove background failed: ' + e.message));
+    // A registered command (rather than @run-at context-menu) stays in the menu after each use.
+    // The site navigates without reloading, so it is registered on every page and checks the URL when used.
+    GM_registerMenuCommand('Remove background', () => {
+        run().catch(e => notify('Remove background failed: ' + e.message));
+    });
 })();

@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.0.0
-// @description  Right-click > Tampermonkey > cut the character out of the chat background and show it as the character image
+// @version      1.1.0
+// @description  Right-click an image (or the chat) > Tampermonkey > remove its background and show it as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/tavern/chat/*
 // @match        https://moescape.ai/tavern/chat/*
@@ -29,6 +29,9 @@
     const KEY_NAME = 'imagetools_api_key';
     const POLL_MS = 1000;
     const MAX_POLLS = 120;
+    const CONTEXT_TARGET_ATTR = 'data-ycc-context-target';
+    const CONTEXT_TRACKING_ATTR = 'data-ycc-context-tracking';
+    const MAX_IMAGE_DEPTH = 3;
     const CHARACTER_CONTAINER = '.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2';
 
     let note = null;
@@ -140,7 +143,7 @@
             return new Blob([bytes], { type: type.startsWith('image/') ? type : 'image/png' });
         }
         const r = await request({ method: 'GET', url: new URL(src, location.href).href, responseType: 'blob' });
-        if (r.status !== 200) throw new Error(`Could not download the background (HTTP ${r.status})`);
+        if (r.status !== 200) throw new Error(`Could not download the image (HTTP ${r.status})`);
         const ext = (src.match(/\.(png|webp|gif)(\?|$)/i) || [])[1];
         const type = r.response.type && r.response.type.startsWith('image/') ? r.response.type
             : (ext ? 'image/' + ext.toLowerCase() : 'image/jpeg');
@@ -157,7 +160,7 @@
         if (image.size > 10 * 1024 * 1024) throw new Error('Image is over the 10 MB limit.');
         const ext = (image.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
         const form = new FormData();
-        form.append('file', image, `background.${ext}`);
+        form.append('file', image, `image.${ext}`);
 
         const submit = await api(key, { method: 'POST', url: `${API}/process`, data: form, responseType: 'json' });
         if (submit.status !== 200) throw new Error('Submit failed: ' + errorDetail(submit));
@@ -225,23 +228,63 @@
         return true;
     }
 
-    async function run() {
+    /**
+     * First <img> at or inside `root`, searching at most `maxDepth` levels down (shallowest first).
+     * @param {Element} root
+     * @param {number} maxDepth
+     * @returns {HTMLImageElement|null}
+     */
+    function findImage(root, maxDepth) {
+        let level = [root];
+        for (let depth = 0; depth <= maxDepth && level.length; depth++) {
+            const img = level.find(el => el.tagName === 'IMG' && (el.currentSrc || el.src));
+            if (img) return img;
+            level = level.flatMap(el => [...el.children]);
+        }
+        return null;
+    }
+
+    /** @returns {string|null} the image that was right-clicked, if any */
+    function clickedImageSrc() {
+        const target = document.querySelector(`[${CONTEXT_TARGET_ATTR}]`);
+        const img = target && findImage(target, MAX_IMAGE_DEPTH);
+        return img ? (img.currentSrc || img.src) : null;
+    }
+
+    /** @returns {string|null} */
+    function chatBackgroundSrc() {
         // The sharp background layer (the bg-cover one is a blurred copy behind it)
         const layer = [...document.querySelectorAll('div.bg-no-repeat, div.bg-cover')]
             .sort((a, b) => b.classList.contains('bg-no-repeat') - a.classList.contains('bg-no-repeat'))
             .find(el => cssImageUrl(el));
-        const src = cssImageUrl(layer);
-        if (!src) return notify('No background image on this page.');
+        return cssImageUrl(layer);
+    }
+
+    async function run() {
+        // The right-clicked image (or one up to 3 levels inside the clicked element), else the chat background
+        const src = clickedImageSrc() || chatBackgroundSrc();
+        if (!src) return notify('No image found to remove the background from.');
 
         const key = getApiKey();
         if (!key) return notify('No API key entered.');
 
-        notify('Uploading background…', true);
+        notify('Uploading image…', true);
         const png = await removeBackground(key, await loadImage(src));
         showCharacterImage(await toDataUrl(png));
         notify(giveToCustomizer(png)
             ? 'Character image set. Press Save in Customize Chat to keep it.'
             : 'Character image set for now. Run this with Customize Chat open to be able to save it.');
+    }
+
+    // A context-menu script only starts after the menu is clicked, so the right-clicked element is
+    // remembered on right-click. The Customizer records it too; this listener covers pages where it
+    // isn't installed (the first use on such a page falls back to the chat background).
+    if (!document.documentElement.hasAttribute(CONTEXT_TRACKING_ATTR)) {
+        document.documentElement.setAttribute(CONTEXT_TRACKING_ATTR, '');
+        window.addEventListener('contextmenu', (e) => {
+            document.querySelectorAll(`[${CONTEXT_TARGET_ATTR}]`).forEach(el => el.removeAttribute(CONTEXT_TARGET_ATTR));
+            if (e.target instanceof Element) e.target.setAttribute(CONTEXT_TARGET_ATTR, '');
+        }, true);
     }
 
     run().catch(e => notify('Remove background failed: ' + e.message));

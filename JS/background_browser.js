@@ -203,8 +203,8 @@ async function openBackgroundBrowser() {
               <input data-ycc-search type="search" placeholder="Search backgrounds…"
                 class="ml-auto w-64 rounded-md bg-tertiaryBg py-1.5 px-3 text-sm text-primaryText" />
             </div>
-            <div data-ycc-grid
-              class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto overflow-x-hidden p-6 bg-primaryBg content-start">
+            <div data-ycc-grid style="grid-auto-rows:max-content;align-content:start"
+              class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 overflow-y-auto overflow-x-hidden p-6 bg-primaryBg">
               <p class="col-span-full text-center text-secondaryText">Loading collection…</p>
             </div>
             <div data-ycc-footer class="p-2 bg-secondaryBg text-secondaryText text-center text-sm border-t border-[#22242b]"></div>

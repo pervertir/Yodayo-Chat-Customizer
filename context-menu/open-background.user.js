@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Yodayo: Open background in new tab
 // @namespace    MOESCAPE
-// @version      1.0.0
+// @version      1.1.0
 // @description  Right-click > Tampermonkey > open the chat background (yours or the site's) in a new tab
 // @author       Pervertir
-// @match        https://yodayo.com/tavern/chat/*
-// @match        https://moescape.ai/tavern/chat/*
+// @match        https://yodayo.com/*
+// @match        https://moescape.ai/*
 // @icon         https://yodayo.com/favicon.ico
-// @run-at       context-menu
+// @run-at       document-idle
+// @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
 // @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-background.user.js
 // @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-background.user.js
@@ -54,11 +55,16 @@
         return m ? m[2] : null;
     }
 
-    // The sharp background layer (the bg-cover one is a blurred copy behind it)
-    const layer = [...document.querySelectorAll('div.bg-no-repeat, div.bg-cover')]
-        .sort((a, b) => b.classList.contains('bg-no-repeat') - a.classList.contains('bg-no-repeat'))
-        .find(el => cssImageUrl(el));
-    const src = cssImageUrl(layer);
-    if (src) openImage(src).catch(e => notify('Could not open the background: ' + e.message));
-    else notify('No background image on this page.');
+    // A registered command (rather than @run-at context-menu) stays in the menu after each use.
+    // The site navigates without reloading, so it is registered on every page and checks the URL when used.
+    GM_registerMenuCommand('Open background in new tab', () => {
+        if (!location.pathname.startsWith('/tavern/chat/')) return notify('Open a chat first.');
+        // The sharp background layer (the bg-cover one is a blurred copy behind it)
+        const layer = [...document.querySelectorAll('div.bg-no-repeat, div.bg-cover')]
+            .sort((a, b) => b.classList.contains('bg-no-repeat') - a.classList.contains('bg-no-repeat'))
+            .find(el => cssImageUrl(el));
+        const src = cssImageUrl(layer);
+        if (src) openImage(src).catch(e => notify('Could not open the background: ' + e.message));
+        else notify('No background image on this page.');
+    });
 })();

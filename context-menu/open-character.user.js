@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Yodayo: Open character in new tab
 // @namespace    MOESCAPE
-// @version      1.0.0
+// @version      1.1.0
 // @description  Right-click > Tampermonkey > open the character image (yours or the site's) in a new tab
 // @author       Pervertir
-// @match        https://yodayo.com/tavern/chat/*
-// @match        https://moescape.ai/tavern/chat/*
+// @match        https://yodayo.com/*
+// @match        https://moescape.ai/*
 // @icon         https://yodayo.com/favicon.ico
-// @run-at       context-menu
+// @run-at       document-idle
+// @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
 // @updateURL    https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-character.user.js
 // @downloadURL  https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-character.user.js
@@ -54,10 +55,15 @@
         return m ? m[2] : null;
     }
 
-    // Customizer's image first, then the site's own character image
-    const img = document.querySelector('#character-image-container img[src]') ||
-        document.querySelector('img.mx-auto.h-full.w-auto.object-contain.object-bottom[src]');
-    const src = img && (img.currentSrc || img.src);
-    if (src) openImage(src).catch(e => notify('Could not open the character image: ' + e.message));
-    else notify('No character image on this page.');
+    // A registered command (rather than @run-at context-menu) stays in the menu after each use.
+    // The site navigates without reloading, so it is registered on every page and checks the URL when used.
+    GM_registerMenuCommand('Open character in new tab', () => {
+        if (!location.pathname.startsWith('/tavern/chat/')) return notify('Open a chat first.');
+        // Customizer's image first, then the site's own character image
+        const img = document.querySelector('#character-image-container img[src]') ||
+            document.querySelector('img.mx-auto.h-full.w-auto.object-contain.object-bottom[src]');
+        const src = img && (img.currentSrc || img.src);
+        if (src) openImage(src).catch(e => notify('Could not open the character image: ' + e.message));
+        else notify('No character image on this page.');
+    });
 })();

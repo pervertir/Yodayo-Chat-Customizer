@@ -77,7 +77,7 @@ Images not listed here were already in the collection before this file was creat
 | realistic/painted_room.jpg | This Photo was taken by Wolfgang Moroder.  
 
 Feel free to us | CC BY-SA 3.0 | [Villa Igiea a Palermo salone liberty.jpg](https://commons.wikimedia.org/wiki/File:Villa_Igiea_a_Palermo_salone_liberty.jpg) |
-| realistic/palace_ballroom | Aleks G | CC BY-SA 3.0 | [Царское-село,-Екатерининский-дворец.jpg](https://commons.wikimedia.org/wiki/File:%D0%A6%D0%B0%D1%80%D1%81%D0%BA%D0%BE%D0%B5-%D1%81%D0%B5%D0%BB%D0%BE,-%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9-%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86.jpg) |
+| realistic/palace_ballroom.jpg | Aleks G | CC BY-SA 3.0 | [Царское-село,-Екатерининский-дворец.jpg](https://commons.wikimedia.org/wiki/File:%D0%A6%D0%B0%D1%80%D1%81%D0%BA%D0%BE%D0%B5-%D1%81%D0%B5%D0%BB%D0%BE,-%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9-%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86.jpg) |
 | realistic/palace_courtyard_room.jpg | Diego Delso | CC BY-SA 4.0 | [Iglesia de San Félix, Torralba de Ribota, Zaragoza, España, 2018-04-04, DD 51-53 HDR.jpg](https://commons.wikimedia.org/wiki/File:Iglesia_de_San_F%C3%A9lix,_Torralba_de_Ribota,_Zaragoza,_Espa%C3%B1a,_2018-04-04,_DD_51-53_HDR.jpg) |
 | realistic/palace_stair_hall.jpg | Hubertl | CC BY-SA 4.0 | [Universität Wien - Vestibül großer Festsaal Stiegenhaus-2186.jpg](https://commons.wikimedia.org/wiki/File:Universit%C3%A4t_Wien_-_Vestib%C3%BCl_gro%C3%9Fer_Festsaal_Stiegenhaus-2186.jpg) |
 | realistic/persian_palace_hall.jpg | Amir Pashaei | CC BY-SA 4.0 | [A room in Tabatabai House, Kashan, Iran.jpg](https://commons.wikimedia.org/wiki/File:A_room_in_Tabatabai_House,_Kashan,_Iran.jpg) |

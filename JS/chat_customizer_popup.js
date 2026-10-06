@@ -573,6 +573,31 @@ function initializeCharacterSettingsEventHandlers(form) {
         resetColorSettings(formElements);
     });
 
+    // Cut the character out of the current background and use it as the character image
+    const removeBgButton = form.querySelector('#character-remove-bg-button');
+    removeBgButton?.addEventListener('click', async function () {
+        const label = removeBgButton.textContent;
+        const setStatus = (text) => { removeBgButton.textContent = text; };
+        removeBgButton.disabled = true;
+        try {
+            const src = getCurrentBackgroundSrc();
+            if (!src) throw new Error('No background image on this page.');
+            setStatus('Loading background…');
+            const png = await removeImageBackground(await loadImageBlob(src), setStatus);
+            const imageBase64 = await fileToBase64(new File([png], 'character.png', { type: 'image/png' }));
+            setCharacterImage(imageBase64);
+            updateTemp('character_image', imageBase64);
+            if (formElements.char_image_url_input) formElements.char_image_url_input.value = '';
+            showInjectionNotification(notification_resource_name, null, 'Character image set. Press Save to keep it.');
+        } catch (e) {
+            console.error('Background removal failed:', e);
+            alert('Remove background failed: ' + e.message);
+        } finally {
+            removeBgButton.textContent = label;
+            removeBgButton.disabled = false;
+        }
+    });
+
     // Add event listener for no-universal-checkbox
     formElements.noUniversalCheckbox?.addEventListener('change', async function () {
         if (formElements.noUniversalCheckbox.checked) {

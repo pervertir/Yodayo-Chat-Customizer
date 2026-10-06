@@ -145,3 +145,15 @@ async function removeImageBackground(image, onProgress = () => {}) {
     }
     throw new Error('Timed out waiting for background removal.');
 }
+
+// Remember the right-clicked element for the 'Remove background' context-menu script
+// (context-menu scripts only start after the menu item is clicked, so they can't see it).
+const CONTEXT_TARGET_ATTR = 'data-ycc-context-target';
+const CONTEXT_TRACKING_ATTR = 'data-ycc-context-tracking';
+if (!document.documentElement.hasAttribute(CONTEXT_TRACKING_ATTR)) {
+    document.documentElement.setAttribute(CONTEXT_TRACKING_ATTR, '');
+    window.addEventListener('contextmenu', (e) => {
+        document.querySelectorAll(`[${CONTEXT_TARGET_ATTR}]`).forEach(el => el.removeAttribute(CONTEXT_TARGET_ATTR));
+        if (e.target instanceof Element) e.target.setAttribute(CONTEXT_TARGET_ATTR, '');
+    }, true);
+}

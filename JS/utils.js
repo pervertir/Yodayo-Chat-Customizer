@@ -265,8 +265,12 @@ async function addMenuItem(targetElement, itemId, resourceName) {
         return Promise.resolve(null);
     }
 
+    // The site's menu scrolls inside an inner .overflow-y-auto box (max-height = viewport) while the
+    // outer box clips. Items added to the outer box made the menu taller than the screen and the
+    // bottom was cut off, so add them inside the scrolling box when there is one.
+    const scrollBox = targetElement.querySelector(':scope > .overflow-y-auto');
     return renderHTMLFromFile(resourceName).then(item => {
-        targetElement.appendChild(item);
+        (scrollBox || targetElement).appendChild(item);
         console.log(item, `menu item added.`);
         return item;
     });

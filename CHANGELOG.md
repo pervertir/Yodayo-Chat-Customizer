@@ -9,6 +9,13 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.13.2] - 2026-10-26
+
+### Fixed
+- Card Viewer: chats set up by 1.13.0 (cut-out on the character, random background on the chat) showed as two cards; the background is now moved onto the character, leaving one card.
+- Card Viewer: cards no longer show broken-image icons and "Background" while their images load; they shimmer until the images arrive, and images load as cards scroll into view, so the visible ones fill in first.
+- Card Viewer: cards for characters with only a background now show that background at full brightness, chat cards use their character's saved images when the chat has none, private characters' images and names load, and deleted characters are tagged **Deleted**.
+
 ## [1.13.1] - 2026-10-26
 
 ### Added
@@ -264,6 +271,9 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.13.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.13.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/ef21663
+[1.13.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/2954951
 [1.12.6]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
 [1.12.4]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/7c68b91
 [1.12.3]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/c4c4942

@@ -360,7 +360,7 @@ async function renderAllCardsInDiv() {
     request.onsuccess = async function (event) {
         try {
             /** @type {CharacterRecord[]} */
-            let records = event.target.result.filter(r => r.CHAR_ID !== 'Universal');
+            let records = await mergeNewChatLeftovers(event.target.result.filter(r => r.CHAR_ID !== 'Universal'));
             console.log('Raw records from DB:', records.length);
             console.log('First record full details:', records[0]);
             console.log('All records timestamps:', records.map(r => ({
@@ -384,8 +384,11 @@ async function renderAllCardsInDiv() {
             // Pre-load card template once
             const cardTemplate = await renderHTMLFromFile(card_layout_resource_name);
             
+            // Chat cards fall back to their character's saved theme, as the chat itself does
+            const recordsById = new Map(records.map(r => [r.CHAR_ID, r]));
+
             // Process all cards in parallel
-            const cardPromises = records.map(record => processCardData(record, cardTemplate.cloneNode(true)));
+            const cardPromises = records.map(record => processCardData(record, cardTemplate.cloneNode(true), recordsById));
             const processedCards = await Promise.all(cardPromises);
             
             // Clear loading animation and add cards
@@ -406,6 +409,7 @@ async function renderAllCardsInDiv() {
             });
             
             cardContainer.appendChild(fragment);
+            observeCardImages(cardContainer);
         } catch (error) {
             console.error('Error loading cards:', error);
             showErrorMessage(cardContainer, 'Failed to load character cards');
@@ -416,6 +420,37 @@ async function renderAllCardsInDiv() {
         console.error('Failed to load character records:', e.target.error);
         showErrorMessage(cardContainer, 'Database error occurred');
     };
+}
+
+/**
+ * Versions before 1.13.1 set up a new chat by saving the cut-out on the character and the random
+ * background on the chat, which showed as two cards. Such chat records (only a background, saved
+ * within a minute of the character's cut-out) are moved onto the character, leaving one card.
+ * @param {CharacterRecord[]} records
+ * @returns {Promise<CharacterRecord[]>} the records left
+ */
+async function mergeNewChatLeftovers(records) {
+    const byId = new Map(records.map(r => [r.CHAR_ID, r]));
+    const leftovers = records.filter(r => r.record_type === 'chat' && r.background_image &&
+        Object.keys(r).every(key => ['CHAR_ID', 'background_image', 'record_type', 'timestamp'].includes(key)));
+    const merged = new Set();
+    await Promise.all(leftovers.map(async chat => {
+        const info = await getCardSiteInfo(chat);
+        if (!info || info.characters.length !== 1) return;
+        const character = byId.get(info.characters[0].uuid);
+        if (!character?.character_image || character.background_image) return;
+        const chatTime = getTimestampMs(chat.timestamp), characterTime = getTimestampMs(character.timestamp);
+        if (!chatTime || !characterTime || Math.abs(chatTime - characterTime) > 60000) return;
+        try {
+            await saveCharacterFieldsBatch(character.CHAR_ID, { background_image: chat.background_image, record_type: 'character' });
+            await deleteCharacterRecord(chat.CHAR_ID);
+            character.background_image = chat.background_image;
+            merged.add(chat.CHAR_ID);
+        } catch (e) {
+            console.error(`Could not merge chat ${chat.CHAR_ID} into its character:`, e);
+        }
+    }));
+    return merged.size ? records.filter(r => !merged.has(r.CHAR_ID)) : records;
 }
 
 /**
@@ -480,7 +515,13 @@ function getCardSiteInfo(record) {
                     return { name: characters.map(c => c.nickname).join(' & '), characters };
                 }
                 const url = `https://api.${location.hostname.replace(/^www\./, '')}/v1/characters/${record.CHAR_ID}`;
-                const c = await bgRequest(url, 'json');
+                // Private characters need the user's cookies, which the page's own fetch sends
+                let response;
+                try {
+                    response = await fetch(url, { credentials: 'include' });
+                } catch (e) { /* blocked: go through the userscript manager */ }
+                if (response && !response.ok) throw new Error(`HTTP ${response.status}`);
+                const c = response ? await response.json() : await bgRequest(url, 'json');
                 const character = {
                     uuid: c.uuid, name: c.name || c.nickname || '', nickname: c.nickname || c.name || '',
                     image: c.photos?.[0]?.url || '', background: c.background_photos?.[0]?.url || '',
@@ -516,6 +557,11 @@ function getCardName(record, info) {
     return record.character_alias || record.character_name || info?.name || 'Unknown';
 }
 
+/** @param {CardSiteInfo|null} info @returns {boolean} the chat or character was deleted from the site */
+function isCardDeleted(info) {
+    return !!info && !info.characters.length && /^Deleted /.test(info.name);
+}
+
 /**
  * Images of the characters on a card. Group chats: each character's custom image or cut-out,
  * else its site photo. Otherwise the saved character image, else the site photo.
@@ -523,13 +569,25 @@ function getCardName(record, info) {
  * @param {CardSiteInfo|null} info
  * @returns {string[]} image data or URLs
  */
-function getCardCharacterImages(record, info) {
+function getCardCharacterImages(record, info, characterRecord) {
     if (info && info.characters.length > 1) {
         return info.characters.map(c => record[groupFieldKey('character_image', c.uuid)] ||
             record[groupFieldKey(GROUP_CUTOUT_FIELD, c.uuid)] || c.image).filter(Boolean);
     }
-    const image = record.character_image || info?.characters[0]?.image;
+    const image = record.character_image || characterRecord?.character_image || info?.characters[0]?.image;
     return image ? [image] : [];
+}
+
+/**
+ * The saved character theme behind a single-character chat card, if any.
+ * @param {CharacterRecord} record
+ * @param {CardSiteInfo|null} info
+ * @param {Map<string, CharacterRecord>} recordsById
+ * @returns {CharacterRecord|null}
+ */
+function getCardCharacterRecord(record, info, recordsById) {
+    if (record.record_type !== 'chat' || !info || info.characters.length !== 1) return null;
+    return recordsById.get(info.characters[0].uuid) || null;
 }
 
 /**
@@ -539,8 +597,9 @@ function getCardCharacterImages(record, info) {
  * @param {CardSiteInfo|null} info
  * @returns {string}
  */
-function getCardBackground(record, info) {
-    let background = record.background_image || record.default_background_image || '';
+function getCardBackground(record, info, characterRecord) {
+    let background = record.background_image || record.default_background_image ||
+        characterRecord?.background_image || characterRecord?.default_background_image || '';
     const urlMatch = background.match(/^url\(['"]?([^'"]+)['"]?\)$/);
     if (urlMatch) background = urlMatch[1];
     if (background) return background;
@@ -552,9 +611,10 @@ function getCardBackground(record, info) {
  * Processes a single card's data and images
  * @param {CharacterRecord} record
  * @param {HTMLElement} cardElement
+ * @param {Map<string, CharacterRecord>} [recordsById] all records, for chat cards' character themes
  * @returns {Promise<HTMLElement|null>}
  */
-async function processCardData(record, cardElement) {
+async function processCardData(record, cardElement, recordsById = new Map()) {
     try {
         // Set the card container ID to the character ID
         cardElement.id = record.CHAR_ID;
@@ -591,15 +651,46 @@ async function processCardData(record, cardElement) {
 
         // Name and images come in once the site details are known; the card shows meanwhile
         if (elements.nameSpan) elements.nameSpan.textContent = getCardName(record, null);
-        const imagesReady = getCardSiteInfo(record).then(async info => {
-            if (elements.nameSpan) elements.nameSpan.textContent = getCardName(record, info);
-            if (info && info.characters.length > 1 && elements.cardTypeTag) elements.cardTypeTag.textContent = 'Group';
-            await Promise.all([
-                elements.bgImg && setCardBackgroundImage(elements.bgImg, getCardBackground(record, info)),
-                elements.charImg && setCardCharacterImages(elements.charImg, getCardCharacterImages(record, info)),
-            ]);
+        const infoReady = getCardSiteInfo(record).then(info => {
+            const characterRecord = getCardCharacterRecord(record, info, recordsById);
+            if (elements.nameSpan) {
+                elements.nameSpan.textContent = getCardName(record, info);
+                elements.nameSpan.title = elements.nameSpan.textContent;
+            }
+            if (elements.cardTypeTag) {
+                if (isCardDeleted(info)) {
+                    elements.cardTypeTag.textContent = 'Deleted';
+                    elements.cardTypeTag.style.backgroundColor = 'rgba(220, 38, 38, 0.7)';
+                    elements.cardTypeTag.style.borderColor = '#fca5a5';
+                } else if (info && info.characters.length > 1) {
+                    elements.cardTypeTag.textContent = 'Group';
+                }
+            }
+            return {
+                background: getCardBackground(record, info, characterRecord),
+                characters: getCardCharacterImages(record, info, characterRecord),
+            };
         });
-        imagesReady.catch(e => console.error('Card images failed:', e));
+        // Images load when the card comes into view (see observeCardImages)
+        cardElement.loadCardImages = () => infoReady.then(async ({ background, characters }) => {
+            const cardFront = cardElement.querySelector('.card-front');
+            // A background without a character image usually shows the character itself: show it fully
+            if (elements.bgImg && !characters.length) elements.bgImg.classList.remove('opacity-50');
+            await Promise.all([
+                elements.bgImg && setCardBackgroundImage(elements.bgImg, background),
+                elements.charImg && setCardCharacterImages(elements.charImg, characters),
+            ]);
+            cardFront?.classList.remove('card-loading');
+            if (!background && !characters.length && cardFront && !cardFront.querySelector('.card-no-image')) {
+                const note = document.createElement('div');
+                note.className = 'card-no-image';
+                note.textContent = 'No image';
+                cardFront.firstElementChild?.prepend(note);
+            }
+        }).catch(e => {
+            console.error('Card images failed:', e);
+            cardElement.querySelector('.card-front')?.classList.remove('card-loading');
+        });
 
         // Batch set color values
         const colorMappings = [
@@ -701,7 +792,7 @@ async function setCardCharacterImages(charImg, images) {
     const share = 100 / images.length;
     const imgs = images.map((_, i) => {
         const img = document.createElement('img');
-        img.alt = 'Character';
+        img.alt = '';
         img.style.cssText = `position:relative; height:100%; width:${share + 12}%; min-width:0; object-fit:contain; ` +
             `object-position:bottom; z-index:${images.length - i};` + (i ? ' margin-left:-12%;' : '');
         return img;
@@ -709,6 +800,32 @@ async function setCardCharacterImages(charImg, images) {
     row.append(...imgs);
     charImg.replaceWith(row);
     await Promise.all(images.map((image, i) => setImageSource(imgs[i], image)));
+}
+
+/**
+ * Loads each card's images once it comes near the visible part of the viewer, so the cards on
+ * screen fill in first instead of waiting behind every other card's downloads.
+ * @param {HTMLElement} cardContainer
+ * @returns {void}
+ */
+function observeCardImages(cardContainer) {
+    const cards = [...cardContainer.children].filter(card => card.loadCardImages);
+    const load = card => {
+        const loadImages = card.loadCardImages;
+        delete card.loadCardImages;
+        loadImages?.();
+    };
+    if (!('IntersectionObserver' in window)) {
+        cards.forEach(load);
+        return;
+    }
+    const observer = new IntersectionObserver(entries => {
+        entries.filter(entry => entry.isIntersecting).forEach(entry => {
+            observer.unobserve(entry.target);
+            load(entry.target);
+        });
+    }, { rootMargin: '600px 0px' });
+    cards.forEach(card => observer.observe(card));
 }
 
 /** Size of the downscaled copies shown on cards */
@@ -723,6 +840,10 @@ const CARD_THUMB_WIDTH = 640;
  * @returns {Promise<void>}
  */
 async function setImageSource(imgElement, imageData) {
+    // Hidden until it has loaded, so no broken-image icon shows meanwhile
+    imgElement.classList.add('card-img-pending');
+    imgElement.onload = () => imgElement.classList.remove('card-img-pending');
+    imgElement.onerror = () => { imgElement.style.display = 'none'; };
     if (!isImageUrl(imageData)) {
         // Use standardized image data handling for base64/data URLs
         imgElement.src = normalizeImageData(imageData);
@@ -819,6 +940,30 @@ function injectCardFlipCSS() {
         
         .card-back {
             transform: rotateY(180deg);
+        }
+
+        /* Cards whose images are still loading */
+        .card-img-pending {
+            visibility: hidden;
+        }
+        .card-front.card-loading {
+            background-image: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+            background-size: 250% 100%;
+            animation: card-shimmer 1.4s linear infinite;
+        }
+        @keyframes card-shimmer {
+            from { background-position: 100% 0; }
+            to { background-position: -150% 0; }
+        }
+        .card-no-image {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #71717a;
+            font-size: 0.875rem;
+            pointer-events: none;
         }
         
         .card-front:hover {

@@ -3,7 +3,7 @@
   <div class="card-inner relative w-full h-96">
     
     <!-- Front Side (Character Display) -->
-    <div class="card-front absolute inset-0 w-full h-full bg-secondaryBg rounded-lg shadow-lg border border-zinc-800 cursor-pointer">
+    <div class="card-front card-loading absolute inset-0 w-full h-full bg-secondaryBg rounded-lg shadow-lg border border-zinc-800 cursor-pointer">
       <div class="w-full h-full flex flex-col items-center relative">
         <!-- Card Type Tag (top left) -->
         <div id="card-type-tag" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold shadow bg-blue-700 text-white border border-blue-300 z-30 select-none pointer-events-none">
@@ -11,11 +11,11 @@
         </div>
         <div class="relative w-full h-full flex flex-col items-center justify-end">
           <!-- Background Image -->
-          <img id="card-bg-image" src="bg.png" alt="Background"
-            class="absolute inset-0 w-full h-full object-cover rounded-lg shadow z-0 opacity-50 pointer-events-none" />
+          <img id="card-bg-image" alt=""
+            class="card-img-pending absolute inset-0 w-full h-full object-cover rounded-lg shadow z-0 opacity-50 pointer-events-none" />
           <!-- Character Image (transparent background expected) -->
-          <img id="card-character-image" src="sakura.png" alt="Character"
-            class="absolute inset-0 w-full h-full object-contain rounded-lg shadow z-10 pointer-events-none" />
+          <img id="card-character-image" alt=""
+            class="card-img-pending absolute inset-0 w-full h-full object-contain rounded-lg shadow z-10 pointer-events-none" />
           <!-- Character Name -->
           <div id="card-character-name"
             class="relative w-full bg-black/40 text-white px-2 py-1 rounded-b-lg text-lg font-semibold z-20 flex items-center justify-between border-t border-zinc-700 shadow">

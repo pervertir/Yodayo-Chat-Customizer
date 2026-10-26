@@ -7,7 +7,7 @@ This repository includes an automatic version bumping system for the `MoescapeCu
 The version number in `MoescapeCustomUI.user.js` is **automatically bumped on EVERY commit**, regardless of which files are changed. The git hooks handle everything automatically:
 
 1. **Pre-commit hook**: Always performs a patch version bump first
-2. **Commit-msg hook**: Checks your commit message and adjusts to major/minor if needed
+2. **Post-commit hook**: If the commit title has `[minor]` or `[major]`, amends the commit so the version is a minor/major bump instead (the version change lands in the same commit, nothing is left staged)
 
 ## Usage
 
@@ -36,7 +36,6 @@ git commit -m "[major] complete rewrite of the customizer"
 - The updated userscript file is automatically staged and included in the commit
 - All logic is contained within git hooks - no external scripts needed
 - Keywords `[major]` and `[minor]` can appear anywhere in the commit message
-- Current version: 1.7.1
 
 ## Examples
 

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Turn the pre-commit patch bump into a minor or major bump when the commit title asks for it:
+# [major] - major version bump
+# [minor] - minor version bump
+#
+# This can't be done in commit-msg: by then the commit's files are already decided, so the new
+# version was left staged for the next commit. Instead the finished commit is amended here, with
+# only the userscript changed (a temporary index keeps anything else staged out of it).
+
+# Don't run for the amend below, or while rebasing, cherry-picking or merging
+[ -n "$YCC_VERSION_AMEND" ] && exit 0
+GIT_DIR=$(git rev-parse --git-dir)
+if [ -d "$GIT_DIR/rebase-merge" ] || [ -d "$GIT_DIR/rebase-apply" ] || [ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] || [ -f "$GIT_DIR/MERGE_HEAD" ]; then
+    exit 0
+fi
+
+USERSCRIPT="MoescapeCustomUI.user.js"
+COMMIT_TITLE=$(git log -1 --format=%s)
+
+version_of() {
+    git show "$1:$USERSCRIPT" 2>/dev/null | grep -m1 "@version" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
+}
+
+CURRENT_VERSION=$(version_of HEAD)
+[ -z "$CURRENT_VERSION" ] && exit 0
+# The version before this commit (the pre-commit hook already added a patch bump on top of it)
+BASE_VERSION=$(version_of HEAD~1)
+[ -z "$BASE_VERSION" ] && BASE_VERSION="$CURRENT_VERSION"
+IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+
+if [[ "$COMMIT_TITLE" =~ \[major\] ]]; then
+    NEW_VERSION="$((MAJOR + 1)).0.0"
+elif [[ "$COMMIT_TITLE" =~ \[minor\] ]]; then
+    NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+else
+    exit 0
+fi
+[ "$NEW_VERSION" = "$CURRENT_VERSION" ] && exit 0
+
+# New userscript content: the committed file with only the version changed
+TMP_FILE=$(mktemp)
+TMP_INDEX=$(mktemp)
+trap 'rm -f "$TMP_FILE" "$TMP_INDEX"' EXIT
+git show "HEAD:$USERSCRIPT" | sed -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" > "$TMP_FILE"
+BLOB=$(git hash-object -w "$TMP_FILE")
+
+# Amend HEAD from a temporary index so nothing else that is staged ends up in the commit
+rm -f "$TMP_INDEX"
+GIT_INDEX_FILE="$TMP_INDEX" git read-tree HEAD
+GIT_INDEX_FILE="$TMP_INDEX" git update-index --cacheinfo "100644,$BLOB,$USERSCRIPT"
+GIT_INDEX_FILE="$TMP_INDEX" YCC_VERSION_AMEND=1 git commit --amend --no-edit --no-verify --quiet
+
+# Keep the real index and the working copy in step with the amended commit
+git update-index --cacheinfo "100644,$BLOB,$USERSCRIPT"
+sed -i '' -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" "$USERSCRIPT"
+
+echo "✓ Version bumped: $BASE_VERSION -> $NEW_VERSION"
+exit 0

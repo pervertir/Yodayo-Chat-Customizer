@@ -1,33 +1,49 @@
 #!/bin/bash
 
-# Auto-increment patch version on every commit (unless overridden by commit-msg)
+# Auto-increment the userscript's patch version on every commit
+# (the post-commit hook turns it into a minor/major bump when the commit title asks for one).
+#
+# Only the version line is changed, in the index and the working copy, so other unstaged edits
+# to the userscript are not pulled into the commit.
 
 USERSCRIPT="MoescapeCustomUI.user.js"
+VERSION_PATTERN='@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+'
 
-# Check if userscript exists
-if [ ! -f "$USERSCRIPT" ]; then
+# Not while rebasing, cherry-picking or merging (replayed commits already carry their version),
+# and not when amending (the commit being amended was already bumped)
+GIT_DIR=$(git rev-parse --git-dir)
+if [ -d "$GIT_DIR/rebase-merge" ] || [ -d "$GIT_DIR/rebase-apply" ] || [ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] || [ -f "$GIT_DIR/MERGE_HEAD" ]; then
+    exit 0
+fi
+if ps -o command= -p "$PPID" 2>/dev/null | grep -qE -- '--amend'; then
     exit 0
 fi
 
-# Extract current version
-CURRENT_VERSION=$(grep -m1 "@version" "$USERSCRIPT" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+version_in() {
+    grep -m1 "@version" | sed -E 's/.*@version[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
+}
 
-# Check if version was found
-if [ -z "$CURRENT_VERSION" ]; then
+# Staged version, and the version in the last commit
+STAGED_VERSION=$(git show ":$USERSCRIPT" 2>/dev/null | version_in)
+[ -z "$STAGED_VERSION" ] && exit 0
+HEAD_VERSION=$(git show "HEAD:$USERSCRIPT" 2>/dev/null | version_in)
+
+# Version already changed by hand in this commit: keep it
+if [ -n "$HEAD_VERSION" ] && [ "$STAGED_VERSION" != "$HEAD_VERSION" ]; then
     exit 0
 fi
 
-# Parse version components
-IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+IFS='.' read -r MAJOR MINOR PATCH <<< "$STAGED_VERSION"
+NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
 
-# Increment patch version
-NEW_PATCH=$((PATCH + 1))
-NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+# Write the new version into the staged file only (sed -i differs between macOS and Linux, so no -i)
+TMP_FILE=$(mktemp)
+trap 'rm -f "$TMP_FILE"' EXIT
+git show ":$USERSCRIPT" | sed -E "s|$VERSION_PATTERN|@version      $NEW_VERSION|" > "$TMP_FILE"
+BLOB=$(git hash-object -w "$TMP_FILE")
+git update-index --cacheinfo "100644,$BLOB,$USERSCRIPT"
 
-# Update version in userscript (macOS sed syntax: -i '')
-sed -i '' -E "s|@version[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+|@version      $NEW_VERSION|" "$USERSCRIPT"
-
-# Stage the updated file
-git add "$USERSCRIPT"
+# Same line in the working copy, leaving any other unstaged edits there
+sed -E "s|$VERSION_PATTERN|@version      $NEW_VERSION|" "$USERSCRIPT" > "$TMP_FILE" && cat "$TMP_FILE" > "$USERSCRIPT"
 
 exit 0

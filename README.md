@@ -22,6 +22,7 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 - Lightweight and easy to install
 
 ## Recent Updates & Improvements
+Highlights only; every version is listed in the [changelog](CHANGELOG.md).
 
 ### Group Chats (v1.12)
 - **Detection**: Group chats are recognised automatically from the character avatars next to the chat title
@@ -196,21 +197,7 @@ Once set up, version bumping is automatic:
 The hooks live in `.github/hooks/` and are version-controlled, so they work across all git worktrees. The pre-commit hook does the patch bump; the post-commit hook amends the same commit for `[minor]`/`[major]`. Amends, rebases and cherry-picks are not bumped again, a version you set by hand is kept, and only the version line is touched. See [VERSION_BUMPING.md](VERSION_BUMPING.md) for details.
 
 ## Changelog
-
-### v1.12 — Group Chats
-- Group chat detection and a per-character customization window (Common tab + a tab per character)
-- Custom names, name and chat colors, images and size for each character
-- All character images side by side in a wider area, draggable, with positions remembered per chat
-- Automatic parallel cut-outs for characters that only have a background; prefers a full-body character's background for the chat
-- Shared ImageTools API key between the Customizer and the Remove background script (v1.4.0)
-- Fixed version hooks: minor/major bumps land in the same commit
-
-### Earlier Updates
-- **Performance**: Implemented CSS caching and dynamic stylesheet injection
-- **UX**: Added real-time preview and temporary data management
-- **Reliability**: Enhanced error handling and recovery mechanisms
-- **Features**: Support for both URL and file image uploads
-- **Code Quality**: Comprehensive refactoring with improved documentation
+See [CHANGELOG.md](CHANGELOG.md) for the full history of changes.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

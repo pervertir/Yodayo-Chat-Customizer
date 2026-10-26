@@ -69,15 +69,15 @@ Highlights only; every version is listed in the [changelog](CHANGELOG.md).
 ### Chat Customizer
 1. Once installed, use the settings cog (in the top right corner) in your chat to access the added features.
 
-   ![Menu Options](resources/menu-items.png)
+   ![Menu Options](.github/resources/menu-items.png)
    
-   *Background image: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/menu-items.png)*
+   *Background image: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/.github/resources/menu-items.png)*
 
 2. When you click "Customize Chat", you will see the following modal with enhanced features:
 
-   ![Character Customizer UI](resources/chat-customizer-ui.png)
+   ![Character Customizer UI](.github/resources/chat-customizer-ui.png)
    
-   *Customizer UI: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/chat-customizer-ui.png)*
+   *Customizer UI: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/.github/resources/chat-customizer-ui.png)*
 
 3. **Enhanced Features & Improved Workflow:**
    - **Real-time Preview**: See your changes instantly as you customize
@@ -118,9 +118,9 @@ Background removal uses the [ImageTools](https://imagetools.top) API. You're ask
 ### Image Viewer
 This feature allows you to see all characters stored in your database with an improved interface.
 
-![Image Viewer](resources/image-database.png)
+![Image Viewer](.github/resources/image-database.png)
 
-*Image Viewer: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/resources/image-database.png)*
+*Image Viewer: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/.github/resources/image-database.png)*
 
 ### Background Image Collection
 We've created a comprehensive collection of default background images that you can use with the customizer. These high-quality backgrounds are categorized by theme and setting to help you find the perfect atmosphere for your chats.

@@ -14,12 +14,21 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 - **Robust Error Handling**: Better stability and graceful error recovery
 - **Improved Database Operations**: Batch operations and optimized data persistence
 - **Modern UI**: Clean, intuitive interface with better accessibility
+- **Group Chats**: Custom names, colors and images for every character, shown side by side; drag and resize each one
+- **Automatic Character Cut-outs**: Characters that only have a background are cut out of it with the background-removal API
 - Save, delete, and manage chat/character themes
 - Image viewer for all stored characters
 - Settings persist via local database
 - Lightweight and easy to install
 
 ## Recent Updates & Improvements
+
+### Group Chats (v1.12)
+- **Detection**: Group chats are recognised automatically from the character avatars next to the chat title
+- **Per-Character Settings**: A separate window with a **Common** tab and one tab per character (name, image, name and chat colors, size)
+- **Side-by-Side Images**: All characters are shown next to each other in a wider character area; drag them anywhere, positions are remembered
+- **Cut-outs**: Background-only characters are cut out of their backgrounds in parallel, once per chat
+- **One API Key**: The Customizer and the right-click **Remove background** script share the ImageTools key
 
 ### Performance Enhancements
 - **Optimized CSS Operations**: Implemented dynamic stylesheet injection for better performance
@@ -83,7 +92,7 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 8. **Unchecking** "Set as Character Theme" before saving will save the theme for the current chat only.
 
 ### Group Chats
-Group chats (two or more character avatars next to the chat title) are detected automatically.
+Group chats (two or more character avatars next to the chat title) are detected automatically, and the character list (names and images) is read from the site's own chat data, so characters who haven't spoken yet are included too.
 
 - Every character's full-body image is shown side by side, slightly overlapping, with the main character in front. Characters without one (only a background) are cut out of their background with the background-removal API (the same ImageTools key as the right-click **Remove background** script: the two scripts share it, so it is only entered once), all at the same time; the cut-out is saved for that chat so it is only made once.
 - Drag a character's image to move it; its position is remembered for this chat as soon as you let go. Double-click an image to put it back in place.
@@ -92,6 +101,18 @@ Group chats (two or more character avatars next to the chat title) are detected 
 - **Customize Chat** opens the group window: a **Common** tab with the shared settings (background, user colors, import/export) and one tab per character for its name, image and colors (name, narration, chat text and chat bubble).
 - **Save** stores everything for this group chat. With **Also Save Characters as Their Theme** checked, each character's name, image and colors are also saved to that character's own theme, so they carry over to its other chats.
 - **Delete All** removes this chat's settings and the theme of every character in it.
+- Settings are stored like any other chat, as extra fields on the chat's record (for example `character_alias@<character id>`), so no database upgrade is needed and exports/imports include them.
+
+### Right-Click Scripts (optional)
+Small companion userscripts that add commands to the browser's right-click menu (Tampermonkey submenu) on chat pages. Install each one by opening its URL:
+
+| Script | What it does | Install URL |
+|---|---|---|
+| Remove background | Cuts the character out of the right-clicked image (or the chat background) and uses it as the character image | `https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/remove-background.user.js` |
+| Open character in new tab | Opens the character image (yours or the site's) in a new tab | `https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-character.user.js` |
+| Open background in new tab | Opens the chat background (yours or the site's) in a new tab | `https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/context-menu/open-background.user.js` |
+
+Background removal uses the [ImageTools](https://imagetools.top) API. You're asked for your API key the first time it's needed; it is kept in Tampermonkey's storage (never in the code) and shared between the Customizer and the Remove background script, so you only enter it once. If the key is rejected, both forget it and you're asked again.
 
 ### Image Viewer
 This feature allows you to see all characters stored in your database with an improved interface.
@@ -172,11 +193,19 @@ Once set up, version bumping is automatic:
 - `git commit -m '[minor] new feature'` → Minor version bump (1.7.4 → 1.8.0)
 - `git commit -m '[major] breaking change'` → Major version bump (1.7.4 → 2.0.0)
 
-The hooks live in `.github/hooks/` and are version-controlled, so they work across all git worktrees.
+The hooks live in `.github/hooks/` and are version-controlled, so they work across all git worktrees. The pre-commit hook does the patch bump; the post-commit hook amends the same commit for `[minor]`/`[major]`. Amends, rebases and cherry-picks are not bumped again, a version you set by hand is kept, and only the version line is touched. See [VERSION_BUMPING.md](VERSION_BUMPING.md) for details.
 
 ## Changelog
 
-### Latest Updates
+### v1.12 — Group Chats
+- Group chat detection and a per-character customization window (Common tab + a tab per character)
+- Custom names, name and chat colors, images and size for each character
+- All character images side by side in a wider area, draggable, with positions remembered per chat
+- Automatic parallel cut-outs for characters that only have a background; prefers a full-body character's background for the chat
+- Shared ImageTools API key between the Customizer and the Remove background script (v1.4.0)
+- Fixed version hooks: minor/major bumps land in the same commit
+
+### Earlier Updates
 - **Performance**: Implemented CSS caching and dynamic stylesheet injection
 - **UX**: Added real-time preview and temporary data management
 - **Reliability**: Enhanced error handling and recovery mechanisms

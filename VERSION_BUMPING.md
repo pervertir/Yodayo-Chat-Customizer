@@ -32,10 +32,12 @@ git commit -m "[major] complete rewrite of the customizer"
 
 ## Notes
 
-- Version is bumped on **every single commit** - no exceptions
-- The updated userscript file is automatically staged and included in the commit
-- All logic is contained within git hooks - no external scripts needed
-- Keywords `[major]` and `[minor]` can appear anywhere in the commit message
+- Version is bumped on every new commit. Not bumped again: `git commit --amend`, rebases, cherry-picks and merges (their commits already carry a version), and commits where you changed the version by hand
+- Only the `@version` line is changed and included in the commit; other unstaged edits to the userscript stay unstaged
+- Keywords `[major]` and `[minor]` can appear anywhere in the commit title; the bump lands in that same commit (nothing is left staged)
+- All logic is contained within git hooks (`.github/hooks/pre-commit` and `post-commit`) - set them up once with `bash .github/setup-git-hooks.sh`
+- The hooks work on macOS and Linux
+- Because every commit changes the version line, merging or cherry-picking branches that both moved on conflicts on that line: keep the higher version
 
 ## Examples
 

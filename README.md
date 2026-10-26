@@ -123,24 +123,9 @@ This feature allows you to see all characters stored in your database with an im
 *Image Viewer: [View Raw](https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/main/.github/resources/image-database.png)*
 
 ### Background Image Collection
-We've created a comprehensive collection of default background images that you can use with the customizer. These high-quality backgrounds are categorized by theme and setting to help you find the perfect atmosphere for your chats.
+A collection of about 200 background images (anime and realistic) comes with the customizer. In **Customize Chat**, click **Browse collection** under Background to see previews and apply one with a click; the **Update** button picks up newly added backgrounds.
 
-**📁 [View Background Collection →](backgrounds.md)**
-
-The collection includes:
-- **Basic Backgrounds**: Transparent, black, and white options
-- **Bedroom Scenes**: Clean, cyberpunk, red, and tatami styles
-- **Cityscapes**: Medieval markets, night scenes, and post-apocalyptic settings
-- **Japanese Settings**: Classrooms, cherry blossom paths, and university scenes
-- **Fantasy & Nature**: Magical treehouses with fireworks and air balloons
-- **Landscapes**: Autumn trees, beaches, mountains, and winter scenes
-- **Special Locations**: Royal chambers and medieval taverns
-
-Each background image includes:
-- High-resolution preview
-- Ready-to-copy GitHub raw URL (with copy button)
-- Easy categorization for quick browsing
-- Direct compatibility with the customizer's URL input field
+The image files are in the [`resources/default_backgrounds`](https://github.com/pervertir/Yodayo-Chat-Customizer/tree/feat/universal-bg/resources/default_backgrounds) folder of the `feat/universal-bg` branch (credits in its `CREDITS.md`), if you want to copy a URL or download one.
 
 ## Troubleshooting
 

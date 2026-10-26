@@ -9,6 +9,14 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.12.6] - 2026-10-26
+
+### Removed
+- `backgrounds.md`. Its list was out of date and most links were broken; the README now points to **Browse collection** in Customize Chat and to the background folder on GitHub.
+
+### Changed
+- README screenshots moved to `.github/resources` (1.12.5).
+
 ## [1.12.4] - 2026-10-26
 
 ### Added
@@ -229,7 +237,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.12.4]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.12.6]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.12.4]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/7c68b91
 [1.12.3]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/c4c4942
 [1.12.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/16fac60
 [1.11.3]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/d002b00

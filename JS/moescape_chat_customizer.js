@@ -32,6 +32,13 @@
             rotate: none;
         }
     `);
+    // Character images use the full window height: the site starts the image area below the
+    // header (and adds mt-16), which cut the top of tall images off. The negative margin pulls the
+    // area's top edge up to the top of the window (see updateCharacterAreaTop).
+    addScopedStyle(`
+        ${character_image_area} { margin-top: calc(-1 * var(--ycc-image-area-top, 0px)) !important; }
+    `);
+    window.addEventListener('resize', updateCharacterAreaTop);
     let scriptLoaded = false;
     let urlCheckInterval = null;
     // Re-apply the style scope whenever a <style> in <head> is added or rewritten
@@ -221,11 +228,13 @@
         let anchor = document.querySelector(char_id_selector);
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         const chatId = loadedChatId;
+        updateCharacterAreaTop();
         if (await detectGroupChat(chatId)) {
             await loadGroupCustomizedUI();
         } else {
             if (getChatIdFromUrl() !== chatId) return;
             await loadCustomizedUI(CHAR_ID);
+            setUpNewChat(CHAR_ID).catch(e => console.error('New chat setup failed:', e));
         }
         showInjectionNotification(notification_resource_name, CHAR_ID);
         if (onceSetupDone) {

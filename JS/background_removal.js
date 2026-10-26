@@ -177,6 +177,59 @@ async function removeImageBackground(image, onProgress = () => {}) {
     throw new Error('Timed out waiting for background removal.');
 }
 
+// --- NEW CHATS ---
+
+/**
+ * First visit to a chat (nothing saved for it yet) whose character has no full-body image, only a
+ * background showing it: the character is cut out of that background and saved as the character's
+ * image (its theme, so later chats with it reuse the cut-out), and the chat gets a random background
+ * from the collection, saved for the chat. Nothing changes if the cut-out isn't possible, since a
+ * new background would otherwise hide the character.
+ * @param {string} characterId
+ * @returns {Promise<void>}
+ */
+async function setUpNewChat(characterId) {
+    const chatId = CHAT_ID;
+    if (!characterId || characterId === chatId) return;
+    const [chatRecord, characterRecord] = await Promise.all([getCharacterRecord(chatId), getCharacterRecord(characterId)]);
+    if (chatRecord) return; // set up or customized before
+    const hasImage = !!characterRecord?.character_image;
+    if (hasImage && characterRecord?.background_image) return;
+
+    let character;
+    try {
+        const characters = await fetchChatCharacters(chatId);
+        character = characters.find(c => c.uuid === characterId) || characters[0];
+    } catch (e) {
+        console.warn('New chat setup: could not load the character:', e);
+        return;
+    }
+    // A full-body image is already shown; a background-only character needs its background
+    if (!character || character.image || !character.background || getChatIdFromUrl() !== chatId) return;
+
+    let backgroundUrl = null;
+    if (!hasImage) {
+        if (!getBackgroundRemovalApiKey()) return;
+        showInjectionNotification(notification_resource_name, null, `Cutting ${character.nickname} out of the background…`);
+        // The random background is picked while the cut-out is made
+        backgroundUrl = pickRandomCollectionBackground().catch(() => null);
+        try {
+            const png = await removeImageBackground(await loadImageBlob(character.background));
+            const imageBase64 = await fileToBase64(new File([png], 'character.png', { type: 'image/png' }));
+            await saveCharacterFieldsBatch(characterId, { character_image: imageBase64, record_type: 'character' });
+            if (getChatIdFromUrl() !== chatId) return;
+            setCharacterImage(imageBase64);
+            temp_form_data.character_image = imageBase64;
+        } catch (e) {
+            console.error('New chat setup: cutting out the character failed:', e);
+            showInjectionNotification(notification_resource_name, null, `Could not cut out ${character.nickname}: ${e.message}`);
+            return;
+        }
+    }
+    // Only a chat without a background of its own gets one
+    if (!characterRecord?.background_image) await applyRandomChatBackground(await backgroundUrl);
+}
+
 // Remember the right-clicked element for the 'Remove background' context-menu script
 // (context-menu scripts only start after the menu item is clicked, so they can't see it).
 const CONTEXT_TARGET_ATTR = 'data-ycc-context-target';

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.4.0
+// @version      1.4.1
 // @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/*
@@ -239,7 +239,7 @@
             img = wrapper.querySelector('img');
         }
         img.src = dataUrl;
-        img.style.height = '90vh';
+        img.style.height = '100%';
     }
 
     /**

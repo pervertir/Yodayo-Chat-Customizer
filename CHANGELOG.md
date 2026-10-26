@@ -9,6 +9,18 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-10-26
+
+### Added
+- **Chat Name** in Customize Chat (and in the group window's Common tab): the name shown at the top of the chat, separate from the character's name. It is always saved for the chat only, even with "Set as Character Theme" checked.
+- New chats whose character only has a background: the character is cut out of that background with the background-removal API, saved as the character's image (so later chats with that character reuse it), and the chat gets a random background from the collection, saved for the chat.
+- New group chats where every character only has a background also get a random background once the cut-outs are shown.
+- Group chats: **Bring forward** and **Send backward** in each character's tab to change which character is in front; the order is saved for the chat.
+
+### Changed
+- Character images use the full height of the window in every chat (the image area used to start below the header, cutting off the top of tall images).
+- Right-click **Remove background** (v1.4.1) shows its result at full height too.
+
 ## [1.12.6] - 2026-10-26
 
 ### Removed

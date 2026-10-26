@@ -18,6 +18,9 @@ const BG_COLLECTION = {
 const BG_BROWSER_ID = 'ycc-bg-browser';
 const BG_INDEX_CACHE_KEY = 'ycc_bg_index';
 const BG_THUMB_WIDTH = 480;
+/** Used when the collection can't be listed */
+const BG_FALLBACK_URL = 'https://raw.githubusercontent.com/pervertir/Yodayo-Chat-Customizer/feat/universal-bg/resources/default_backgrounds/anime/living_room_sunlight.jpg?v=1833a91';
+const BG_INDEX_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const BG_THUMB_CONCURRENCY = 6;
 
 /** @type {Map<string, string>} raw URL -> blob URL of its thumbnail, kept while the page lives */
@@ -92,6 +95,41 @@ async function fetchBackgroundCollection() {
         .sort((a, b) => a.name.localeCompare(b.name));
     GM_setValue(BG_INDEX_CACHE_KEY, { time: Date.now(), items });
     return items;
+}
+
+/**
+ * A random background from the collection (the list saved by the browser if it is under a day
+ * old, else a fresh one), or BG_FALLBACK_URL if it can't be listed.
+ * @returns {Promise<string>} image URL
+ */
+async function pickRandomCollectionBackground() {
+    let items = null;
+    const cached = GM_getValue(BG_INDEX_CACHE_KEY, null);
+    if (cached && Array.isArray(cached.items) && Date.now() - (cached.time || 0) < BG_INDEX_MAX_AGE_MS) items = cached.items;
+    if (!items) {
+        try {
+            items = await fetchBackgroundCollection();
+        } catch (e) {
+            console.warn('Background collection unavailable, using the default background:', e);
+            items = getCachedBackgroundCollection();
+        }
+    }
+    return items && items.length ? items[Math.floor(Math.random() * items.length)].url : BG_FALLBACK_URL;
+}
+
+/**
+ * Gives the current chat a random background from the collection and saves it for the chat.
+ * @param {string} [url] - a background already picked with pickRandomCollectionBackground
+ * @returns {Promise<string>} the background URL
+ */
+async function applyRandomChatBackground(url) {
+    const chatId = CHAT_ID;
+    url = url || await pickRandomCollectionBackground();
+    if (getChatIdFromUrl() !== chatId) return url; // left the chat meanwhile
+    await applyImageSetting(url, 'background');
+    temp_form_data.background_image = url;
+    await saveCharacterFieldsBatch(chatId, { background_image: url, record_type: 'chat' });
+    return url;
 }
 
 /**

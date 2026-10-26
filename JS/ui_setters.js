@@ -35,6 +35,18 @@ async function setBackgroundImage(imageData) {
 }
 
 /**
+ * Measures how far below the top of the window the character image area starts, for the CSS
+ * that extends it to the top (the --ycc-image-area-top variable).
+ * @returns {void}
+ */
+function updateCharacterAreaTop() {
+    const area = document.querySelector(character_image_area);
+    if (!area || !area.parentElement) return;
+    const top = Math.max(0, Math.round(area.parentElement.getBoundingClientRect().top));
+    document.documentElement.style.setProperty('--ycc-image-area-top', `${top}px`);
+}
+
+/**
  * Sets the character image in the character container.
  * @param {string} imageData - The image data (base64-encoded string or URL).
  * @returns {Promise<void>}
@@ -51,7 +63,7 @@ async function setCharacterImage(imageData) {
     if (characterContainer) {
         /** @type {HTMLImageElement|null} */
         let existingImage = characterContainer.querySelector('div > div > img');
-        let imageHeight = "90vh";
+        let imageHeight = "100%"; // the image area spans the full window height
 
         // Use standardized image data handling (same as image viewer)
         const imageSrc = normalizeImageData(imageData);
@@ -79,6 +91,8 @@ async function setCharacterImage(imageData) {
 
 /** @type {string} alias currently shown; '' means the site's own names */
 let currentCharacterAlias = '';
+/** @type {string} chat name shown in the header instead of the site's title; '' means none */
+let currentChatName = '';
 /** @type {Object<string, string>} group chats: alias per character id ('' or missing = site name) */
 let groupCharacterAliases = {};
 /** @type {MutationObserver|null} */
@@ -108,7 +122,7 @@ function getOriginalCharacterName() {
  * @returns {boolean} true while any alias is set
  */
 function hasCharacterAlias() {
-    return !!currentCharacterAlias || Object.values(groupCharacterAliases).some(Boolean);
+    return !!currentCharacterAlias || !!currentChatName || Object.values(groupCharacterAliases).some(Boolean);
 }
 
 /**
@@ -119,6 +133,8 @@ function hasCharacterAlias() {
  * @returns {string} '' for the site's own name
  */
 function getAliasForNameElement(el, originalName) {
+    // The header title shows the chat name when there is one
+    if (currentChatName && el.matches(character_name_title)) return currentChatName;
     if (!groupChatCharacters.length) return currentCharacterAlias;
     const href = el.getAttribute('href');
     const member = href
@@ -168,6 +184,18 @@ function observeCharacterAliases() {
  */
 function setCharacterAlias(alias) {
     currentCharacterAlias = (alias || '').trim();
+    applyCharacterAlias();
+    observeCharacterAliases();
+}
+
+/**
+ * Sets the chat name shown at the top of the chat (separate from the character's name).
+ * An empty name restores the default title.
+ * @param {string} name
+ * @returns {void}
+ */
+function setChatName(name) {
+    currentChatName = (name || '').trim();
     applyCharacterAlias();
     observeCharacterAliases();
 }

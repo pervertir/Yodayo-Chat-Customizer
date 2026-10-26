@@ -20,6 +20,7 @@ console.log('Chat ID: ', CHAT_ID);
  * @property {string[]} [exclude_chat_ids]
  * @property {string} [background_image]
  * @property {string} [character_alias]
+ * @property {string} [chat_name] // shown at the top of the chat; only ever saved on chat records
  * @property {string} [character_name_color]
  * @property {string} [character_image]
  * @property {string} [default_background_image] // URL for the default character background image

@@ -40,6 +40,8 @@ const GROUP_POSITION_FIELD = 'character_position';
 const GROUP_SCALE_FIELD = 'character_scale';
 /** Character cut out of its background, for characters without a full-body image */
 const GROUP_CUTOUT_FIELD = 'character_cutout';
+/** Chat record field: character ids from front to back */
+const GROUP_LAYER_FIELD = 'group_layer_order';
 /** @type {Set<string>} characters whose cut-out is being made */
 const groupCutoutsInProgress = new Set();
 
@@ -49,6 +51,8 @@ let groupChatCharacters = [];
 let groupCharacterSettings = {};
 /** @type {string|null} character whose tab is open in the customizer */
 let activeGroupCharacterId = null;
+/** @type {string[]} character ids from front to back, as saved; see getGroupLayerOrder */
+let groupLayerOrder = [];
 /** @type {MutationObserver|null} */
 let groupImagesObserver = null;
 let groupImagesQueued = false;
@@ -150,6 +154,7 @@ function resetGroupChatState() {
     groupCharacterSettings = {};
     groupCharacterAliases = {};
     activeGroupCharacterId = null;
+    groupLayerOrder = [];
     if (groupImagesObserver) { groupImagesObserver.disconnect(); groupImagesObserver = null; }
     const row = document.getElementById(GROUP_IMAGES_ID);
     if (row) {
@@ -204,6 +209,7 @@ async function loadGroupCustomizedUI() {
     }
 
     groupCharacterSettings = mergeGroupCharacterSettings(chatRecord, characterRecords);
+    groupLayerOrder = Array.isArray(chatRecord?.[GROUP_LAYER_FIELD]) ? chatRecord[GROUP_LAYER_FIELD] : [];
     groupChatCharacters.forEach(c => {
         const settings = groupCharacterSettings[c.uuid];
         setGroupCharacterAlias(c.uuid, settings.character_alias);
@@ -212,7 +218,18 @@ async function loadGroupCustomizedUI() {
         });
     });
     await renderGroupCharacterImages();
-    makeGroupCharacterCutouts();
+    const cutouts = makeGroupCharacterCutouts();
+    // A new group chat where every character only has a background: once their cut-outs are
+    // shown, give the chat a random background from the collection
+    // (not awaited: the cut-outs take a few seconds)
+    if (!chatRecord && !shared.background_image && !groupChatCharacters.some(c => c.image)) {
+        const characters = groupChatCharacters;
+        cutouts.then(() => {
+            const shown = characters === groupChatCharacters && characters.some(c =>
+                groupCharacterSettings[c.uuid]?.character_image || groupCharacterSettings[c.uuid]?.[GROUP_CUTOUT_FIELD]);
+            if (shown) return applyRandomChatBackground();
+        }).catch(e => console.error('Random background failed:', e));
+    }
 }
 
 /**
@@ -324,20 +341,19 @@ async function renderGroupCharacterImages() {
     }
     hideSiteCharacterImage(area, row);
 
-    const count = characters.length;
     row.replaceChildren(...characters.map((character, i) => {
         const img = document.createElement('img');
         img.alt = character.nickname;
         img.dataset.characterId = character.uuid;
         img.draggable = false;
-        // First (main) character in front
-        img.style.cssText = `position:relative; z-index:${count - i}; flex:none; max-width:none; ` +
-            `height:90vh; width:auto; object-fit:contain; object-position:bottom;`;
+        img.style.cssText = `position:relative; flex:none; max-width:none; ` +
+            `height:100%; width:auto; object-fit:contain; object-position:bottom;`;
         img.addEventListener('load', layoutGroupCharacterImages);
         enableGroupImageDrag(img, character.uuid);
         img.src = sources[i];
         return img;
     }));
+    applyGroupLayers();
     if (!groupImagesResizeHandlerAdded) {
         groupImagesResizeHandlerAdded = true;
         window.addEventListener('resize', layoutGroupCharacterImages);
@@ -361,6 +377,50 @@ async function renderGroupCharacterImages() {
     }
 }
 
+/**
+ * Character ids from front to back: the saved order, with characters it doesn't list
+ * after it in chat order (so by default the main character is in front).
+ * @returns {string[]}
+ */
+function getGroupLayerOrder() {
+    const ids = groupChatCharacters.map(c => c.uuid);
+    const order = groupLayerOrder.filter(id => ids.includes(id));
+    ids.forEach(id => { if (!order.includes(id)) order.push(id); });
+    return order;
+}
+
+/**
+ * Stacks the character images by the layer order.
+ * @returns {void}
+ */
+function applyGroupLayers() {
+    const order = getGroupLayerOrder();
+    document.querySelectorAll(`#${GROUP_IMAGES_ID} img`).forEach(img => {
+        img.style.zIndex = String(order.length - order.indexOf(img.dataset.characterId));
+    });
+}
+
+/**
+ * Moves a character one layer forward (-1) or backward (+1) and saves the order for this chat.
+ * @param {string} characterId
+ * @param {-1|1} step
+ * @returns {Promise<void>}
+ */
+async function moveGroupCharacterLayer(characterId, step) {
+    const order = getGroupLayerOrder();
+    const from = order.indexOf(characterId);
+    const to = from + step;
+    if (from < 0 || to < 0 || to >= order.length) return;
+    [order[from], order[to]] = [order[to], order[from]];
+    groupLayerOrder = order;
+    applyGroupLayers();
+    try {
+        await saveCharacterFieldsBatch(CHAT_ID, { [GROUP_LAYER_FIELD]: order, record_type: 'chat' });
+    } catch (e) {
+        console.error('Saving the layer order failed:', e);
+    }
+}
+
 /** Share of each image's width that its neighbour may cover */
 const GROUP_IMAGE_OVERLAP = 0.15;
 /** In landscape the site gives the image area the left half of the page column; a group extends it to the
@@ -370,7 +430,7 @@ let groupImagesResizeHandlerAdded = false;
 
 /**
  * Sizes the character images to one common height that lets them all fit side by side
- * (at most 90% of the window height, like the single image), overlapping slightly.
+ * (at most the full height of the image area), overlapping slightly.
  * In landscape the image area reaches to the window's left edge and is widened past the site's half
  * width when the row needs it.
  * @returns {void}
@@ -384,7 +444,7 @@ function layoutGroupCharacterImages() {
     // Total width per pixel of height, minus what neighbours cover
     const widthPerHeight = aspects.reduce((sum, aspect, i) =>
         sum + aspect - (i ? GROUP_IMAGE_OVERLAP * Math.min(aspect, aspects[i - 1]) : 0), 0);
-    const maxHeight = Math.min(row.clientHeight || innerHeight, innerHeight * 0.9);
+    const maxHeight = row.clientHeight || innerHeight;
     const area = row.parentElement;
     resetGroupImageArea(area);
     if (matchMedia('(orientation: landscape)').matches) {
@@ -611,6 +671,12 @@ function setupGroupCustomizerWindow(form) {
             '<input id="character-scale-input" type="range" min="30" max="250" step="5" value="100" class="w-full cursor-pointer">' +
             '<span id="character-scale-value" class="w-12 shrink-0 text-right text-sm">100%</span>';
         imageInputs.after(sizeRow);
+        const layerRow = document.createElement('div');
+        layerRow.className = 'flex items-center gap-2 pb-3';
+        const buttonClass = 'flex-1 rounded py-2 px-3 text-xs font-medium text-white bg-blue-400/40 hover:bg-blue-400/80 disabled:opacity-50';
+        layerRow.innerHTML = `<button id="character-forward-button" type="button" class="${buttonClass}">Bring forward</button>` +
+            `<button id="character-backward-button" type="button" class="${buttonClass}">Send backward</button>`;
+        sizeRow.after(layerRow);
     }
 
     groupChatCharacters.forEach((character, i) => {
@@ -667,6 +733,23 @@ function initializeGroupCharacterTabs(form) {
             if (scaleValue) scaleValue.textContent = `${percent}%`;
         };
         showScale(Math.round((settings[GROUP_SCALE_FIELD] || 1) * 100));
+        const forwardButton = get('character-forward-button');
+        const backwardButton = get('character-backward-button');
+        const updateLayerButtons = () => {
+            const order = getGroupLayerOrder();
+            const index = order.indexOf(character.uuid);
+            if (forwardButton) forwardButton.disabled = index <= 0;
+            if (backwardButton) backwardButton.disabled = index >= order.length - 1;
+        };
+        // Every tab's buttons depend on the order, so refresh them all after a move
+        const moveLayer = async step => {
+            await moveGroupCharacterLayer(character.uuid, step);
+            form.dispatchEvent(new Event('ycc:group-layers-changed'));
+        };
+        forwardButton?.addEventListener('click', () => moveLayer(-1));
+        backwardButton?.addEventListener('click', () => moveLayer(1));
+        form.addEventListener('ycc:group-layers-changed', updateLayerButtons);
+        updateLayerButtons();
         scaleInput?.addEventListener('input', () => {
             showScale(scaleInput.value);
             setGroupCharacterScale(character.uuid, Number(scaleInput.value) / 100);

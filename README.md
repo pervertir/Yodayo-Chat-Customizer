@@ -86,20 +86,22 @@ Highlights only; every version is listed in the [changelog](CHANGELOG.md).
    - **Temporary Storage**: Your changes are preserved even if you don't save immediately
    - **Performance Optimized**: Smooth operation with optimized CSS injection and caching
 
-4. You must click **Save** to store your changes in the database. If you don't press save, your changes will not persist the next time you open the chat.
-5. **Delete** will remove the Chat ID from the database (removing the settings you saved for the current chat only).
-6. **Delete All** will remove the character from the database, which will remove the saved theme for all chats of that character.
-7. If you want to change the theme for all chats (not just a specific character), check **Apply Color Scheme Universally**. This will only store the colors, so you can still upload different images per character/chat.
-8. **Unchecking** "Set as Character Theme" before saving will save the theme for the current chat only.
+4. **Chat Name** sets the name shown at the top of the chat; it is separate from the character's name and is always saved for the current chat only.
+5. **New chats**: if a character has no full-body image, only a background showing them, the first visit to a new chat cuts the character out of the background (same as **Remove background**), saves it as the character's image, and gives the chat a random background from the collection. This needs the ImageTools API key.
+6. You must click **Save** to store your changes in the database. If you don't press save, your changes will not persist the next time you open the chat.
+7. **Delete** will remove the Chat ID from the database (removing the settings you saved for the current chat only).
+8. **Delete All** will remove the character from the database, which will remove the saved theme for all chats of that character.
+9. If you want to change the theme for all chats (not just a specific character), check **Apply Color Scheme Universally**. This will only store the colors, so you can still upload different images per character/chat.
+10. **Unchecking** "Set as Character Theme" before saving will save the theme for the current chat only.
 
 ### Group Chats
 Group chats (two or more character avatars next to the chat title) are detected automatically, and the character list (names and images) is read from the site's own chat data, so characters who haven't spoken yet are included too.
 
 - Every character's full-body image is shown side by side, slightly overlapping, with the main character in front. Characters without one (only a background) are cut out of their background with the background-removal API (the same ImageTools key as the right-click **Remove background** script: the two scripts share it, so it is only entered once), all at the same time; the cut-out is saved for that chat so it is only made once.
 - Drag a character's image to move it; its position is remembered for this chat as soon as you let go. Double-click an image to put it back in place.
-- Each character's tab has a **Size** slider (30% to 250%) to make that character bigger or smaller in this chat.
+- Each character's tab has a **Size** slider (30% to 250%) to make that character bigger or smaller in this chat, and **Bring forward** / **Send backward** buttons to change which character is in front (saved for the chat).
 - Without a custom background, the chat uses the background of a character that also has a full-body image (a background-only character's background usually shows that character).
-- **Customize Chat** opens the group window: a **Common** tab with the shared settings (background, user colors, import/export) and one tab per character for its name, image and colors (name, narration, chat text and chat bubble).
+- **Customize Chat** opens the group window: a **Common** tab with the shared settings (chat name, background, user colors, import/export) and one tab per character for its name, image and colors (name, narration, chat text and chat bubble).
 - **Save** stores everything for this group chat. With **Also Save Characters as Their Theme** checked, each character's name, image and colors are also saved to that character's own theme, so they carry over to its other chats.
 - **Delete All** removes this chat's settings and the theme of every character in it.
 - Settings are stored like any other chat, as extra fields on the chat's record (for example `character_alias@<character id>`), so no database upgrade is needed and exports/imports include them.

@@ -118,17 +118,19 @@ async function pickRandomCollectionBackground() {
 }
 
 /**
- * Gives the current chat a random background from the collection and saves it for the chat.
+ * Gives the current chat a random background from the collection and saves it.
  * @param {string} [url] - a background already picked with pickRandomCollectionBackground
+ * @param {string} [saveTo] - record to save it on: a character's id, or by default this chat
  * @returns {Promise<string>} the background URL
  */
-async function applyRandomChatBackground(url) {
+async function applyRandomChatBackground(url, saveTo) {
     const chatId = CHAT_ID;
     url = url || await pickRandomCollectionBackground();
     if (getChatIdFromUrl() !== chatId) return url; // left the chat meanwhile
     await applyImageSetting(url, 'background');
     temp_form_data.background_image = url;
-    await saveCharacterFieldsBatch(chatId, { background_image: url, record_type: 'chat' });
+    const target = saveTo || chatId;
+    await saveCharacterFieldsBatch(target, { background_image: url, record_type: target === chatId ? 'chat' : 'character' });
     return url;
 }
 

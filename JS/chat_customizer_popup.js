@@ -212,26 +212,34 @@ function setFormElementValue(element, value, suppressEvents = false) {
 }
 
 // Reset character settings to default
-function resetCharacterSettings(formElements, character_name_title, setCharacterAlias, setCharacterAliasColor, notification_resource_name, temp_form_data, character_image_container_resource_name, showInjectionNotification) {
+function resetCharacterSettings(formElements) {
     if (formElements.char_name_input) {
         formElements.char_name_input.value = '';
         setCharacterAlias(''); // restores the site's own names
-        delete temp_form_data.character_alias;
+        temp_form_data.character_alias = ''; // '' so Save overwrites the stored value
     }
     if (pickrInstances.char_name_color_input) {
         setPickrColor('char_name_color_input', '#ffffff');
         setCharacterAliasColor('#ffffff');
-        delete temp_form_data.character_name_color;
+        temp_form_data.character_name_color = '#ffffff';
     }
     if (formElements.char_image_url_input) {
         formElements.char_image_url_input.value = '';
-        delete temp_form_data.character_image;
+        temp_form_data.character_image = '';
     }
     if (formElements.char_image_file_input) {
         formElements.char_image_file_input.value = '';
-        delete temp_form_data.character_image;
+        temp_form_data.character_image = '';
     }
-    if (typeof character_image_container_resource_name !== 'undefined') {
+    const scaleInput = document.querySelector('#character-scale-input');
+    if (scaleInput) {
+        scaleInput.value = 100;
+        const label = document.querySelector('#character-scale-value');
+        if (label) label.textContent = '100%';
+        setCharacterScale(1);
+        temp_form_data.character_scale = 1;
+    }
+    {
         const customImageContainer = document.querySelector("#character-image-container");
         if (customImageContainer) {
             customImageContainer.remove();
@@ -241,10 +249,10 @@ function resetCharacterSettings(formElements, character_name_title, setCharacter
 }
 
 // Reset background settings to default
-function resetBackgroundSettings(formElements, default_background_image, bg_img, notification_resource_name, temp_form_data, showInjectionNotification) {
+function resetBackgroundSettings(formElements) {
     if (formElements.bg_url_input) {
         formElements.bg_url_input.value = '';
-        delete temp_form_data.background_image;
+        temp_form_data.background_image = ''; // '' so Save overwrites the stored value
     }
     if (formElements.bg_file_input) {
         formElements.bg_file_input.value = '';
@@ -456,6 +464,12 @@ function initializeCharacterSettingsEventHandlers(form) {
         'name-input': (value) => {
             setCharacterAlias(value);
             updateTemp('character_alias', value);
+        },
+        'character-scale-input': (value) => {
+            const label = form.querySelector('#character-scale-value');
+            if (label) label.textContent = `${value}%`;
+            setCharacterScale(Number(value) / 100);
+            updateTemp('character_scale', Number(value) / 100);
         },
         'chat-name-input': (value) => {
             setChatName(value);
@@ -698,7 +712,7 @@ async function loadCustomizedUI(CHAR_ID) {
  */
 function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
     const allFields = [
-        'character_alias', 'chat_name', 'character_image', 'background_image', 'default_background_image',
+        'character_alias', 'chat_name', 'character_image', 'character_scale', 'background_image', 'default_background_image',
         'character_name_color', 'character_narration_color', 'character_message_color',
         'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color',
         'no_universal_colors'
@@ -774,6 +788,7 @@ async function applySettingsToUI(settings) {
     // Always call these: an empty value clears one left over from a previous chat
     setCharacterAlias(settings.character_alias || '');
     setChatName(settings.chat_name || '');
+    setCharacterScale(settings.character_scale || 1);
 
     // Apply colors - use defaults if no_universal_colors is true and no explicit color is set
     const shouldUseDefaults = settings.no_universal_colors;
@@ -900,6 +915,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     const formElements = {
         nameInput: form.querySelector('#name-input'),
         chatNameInput: form.querySelector('#chat-name-input'),
+        scaleInput: form.querySelector('#character-scale-input'),
         characterImageUrlInput: form.querySelector('#character-image-url-input'),
         bgUrlInput: form.querySelector('#bg-url-input'),
         noUniversalCheckbox: form.querySelector('#no-universal-checkbox')
@@ -980,6 +996,14 @@ async function populateCustomizerPopup(form, CHAR_ID) {
                 }
             }
         });
+
+        // Size slider (stored as a factor, shown in percent)
+        if (formElements.scaleInput) {
+            const percent = Math.round((formData.character_scale || 1) * 100);
+            formElements.scaleInput.value = percent;
+            const label = form.querySelector('#character-scale-value');
+            if (label) label.textContent = `${percent}%`;
+        }
 
         // Handle no-universal checkbox
         if (formElements.noUniversalCheckbox) {

@@ -47,6 +47,19 @@ function updateCharacterAreaTop() {
 }
 
 /**
+ * Sizes the character image (single-character chats; 1 = default), growing from the feet up.
+ * Applies to the site's own image and a custom one alike.
+ * @param {number} scale
+ * @returns {void}
+ */
+function setCharacterScale(scale) {
+    const value = scale && scale !== 1 ? `scale(${scale})` : '';
+    // Group chats size their own images (#group-character-images), each separately
+    applyDynamicStyle(`${character_image_area} > div:not(#group-character-images) img`,
+        { transform: value, 'transform-origin': value ? 'bottom center' : '' });
+}
+
+/**
  * Sets the character image in the character container.
  * @param {string} imageData - The image data (base64-encoded string or URL).
  * @returns {Promise<void>}

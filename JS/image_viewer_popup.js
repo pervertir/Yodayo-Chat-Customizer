@@ -238,10 +238,12 @@ function filterRecordsBySearch(records) {
         return records;
     }
     const searchTerm = CardDisplayState.searchTerm.toLowerCase();
-    return records.filter(record =>
-        (record.character_alias && record.character_alias.toLowerCase().includes(searchTerm)) ||
-        (record.character_name && record.character_name.toLowerCase().includes(searchTerm))
-    );
+    return records.filter(record => {
+        const info = cardSiteInfoNames.get(record.CHAR_ID) || '';
+        return [record.chat_name, record.character_alias, record.character_name, info,
+            ...Object.keys(record).filter(k => k.startsWith('character_alias@')).map(k => record[k])]
+            .some(name => typeof name === 'string' && name.toLowerCase().includes(searchTerm));
+    });
 }
 
 /**
@@ -302,16 +304,16 @@ function sortRecords(records) {
         case 'name_asc':
             // A-Z
             sorted.sort((a, b) => {
-                const nameA = (a.character_alias || a.character_name || '').toLowerCase();
-                const nameB = (b.character_alias || b.character_name || '').toLowerCase();
+                const nameA = getCardSortName(a);
+                const nameB = getCardSortName(b);
                 return nameA.localeCompare(nameB);
             });
             break;
         case 'name_desc':
             // Z-A
             sorted.sort((a, b) => {
-                const nameA = (a.character_alias || a.character_name || '').toLowerCase();
-                const nameB = (b.character_alias || b.character_name || '').toLowerCase();
+                const nameA = getCardSortName(a);
+                const nameB = getCardSortName(b);
                 return nameB.localeCompare(nameA);
             });
             break;
@@ -445,6 +447,108 @@ function showErrorMessage(container, message) {
 }
 
 /**
+ * What the site knows about a card's chat or character: its name and the characters in it with
+ * their full-body photo and background. Records don't store this, so it is looked up (once per page).
+ * Chats need the user to be logged in; character pages are public.
+ * @typedef {{name: string, characters: GroupCharacter[]}} CardSiteInfo
+ * @type {Map<string, Promise<CardSiteInfo|null>>}
+ */
+const cardSiteInfoCache = new Map();
+/** @type {Map<string, string>} site names of cards looked up so far, for search and sorting */
+const cardSiteInfoNames = new Map();
+
+/**
+ * Name to sort a record by.
+ * @param {CharacterRecord} record
+ * @returns {string}
+ */
+function getCardSortName(record) {
+    return (record.chat_name || record.character_alias || record.character_name || cardSiteInfoNames.get(record.CHAR_ID) || '').toLowerCase();
+}
+
+/**
+ * @param {CharacterRecord} record
+ * @returns {Promise<CardSiteInfo|null>}
+ */
+function getCardSiteInfo(record) {
+    if (!cardSiteInfoCache.has(record.CHAR_ID)) {
+        cardSiteInfoCache.set(record.CHAR_ID, (async () => {
+            try {
+                if (record.record_type === 'chat') {
+                    const characters = await fetchChatCharacters(record.CHAR_ID);
+                    if (!characters.length) return null;
+                    return { name: characters.map(c => c.nickname).join(' & '), characters };
+                }
+                const url = `https://api.${location.hostname.replace(/^www\./, '')}/v1/characters/${record.CHAR_ID}`;
+                const c = await bgRequest(url, 'json');
+                const character = {
+                    uuid: c.uuid, name: c.name || c.nickname || '', nickname: c.nickname || c.name || '',
+                    image: c.photos?.[0]?.url || '', background: c.background_photos?.[0]?.url || '',
+                };
+                return { name: character.nickname, characters: [character] };
+            } catch (e) {
+                // 404: the chat or character no longer exists on the site
+                if (/\b404\b/.test(e?.message || '')) {
+                    return { name: record.record_type === 'chat' ? 'Deleted chat' : 'Deleted character', characters: [] };
+                }
+                console.warn(`Card ${record.CHAR_ID}: site details unavailable`, e);
+                return null;
+            }
+        })());
+    }
+    return cardSiteInfoCache.get(record.CHAR_ID).then(info => {
+        if (info) cardSiteInfoNames.set(record.CHAR_ID, info.name);
+        return info;
+    });
+}
+
+/**
+ * Name shown on a card: the chat name, the alias(es), the stored name, else the site's name.
+ * @param {CharacterRecord} record
+ * @param {CardSiteInfo|null} info
+ * @returns {string}
+ */
+function getCardName(record, info) {
+    if (record.chat_name) return record.chat_name;
+    if (info && info.characters.length > 1) {
+        return info.characters.map(c => record[groupFieldKey('character_alias', c.uuid)] || c.nickname).join(' & ');
+    }
+    return record.character_alias || record.character_name || info?.name || 'Unknown';
+}
+
+/**
+ * Images of the characters on a card. Group chats: each character's custom image or cut-out,
+ * else its site photo. Otherwise the saved character image, else the site photo.
+ * @param {CharacterRecord} record
+ * @param {CardSiteInfo|null} info
+ * @returns {string[]} image data or URLs
+ */
+function getCardCharacterImages(record, info) {
+    if (info && info.characters.length > 1) {
+        return info.characters.map(c => record[groupFieldKey('character_image', c.uuid)] ||
+            record[groupFieldKey(GROUP_CUTOUT_FIELD, c.uuid)] || c.image).filter(Boolean);
+    }
+    const image = record.character_image || info?.characters[0]?.image;
+    return image ? [image] : [];
+}
+
+/**
+ * Background of a card: the saved one, else the site's (preferring a character with a full-body
+ * image, whose background doesn't show the character itself).
+ * @param {CharacterRecord} record
+ * @param {CardSiteInfo|null} info
+ * @returns {string}
+ */
+function getCardBackground(record, info) {
+    let background = record.background_image || record.default_background_image || '';
+    const urlMatch = background.match(/^url\(['"]?([^'"]+)['"]?\)$/);
+    if (urlMatch) background = urlMatch[1];
+    if (background) return background;
+    const characters = info?.characters || [];
+    return (characters.find(c => c.image && c.background) || characters.find(c => c.background))?.background || '';
+}
+
+/**
  * Processes a single card's data and images
  * @param {CharacterRecord} record
  * @param {HTMLElement} cardElement
@@ -459,7 +563,7 @@ async function processCardData(record, cardElement) {
         const elements = {
             bgImg: cardElement.querySelector('#card-bg-image'),
             charImg: cardElement.querySelector('#card-character-image'),
-            charName: cardElement.querySelector('#card-character-name'),
+            nameSpan: cardElement.querySelector('#character-name-span'),
             colorCharName: cardElement.querySelector('#color-char-name'),
             colorCharDialogues: cardElement.querySelector('#color-char-dialogues'),
             colorCharNarration: cardElement.querySelector('#color-char-narration'),
@@ -485,24 +589,17 @@ async function processCardData(record, cardElement) {
             }
         }
 
-        // Process images in parallel
-        const imagePromises = [];
-        if (elements.bgImg) {
-            imagePromises.push(setCardBackgroundImage(elements.bgImg, record));
-        }
-        if (elements.charImg) {
-            imagePromises.push(setCardCharacterImage(elements.charImg, record));
-        }
-        await Promise.all(imagePromises);
-
-        // Set text content and colors (fast operations)
-        if (elements.charName && record.character_alias) {
-            // Only update the center span text, not the whole div
-            const centerSpan = elements.charName.querySelector('#character-name-span');
-            if (centerSpan) {
-                centerSpan.textContent = record.character_alias;
-            }
-        }
+        // Name and images come in once the site details are known; the card shows meanwhile
+        if (elements.nameSpan) elements.nameSpan.textContent = getCardName(record, null);
+        const imagesReady = getCardSiteInfo(record).then(async info => {
+            if (elements.nameSpan) elements.nameSpan.textContent = getCardName(record, info);
+            if (info && info.characters.length > 1 && elements.cardTypeTag) elements.cardTypeTag.textContent = 'Group';
+            await Promise.all([
+                elements.bgImg && setCardBackgroundImage(elements.bgImg, getCardBackground(record, info)),
+                elements.charImg && setCardCharacterImages(elements.charImg, getCardCharacterImages(record, info)),
+            ]);
+        });
+        imagesReady.catch(e => console.error('Card images failed:', e));
 
         // Batch set color values
         const colorMappings = [
@@ -515,7 +612,7 @@ async function processCardData(record, cardElement) {
             [elements.colorUserBubbleBg, record.user_message_box_color, '#ffffff']
         ];
         colorMappings.forEach(([element, value, fallback]) => {
-            if (element) element.value = value || fallback;
+            if (element) element.value = (value || fallback).slice(0, 7); // <input type=color> takes #rrggbb
         });
 
         // Add event listeners for delete and send buttons
@@ -527,18 +624,21 @@ async function processCardData(record, cardElement) {
                 const confirmDelete = window.confirm(`Are you sure you want to delete this ${typeLabel}? This action cannot be undone.`);
                 if (!confirmDelete) return;
                 try {
-                    if (!window.db) await openDatabase();
-                    const tx = db.transaction('Characters', 'readwrite');
-                    const store = tx.objectStore('Characters');
-                    store.delete(record.CHAR_ID);
-                    tx.oncomplete = function () {
-                        renderAllCardsInDiv();
-                    };
-                    tx.onerror = function (err) {
-                        console.error('Error deleting character:', err);
-                    };
+                    await deleteCharacterRecord(record.CHAR_ID);
+                    // Remove just this card instead of rebuilding the whole viewer
+                    cardElement.style.transition = 'opacity 0.25s, transform 0.25s';
+                    cardElement.style.opacity = '0';
+                    cardElement.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        const container = cardElement.parentElement;
+                        cardElement.remove();
+                        if (container && !container.children.length) {
+                            container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">No cards found matching your search.</div>';
+                        }
+                    }, 250);
                 } catch (error) {
                     console.error('Error deleting character:', error);
+                    alert('Delete failed: ' + error.message);
                 }
             });
         }
@@ -572,59 +672,70 @@ async function processCardData(record, cardElement) {
 /**
  * Sets background image for a card element
  * @param {HTMLImageElement} bgImg
- * @param {CharacterRecord} record
+ * @param {string} background - image data or URL ('' for none)
  * @returns {Promise<void>}
  */
-async function setCardBackgroundImage(bgImg, record) {
-    if (record.background_image) {
-        await setImageSource(bgImg, record.background_image);
-    } else if (record.default_background_image) {
-        let imageUrl = record.default_background_image;
-        if (imageUrl.startsWith('url(')) {
-            const urlMatch = imageUrl.match(/url\(['"]?([^'"]+)['"]?\)/);
-            imageUrl = urlMatch ? urlMatch[1] : imageUrl;
-        }
-        await setImageSource(bgImg, imageUrl);
-    }
+async function setCardBackgroundImage(bgImg, background) {
+    if (background) await setImageSource(bgImg, background);
+    else bgImg.style.display = 'none';
 }
 
 /**
- * Sets character image for a card element
- * @param {HTMLImageElement} charImg
- * @param {CharacterRecord} record
+ * Shows the card's character image(s); several (group chats) side by side, slightly overlapping.
+ * @param {HTMLImageElement} charImg - the template's image, used for the first one
+ * @param {string[]} images
  * @returns {Promise<void>}
  */
-async function setCardCharacterImage(charImg, record) {
-    if (record.character_image) {
-        await setImageSource(charImg, record.character_image);
-    } else {
+async function setCardCharacterImages(charImg, images) {
+    if (!images.length) {
         charImg.style.display = 'none';
+        return;
     }
+    if (images.length === 1) {
+        await setImageSource(charImg, images[0]);
+        return;
+    }
+    const row = document.createElement('div');
+    row.className = 'card-character-row';
+    row.style.cssText = 'position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; z-index:10; pointer-events:none;';
+    const share = 100 / images.length;
+    const imgs = images.map((_, i) => {
+        const img = document.createElement('img');
+        img.alt = 'Character';
+        img.style.cssText = `position:relative; height:100%; width:${share + 12}%; min-width:0; object-fit:contain; ` +
+            `object-position:bottom; z-index:${images.length - i};` + (i ? ' margin-left:-12%;' : '');
+        return img;
+    });
+    row.append(...imgs);
+    charImg.replaceWith(row);
+    await Promise.all(images.map((image, i) => setImageSource(imgs[i], image)));
 }
 
+/** Size of the downscaled copies shown on cards */
+const CARD_THUMB_WIDTH = 640;
+
 /**
- * Optimized image source setting with standardized data handling
+ * Shows image data or a URL in an <img>. URLs are downloaded through the userscript manager
+ * (the site blocks images from most other hosts), as a downscaled copy when possible so large
+ * images load quickly, and shown as blob: URLs.
  * @param {HTMLImageElement} imgElement
  * @param {string} imageData
  * @returns {Promise<void>}
  */
 async function setImageSource(imgElement, imageData) {
-    if (isImageUrl(imageData)) {
-        // Convert URL to base64 with timeout
-        try {
-            const imageBase64 = await Promise.race([
-                urlToBase64(imageData),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-            ]);
-            imgElement.src = normalizeImageData(imageBase64);
-        } catch (error) {
-            // Fallback: set URL directly
-            imgElement.src = imageData;
-        }
-    } else {
+    if (!isImageUrl(imageData)) {
         // Use standardized image data handling for base64/data URLs
         imgElement.src = normalizeImageData(imageData);
+        return;
     }
+    const thumb = `https://wsrv.nl/?w=${CARD_THUMB_WIDTH}&output=webp&q=80&url=${encodeURIComponent(imageData.replace(/^https:\/\//, ''))}`;
+    for (const [url, timeout] of [[thumb, 20000], [imageData, 60000]]) {
+        try {
+            imgElement.src = URL.createObjectURL(await bgRequest(url, 'blob', timeout));
+            return;
+        } catch (e) { /* try the next way */ }
+    }
+    imgElement.src = imageData; // last resort: works where the site allows the host
 }
 
 /**

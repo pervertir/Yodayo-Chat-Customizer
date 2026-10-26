@@ -9,6 +9,21 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-10-26
+
+### Added
+- **Size** slider for the character image in single-character chats too (saved with the chat or character theme).
+
+### Changed
+- New chats: the automatic cut-out and the random background are both saved on the character, so the Card Viewer shows one card instead of a character card and a chat card.
+
+### Fixed
+- Card Viewer: cards showed "Character Name" when no alias was saved; names now come from the chat name, alias or the site (deleted chats and characters are labelled as such), and search and sort use them.
+- Card Viewer: group chat cards show all their characters side by side and are tagged **Group**.
+- Card Viewer: backgrounds and character images that were only stored as links, or not stored at all, didn't show; they are now downloaded reliably (as small copies) and fall back to the site's images.
+- Card Viewer: bigger Delete and Open buttons, and deleting a card removes just that card instead of reloading the whole viewer.
+- The character **Reset** button in Customize Chat failed with an error, and Reset values weren't kept on Save.
+
 ## [1.13.0] - 2026-10-26
 
 ### Added

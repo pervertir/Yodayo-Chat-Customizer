@@ -662,15 +662,9 @@ function setupGroupCustomizerWindow(form) {
         tabBar.appendChild(button);
     });
 
-    // Image size slider under the image inputs
-    const imageInputs = characterSection.querySelector('#character-remove-bg-button')?.parentElement;
-    if (imageInputs) {
-        const sizeRow = document.createElement('div');
-        sizeRow.className = 'flex items-center gap-4 pb-3';
-        sizeRow.innerHTML = '<div class="font-medium text-sm shrink-0">Size</div>' +
-            '<input id="character-scale-input" type="range" min="30" max="250" step="5" value="100" class="w-full cursor-pointer">' +
-            '<span id="character-scale-value" class="w-12 shrink-0 text-right text-sm">100%</span>';
-        imageInputs.after(sizeRow);
+    // Layer buttons under the Size slider
+    const sizeRow = characterSection.querySelector('#character-scale-input')?.parentElement;
+    if (sizeRow) {
         const layerRow = document.createElement('div');
         layerRow.className = 'flex items-center gap-2 pb-3';
         const buttonClass = 'flex-1 rounded py-2 px-3 text-xs font-medium text-white bg-blue-400/40 hover:bg-blue-400/80 disabled:opacity-50';

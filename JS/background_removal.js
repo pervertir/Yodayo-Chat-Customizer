@@ -181,9 +181,9 @@ async function removeImageBackground(image, onProgress = () => {}) {
 
 /**
  * First visit to a chat (nothing saved for it yet) whose character has no full-body image, only a
- * background showing it: the character is cut out of that background and saved as the character's
- * image (its theme, so later chats with it reuse the cut-out), and the chat gets a random background
- * from the collection, saved for the chat. Nothing changes if the cut-out isn't possible, since a
+ * background showing it: the character is cut out of that background and the chat gets a random
+ * background from the collection. Both are saved on the character's theme (one card in the Card
+ * Viewer), so later chats with it reuse them. Nothing changes if the cut-out isn't possible, since a
  * new background would otherwise hide the character.
  * @param {string} characterId
  * @returns {Promise<void>}
@@ -226,8 +226,8 @@ async function setUpNewChat(characterId) {
             return;
         }
     }
-    // Only a chat without a background of its own gets one
-    if (!characterRecord?.background_image) await applyRandomChatBackground(await backgroundUrl);
+    // Only a character without a background of its own gets one
+    if (!characterRecord?.background_image) await applyRandomChatBackground(await backgroundUrl, characterId);
 }
 
 // Remember the right-clicked element for the 'Remove background' context-menu script

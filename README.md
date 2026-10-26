@@ -82,6 +82,17 @@ Yodayo Chat Customizer is a userscript that allows you to fully customize the ap
 7. If you want to change the theme for all chats (not just a specific character), check **Apply Color Scheme Universally**. This will only store the colors, so you can still upload different images per character/chat.
 8. **Unchecking** "Set as Character Theme" before saving will save the theme for the current chat only.
 
+### Group Chats
+Group chats (two or more character avatars next to the chat title) are detected automatically.
+
+- Every character's full-body image is shown side by side, slightly overlapping, with the main character in front. Characters without one (only a background) are cut out of their background with the background-removal API (the same ImageTools key as the right-click **Remove background** script: the two scripts share it, so it is only entered once), all at the same time; the cut-out is saved for that chat so it is only made once.
+- Drag a character's image to move it; its position is remembered for this chat as soon as you let go. Double-click an image to put it back in place.
+- Each character's tab has a **Size** slider (30% to 250%) to make that character bigger or smaller in this chat.
+- Without a custom background, the chat uses the background of a character that also has a full-body image (a background-only character's background usually shows that character).
+- **Customize Chat** opens the group window: a **Common** tab with the shared settings (background, user colors, import/export) and one tab per character for its name, image and colors (name, narration, chat text and chat bubble).
+- **Save** stores everything for this group chat. With **Also Save Characters as Their Theme** checked, each character's name, image and colors are also saved to that character's own theme, so they carry over to its other chats.
+- **Delete All** removes this chat's settings and the theme of every character in it.
+
 ### Image Viewer
 This feature allows you to see all characters stored in your database with an improved interface.
 

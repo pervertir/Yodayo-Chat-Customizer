@@ -4,20 +4,50 @@
 // background-removal API (submit > poll status > download a transparent PNG).
 // The API key is never stored in the repo: it is asked for on first use and kept
 // in Tampermonkey storage. A rejected key (401) is cleared so the next run asks again.
+//
+// Tampermonkey keeps each script's storage separate, so the Customizer and the right-click
+// "Remove background" script share the ImageTools key through page events: a script without a key
+// asks, and one that has it answers (events are dispatched synchronously, so the answer arrives
+// before dispatchEvent returns). A key rejected by the API is announced so both drop it.
 
 const BG_REMOVAL_API = 'https://imagetools.top/api/v1/background-removal';
 const BG_REMOVAL_KEY_NAME = 'ycc_imagetools_api_key';
 const BG_REMOVAL_POLL_MS = 1000;
 const BG_REMOVAL_MAX_POLLS = 120;
 const BG_REMOVAL_MAX_BYTES = 10 * 1024 * 1024;
+const API_KEY_REQUEST_EVENT = 'ycc:imagetools-key-request';
+const API_KEY_RESPONSE_EVENT = 'ycc:imagetools-key';
+const API_KEY_REJECTED_EVENT = 'ycc:imagetools-key-rejected';
+
+// Answer the other script's requests, and drop a key it found to be rejected
+document.addEventListener(API_KEY_REQUEST_EVENT, () => {
+    const key = GM_getValue(BG_REMOVAL_KEY_NAME, '');
+    if (key) document.dispatchEvent(new CustomEvent(API_KEY_RESPONSE_EVENT, { detail: key }));
+});
+document.addEventListener(API_KEY_REJECTED_EVENT, (e) => {
+    if (e.detail && e.detail === GM_getValue(BG_REMOVAL_KEY_NAME, '')) GM_deleteValue(BG_REMOVAL_KEY_NAME);
+});
+
+/**
+ * The key the other script has, if it is installed and has one.
+ * @returns {string}
+ */
+function requestSharedApiKey() {
+    let shared = '';
+    const onResponse = (e) => { if (typeof e.detail === 'string' && e.detail) shared = e.detail; };
+    document.addEventListener(API_KEY_RESPONSE_EVENT, onResponse);
+    document.dispatchEvent(new CustomEvent(API_KEY_REQUEST_EVENT));
+    document.removeEventListener(API_KEY_RESPONSE_EVENT, onResponse);
+    return shared;
+}
 
 /** @returns {string|null} */
 function getBackgroundRemovalApiKey() {
-    let key = GM_getValue(BG_REMOVAL_KEY_NAME, '');
+    let key = GM_getValue(BG_REMOVAL_KEY_NAME, '') || requestSharedApiKey();
     if (!key) {
         key = (prompt('ImageTools API key (stored in Tampermonkey, only sent to imagetools.top):') || '').trim();
-        if (key) GM_setValue(BG_REMOVAL_KEY_NAME, key);
     }
+    if (key && key !== GM_getValue(BG_REMOVAL_KEY_NAME, '')) GM_setValue(BG_REMOVAL_KEY_NAME, key);
     return key || null;
 }
 
@@ -64,6 +94,7 @@ async function bgRemovalApi(key, opts, onProgress) {
         }
         if (r.status === 401) {
             GM_deleteValue(BG_REMOVAL_KEY_NAME);
+            document.dispatchEvent(new CustomEvent(API_KEY_REJECTED_EVENT, { detail: key }));
             throw new Error('API key was rejected. Try again to enter a new one.');
         }
         return r;
@@ -168,6 +199,10 @@ document.addEventListener(SET_CHARACTER_IMAGE_EVENT, (e) => {
     (async () => {
         const blob = dataUrlToBlob(dataUrl); // the site's security policy blocks fetch() of data: URLs
         const imageBase64 = await fileToBase64(new File([blob], 'character.png', { type: 'image/png' }));
+        if (isGroupChat()) {
+            setActiveGroupCharacterImage(imageBase64);
+            return;
+        }
         setCharacterImage(imageBase64);
         temp_form_data.character_image = imageBase64;
         const urlInput = document.querySelector('#character-image-url-input');

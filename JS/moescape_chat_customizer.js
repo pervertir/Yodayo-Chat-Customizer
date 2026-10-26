@@ -147,6 +147,7 @@
             loadedChatId = null;
             menuItemsAdded = false; // Reset menu items flag so they are re-added on next chat
             if (observer) { observer.disconnect(); observer = null; }
+            resetGroupChatState();
             hideElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
         }
     }
@@ -219,7 +220,13 @@
         console.log('Char ID: ', CHAR_ID);
         let anchor = document.querySelector(char_id_selector);
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
-        await loadCustomizedUI(CHAR_ID);
+        const chatId = loadedChatId;
+        if (await detectGroupChat(chatId)) {
+            await loadGroupCustomizedUI();
+        } else {
+            if (getChatIdFromUrl() !== chatId) return;
+            await loadCustomizedUI(CHAR_ID);
+        }
         showInjectionNotification(notification_resource_name, CHAR_ID);
         if (onceSetupDone) {
             // Pickr CSS and the shortcut are already in place from an earlier chat

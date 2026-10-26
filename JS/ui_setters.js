@@ -47,7 +47,7 @@ async function setCharacterImage(imageData) {
     }
 
     /** @type {HTMLElement|null} */
-    let characterContainer = document.querySelector('.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2');
+    let characterContainer = document.querySelector(character_image_area);
     if (characterContainer) {
         /** @type {HTMLImageElement|null} */
         let existingImage = characterContainer.querySelector('div > div > img');
@@ -79,6 +79,8 @@ async function setCharacterImage(imageData) {
 
 /** @type {string} alias currently shown; '' means the site's own names */
 let currentCharacterAlias = '';
+/** @type {Object<string, string>} group chats: alias per character id ('' or missing = site name) */
+let groupCharacterAliases = {};
 /** @type {MutationObserver|null} */
 let characterAliasObserver = null;
 let characterAliasQueued = false;
@@ -103,20 +105,59 @@ function getOriginalCharacterName() {
 }
 
 /**
- * Writes the current alias (or the original names) into every name element.
+ * @returns {boolean} true while any alias is set
+ */
+function hasCharacterAlias() {
+    return !!currentCharacterAlias || Object.values(groupCharacterAliases).some(Boolean);
+}
+
+/**
+ * Alias to show in a name element. In group chats each character has its own: message names
+ * are matched by their character link, the header title by the character's site name.
+ * @param {HTMLElement} el
+ * @param {string} originalName
+ * @returns {string} '' for the site's own name
+ */
+function getAliasForNameElement(el, originalName) {
+    if (!groupChatCharacters.length) return currentCharacterAlias;
+    const href = el.getAttribute('href');
+    const member = href
+        ? groupChatCharacters.find(c => href.split('?')[0].endsWith('/' + c.uuid))
+        : groupChatCharacters.find(c => c.name === originalName || c.nickname === originalName);
+    return member ? (groupCharacterAliases[member.uuid] || '') : '';
+}
+
+/**
+ * Writes the current aliases (or the original names) into every name element.
  * @returns {void}
  */
 function applyCharacterAlias() {
     characterAliasQueued = false;
     getCharacterNameElements().forEach(el => {
-        if (currentCharacterAlias) {
+        const alias = getAliasForNameElement(el, el.dataset.yccOriginalName ?? el.textContent.trim());
+        if (alias) {
             if (el.dataset.yccOriginalName === undefined) el.dataset.yccOriginalName = el.textContent.trim();
-            if (el.textContent !== currentCharacterAlias) el.textContent = currentCharacterAlias;
+            if (el.textContent !== alias) el.textContent = alias;
         } else if (el.dataset.yccOriginalName !== undefined) {
             el.textContent = el.dataset.yccOriginalName;
             delete el.dataset.yccOriginalName;
         }
     });
+}
+
+/**
+ * Keeps aliases on messages added or re-rendered later.
+ * @returns {void}
+ */
+function observeCharacterAliases() {
+    if (characterAliasObserver) return;
+    // New and streamed messages, and React re-renders that put the original name back
+    characterAliasObserver = new MutationObserver(() => {
+        if (!hasCharacterAlias() || characterAliasQueued) return;
+        characterAliasQueued = true;
+        requestAnimationFrame(applyCharacterAlias);
+    });
+    characterAliasObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
 }
 
 /**
@@ -128,15 +169,41 @@ function applyCharacterAlias() {
 function setCharacterAlias(alias) {
     currentCharacterAlias = (alias || '').trim();
     applyCharacterAlias();
-    if (!characterAliasObserver) {
-        // New and streamed messages, and React re-renders that put the original name back
-        characterAliasObserver = new MutationObserver(() => {
-            if (!currentCharacterAlias || characterAliasQueued) return;
-            characterAliasQueued = true;
-            requestAnimationFrame(applyCharacterAlias);
-        });
-        characterAliasObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
-    }
+    observeCharacterAliases();
+}
+
+/**
+ * Sets the alias of one character in a group chat. An empty alias restores its site name.
+ * @param {string} characterId
+ * @param {string} alias
+ * @returns {void}
+ */
+function setGroupCharacterAlias(characterId, alias) {
+    groupCharacterAliases[characterId] = (alias || '').trim();
+    applyCharacterAlias();
+    observeCharacterAliases();
+}
+
+/**
+ * Sets one of a group chat character's colours, only on that character's name and messages
+ * ('' restores the shared colour).
+ * @param {string} characterId
+ * @param {'character_name_color'|'character_narration_color'|'character_message_color'|'character_message_box_color'} field
+ * @param {string} color
+ * @returns {void}
+ */
+function setGroupCharacterColor(characterId, field, color) {
+    const link = `a[href^="/tavern/characters/${characterId}"]`;
+    // The message row starts with the character's avatar link
+    const message = `${character_message_row}:has(> ${link})`;
+    const rules = {
+        character_name_color: [link, 'color'],
+        character_narration_color: [`${message} ${character_narration}`, 'color'],
+        character_message_color: [`${message} [class*="text-primaryText/90"]`, 'color'],
+        character_message_box_color: [`${message} [class*="bg-black/[85%]"], ${message} [class*="bg-black/[.85]"]`, 'background-color'],
+    };
+    const [selector, property] = rules[field];
+    applyDynamicStyle(selector, { [property]: color || '' });
 }
 
 /**

@@ -517,6 +517,18 @@ function initializeCharacterSettingsEventHandlers(form) {
 
     // Button event handlers with null checks
     formElements.saveButton?.addEventListener('click', async function () {
+        if (isGroupChat()) {
+            // Shared settings belong to this chat; "Set as Character Theme" applies to each character's tab
+            await saveCharacterDetailsToDBFromTemp(CHAT_ID);
+            await saveGroupCharacterSettings(!!formElements.charThemeCheckbox?.checked);
+            if (formElements.applyToAllCheckbox?.checked) {
+                await saveCharacterDetailsToDBFromTemp('Universal');
+            }
+            showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
+            clearTempFormData();
+            return;
+        }
+
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
 
@@ -550,10 +562,12 @@ function initializeCharacterSettingsEventHandlers(form) {
     formElements.deleteAllCharacterStylesButton?.addEventListener('click', async function () {
         let anchor = document.querySelector(char_id_selector);
         let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+        // In a group chat: every character's theme
+        const characterIds = isGroupChat() ? groupChatCharacters.map(c => c.uuid) : [CHAR_ID];
 
         // Delete character theme and also exclude this chat from character themes  
         await Promise.all([
-            deleteCharacterRecord(CHAR_ID),  // Delete character theme
+            ...characterIds.map(id => deleteCharacterRecord(id)),  // Delete character theme(s)
             deleteCharacterRecord(CHAT_ID)   // Delete any chat-specific settings too
         ]);
         location.reload();
@@ -1056,7 +1070,8 @@ async function getCharacterNameFromPage() {
 async function loadCustomizerData(form) {
     // Cache selectors and minimize DOM queries
     const anchor = document.querySelector(char_id_selector);
-    const CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+    // Group chats: shared settings come from the chat and Universal only (see loadGroupCustomizedUI)
+    const CHAR_ID = isGroupChat() ? null : findCharacterID(anchor) || CHAT_ID;
 
     await populateCustomizerPopup(form, CHAR_ID);
 }
@@ -1090,11 +1105,15 @@ function handleFormAdded(mutationsList, observer) {
                 // // Start observing the target node for configured mutations
                 usernameObserver.observe(document.body, { childList: true, subtree: true });
 
+                // Group chats get a tab per character (before the shared handlers look for inputs)
+                if (isGroupChat()) setupGroupCustomizerWindow(formRoot);
+
                 // Attach event listener to the close button
                 initializeCloseButtonEventHandler(formRoot, formBody);
 
                 // Attach event listener to all form parameters
                 initializeCharacterSettingsEventHandlers(formRoot);
+                if (isGroupChat()) initializeGroupCharacterTabs(formRoot);
 
                 // Load data from DB (this will populate Pickr instances as well)
                 loadCustomizerData(formRoot);
@@ -1143,6 +1162,12 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
         fieldsToSave = Object.fromEntries(
             Object.entries(temp_form_data).filter(([key, value]) => value !== undefined && value !== null)
         );
+        // Group chats keep these per character (saveGroupCharacterSettings)
+        // (shared character colours stay: they are the defaults for characters without their own)
+        if (isGroupChat()) {
+            delete fieldsToSave.character_alias;
+            delete fieldsToSave.character_image;
+        }
         // If saving to CHAT_ID (not character theme), set record_type to 'chat'
         if (CHAR_ID === CHAT_ID) {
             fieldsToSave.record_type = 'chat';

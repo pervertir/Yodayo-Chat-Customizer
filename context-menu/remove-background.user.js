@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.3.0
+// @version      1.4.0
 // @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/*
@@ -22,6 +22,11 @@
 // The API key is never stored in this file. On first use the script asks for it and keeps it in
 // Tampermonkey's storage for this script (Dashboard > this script > Storage). A rejected key (401)
 // is cleared, so the next run asks again.
+//
+// Tampermonkey keeps each script's storage separate, so the Customizer and the right-click
+// "Remove background" script share the ImageTools key through page events: a script without a key
+// asks, and one that has it answers (events are dispatched synchronously, so the answer arrives
+// before dispatchEvent returns). A key rejected by the API is announced so both drop it.
 
 (function () {
     'use strict';
@@ -34,6 +39,9 @@
     const CONTEXT_TRACKING_ATTR = 'data-ycc-context-tracking';
     const MAX_IMAGE_DEPTH = 3;
     const SET_CHARACTER_IMAGE_EVENT = 'ycc:set-character-image';
+    const API_KEY_REQUEST_EVENT = 'ycc:imagetools-key-request';
+    const API_KEY_RESPONSE_EVENT = 'ycc:imagetools-key';
+    const API_KEY_REJECTED_EVENT = 'ycc:imagetools-key-rejected';
     const CHARACTER_CONTAINER = '.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2';
 
     let note = null;
@@ -56,13 +64,32 @@
         if (!sticky) noteTimer = setTimeout(() => { note.remove(); note = null; }, 4000);
     }
 
+    // Answer the Customizer's requests, and drop a key it found to be rejected
+    document.addEventListener(API_KEY_REQUEST_EVENT, () => {
+        const key = GM_getValue(KEY_NAME, '');
+        if (key) document.dispatchEvent(new CustomEvent(API_KEY_RESPONSE_EVENT, { detail: key }));
+    });
+    document.addEventListener(API_KEY_REJECTED_EVENT, (e) => {
+        if (e.detail && e.detail === GM_getValue(KEY_NAME, '')) GM_deleteValue(KEY_NAME);
+    });
+
+    /** @returns {string} the Customizer's key, if it is installed and has one */
+    function requestSharedApiKey() {
+        let shared = '';
+        const onResponse = (e) => { if (typeof e.detail === 'string' && e.detail) shared = e.detail; };
+        document.addEventListener(API_KEY_RESPONSE_EVENT, onResponse);
+        document.dispatchEvent(new CustomEvent(API_KEY_REQUEST_EVENT));
+        document.removeEventListener(API_KEY_RESPONSE_EVENT, onResponse);
+        return shared;
+    }
+
     /** @returns {string|null} */
     function getApiKey() {
-        let key = GM_getValue(KEY_NAME, '');
+        let key = GM_getValue(KEY_NAME, '') || requestSharedApiKey();
         if (!key) {
             key = (prompt('ImageTools API key (stored in Tampermonkey, only sent to imagetools.top):') || '').trim();
-            if (key) GM_setValue(KEY_NAME, key);
         }
+        if (key && key !== GM_getValue(KEY_NAME, '')) GM_setValue(KEY_NAME, key);
         return key || null;
     }
 
@@ -115,6 +142,7 @@
             }
             if (r.status === 401) {
                 GM_deleteValue(KEY_NAME);
+                document.dispatchEvent(new CustomEvent(API_KEY_REJECTED_EVENT, { detail: key }));
                 throw new Error('API key was rejected. Run it again to enter a new one.');
             }
             return r;

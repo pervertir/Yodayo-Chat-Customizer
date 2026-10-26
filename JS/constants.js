@@ -6,6 +6,8 @@ const theme = '.text-primaryText';
 
 // Character
 const char_id_selector = '.flex.items-end.gap-2.mr-3 > a';
+// A character message: avatar link to the character, then the bubble
+const character_message_row = '.flex.items-end.gap-2.mr-3';
 // Name above each character message: the character link inside the message header row
 // (matched by link target, not utility classes, which the site changes, e.g. opacity-50 -> opacity-60)
 const character_name_selector = 'div.mb-1.flex.items-center.justify-between.gap-4 a[href^="/tavern/characters/"]';
@@ -14,6 +16,10 @@ const character_chat_bubble_background = /^\.bg-black.*85.*/;
 const character_dialogue = /^\.text-primaryText\\\/90.*/; // 'p.space-x-1 >span'
 const character_narration = '.text-chipText';
 const character_image = 'img.mx-auto.h-full.w-auto.object-contain.object-bottom';
+// Area behind the chat that holds the full-body character image
+const character_image_area = '.pointer-events-none.absolute.inset-0.mt-16.overflow-hidden.landscape\\:inset-y-0.landscape\\:left-0.landscape\\:right-auto.landscape\\:w-1\\/2';
+// Avatars next to the chat title in the header: one per character, so 2+ means a group chat
+const header_character_avatar = 'div.hidden.shrink-0.sm\\:flex > img.rounded-full';
 
 // User
 const user_name = 'div.mb-1.flex.items-center.justify-between.gap-4 p.text-xs.font-medium.opacity-50';

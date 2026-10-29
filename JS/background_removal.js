@@ -125,6 +125,9 @@ function getCurrentBackgroundSrc() {
  * @returns {Promise<Blob>}
  */
 async function loadImageBlob(src) {
+    // An image from the image store (shown through a blob: URL)
+    const stored = src.startsWith('blob:') && loadedImageBlob(src);
+    if (stored) return stored;
     if (src.startsWith('data:')) {
         // Decode by hand: the site's security policy blocks fetch() of data: URLs
         const [meta, data] = src.split(',', 2);

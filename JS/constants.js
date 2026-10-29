@@ -58,7 +58,7 @@ const card_layout_resource_name = 'card_layout';
 
 // Database Constants
 const DB_NAME = 'MYChatCustomizerDB';
-const DB_VERSION = 2; // Incremented for new schema with record type tracking
+const DB_VERSION = 3; // 2: record type tracking, 3: Images store (see image_store.js)
 const CHARACTER_OBJECT_STORE_NAME = 'Characters';
 
 // Default color constants (centralized)

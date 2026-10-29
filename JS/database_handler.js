@@ -58,11 +58,21 @@ function findCharacterID(anchorElement) {
 }
 
 let db;
+/** @type {Promise<IDBDatabase>|undefined} the open in progress, so callers at startup share one */
+let dbOpening;
 
 /**
  * @returns {Promise<IDBDatabase>}
  */
 function openDatabase() {
+    if (!dbOpening) dbOpening = openDatabaseOnce().finally(() => { dbOpening = undefined; });
+    return dbOpening;
+}
+
+/**
+ * @returns {Promise<IDBDatabase>}
+ */
+function openDatabaseOnce() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -71,8 +81,12 @@ function openDatabase() {
             reject(event.target.error);
         };
 
+        request.onblocked = () => console.warn('Database upgrade is waiting for other tabs of this site to reload or close');
+
         request.onsuccess = async (event) => {
             db = event.target.result;
+            // Another tab with a newer version wants to upgrade: let it (this tab reopens on next use)
+            db.onversionchange = () => { db.close(); db = undefined; };
             try {
                 await syncWithMirror();
             } catch (e) {
@@ -83,8 +97,15 @@ function openDatabase() {
 
         request.onupgradeneeded = (event) => {
             db = event.target.result;
-            createInitialSchema();
-            console.log('Initial schema (v1) created');
+            if (!db.objectStoreNames.contains(CHARACTER_OBJECT_STORE_NAME)) createInitialSchema();
+            const characters = event.target.transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
+            // Indexes on image fields copied every embedded image into the index; nothing queries them
+            ['character_image', 'background_image', 'default_background_image'].forEach(name => {
+                if (characters.indexNames.contains(name)) characters.deleteIndex(name);
+            });
+            if (!db.objectStoreNames.contains(IMAGE_OBJECT_STORE_NAME)) {
+                db.createObjectStore(IMAGE_OBJECT_STORE_NAME, { keyPath: 'hash' });
+            }
         };
     });
 }
@@ -93,23 +114,28 @@ function openDatabase() {
  * Keeps IndexedDB and the Tampermonkey mirror in step on startup.
  * - IndexedDB empty, mirror has data -> site data was wiped: restore from mirror.
  * - Otherwise IndexedDB is the source of truth: refresh the mirror from it.
+ * Also moves embedded images to the image store and deletes unused images.
  * @returns {Promise<void>}
  */
 async function syncWithMirror() {
-    if (!isMirrorAvailable()) return;
-    compactBackupStorage();
-    const records = await readAllRecords();
-    const mirrored = mirrorGetAllRecords();
+    const mirrorAvailable = isMirrorAvailable();
+    if (mirrorAvailable) compactBackupStorage();
+    let records = await readAllRecords();
+    const mirrored = mirrorAvailable ? mirrorGetAllRecords() : [];
 
     if (records.length === 0 && mirrored.length > 0) {
-        // Backups hold settings only; embedded images can't come back from them
+        // Images were wiped with the site data: references to them are dropped below
         await writeRecords(restoreOmittedFields(mirrored, []), false);
         console.warn(`IndexedDB was empty: restored ${mirrored.length} records from Tampermonkey backup`);
         takeSnapshotIfDue(mirrored);
-        return;
+        records = await readAllRecords();
     }
-    mirrorReplaceAll(records);
-    takeSnapshotIfDue(records);
+    records = await migrateRecordImages(records);
+    if (mirrorAvailable) {
+        mirrorReplaceAll(records);
+        takeSnapshotIfDue(records);
+    }
+    await sweepOrphanImages(records);
 }
 
 /**
@@ -199,7 +225,7 @@ function createInitialSchema() {
 async function getCharacterField(CHAR_ID, field) {
     if (!CHAR_ID) return null; // IndexedDB throws on an undefined key
     if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
+    const value = await new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const request = objectStore.get(CHAR_ID);
@@ -210,6 +236,8 @@ async function getCharacterField(CHAR_ID, field) {
         };
         request.onerror = (event) => reject(event.target.error);
     });
+    await resolveRecordImages([{ [field]: value }]);
+    return value;
 }
 
 // Refactored save/get functions using helpers
@@ -238,7 +266,7 @@ async function deleteCharacterRecord(CHAR_ID) {
 async function getCharacterRecord(CHAR_ID) {
     if (!CHAR_ID) return null; // IndexedDB throws on an undefined key
     if (!db) await openDatabase();
-    return new Promise((resolve, reject) => {
+    const record = await new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readonly');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const getRequest = objectStore.get(CHAR_ID);
@@ -247,6 +275,8 @@ async function getCharacterRecord(CHAR_ID) {
         };
         getRequest.onerror = function (e) { reject(e.target.error); };
     });
+    await resolveRecordImages([record]);
+    return record;
 }
 
 /**
@@ -259,6 +289,8 @@ async function getCharacterRecord(CHAR_ID) {
  */
 async function saveCharacterFieldsBatch(CHAR_ID, fields) {
     if (!db) await openDatabase();
+    // Before the transaction: it would close while the images are hashed
+    fields = await storeInlineImages(fields);
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(CHARACTER_OBJECT_STORE_NAME, 'readwrite');
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
@@ -314,14 +346,20 @@ async function exportDatabase() {
         const objectStore = transaction.objectStore(CHARACTER_OBJECT_STORE_NAME);
         const getAllRequest = objectStore.getAll();
         
-        getAllRequest.onsuccess = function(event) {
-            const allRecords = event.target.result;
-            const exportData = {
-                version: DB_VERSION,
-                timestamp: new Date().toISOString(),
-                records: allRecords
-            };
-            resolve(JSON.stringify(exportData, null, 2));
+        getAllRequest.onsuccess = async function(event) {
+            try {
+                const allRecords = event.target.result;
+                const exportData = {
+                    version: DB_VERSION,
+                    timestamp: new Date().toISOString(),
+                    records: allRecords,
+                    // Each image once, as a data: URL keyed by the hash the records refer to
+                    images: await exportRecordImages(allRecords)
+                };
+                resolve(JSON.stringify(exportData, null, 2));
+            } catch (e) {
+                reject(e);
+            }
         };
         
         getAllRequest.onerror = function(e) {
@@ -353,8 +391,26 @@ async function importDatabase(jsonData, clearExisting = false) {
             return;
         }
         
-        resolve(runImport(importData, clearExisting));
+        resolve(storeImportedImages(importData).then(async imageErrors => {
+            const result = await runImport(importData, clearExisting);
+            return { ...result, errors: [...imageErrors, ...result.errors] };
+        }));
     });
+}
+
+/**
+ * Stores the images of an import: the export's image list, and images embedded in records by
+ * older versions (one record at a time, before the import transaction, which would close while
+ * they are hashed).
+ * @param {{records: CharacterRecord[], images?: Object<string, string>}} importData
+ * @returns {Promise<string[]>} errors
+ */
+async function storeImportedImages(importData) {
+    const errors = await importRecordImages(importData.images);
+    for (let i = 0; i < importData.records.length; i++) {
+        if (importData.records[i]) importData.records[i] = await storeInlineImages(importData.records[i]);
+    }
+    return errors;
 }
 
 /**
@@ -441,7 +497,8 @@ async function getAllCharacterRecords() {
         const getAllRequest = objectStore.getAll();
         
         getAllRequest.onsuccess = function(event) {
-            resolve(event.target.result || []);
+            const records = event.target.result || [];
+            resolveRecordImages(records).then(() => resolve(records), reject);
         };
         
         getAllRequest.onerror = function(e) {

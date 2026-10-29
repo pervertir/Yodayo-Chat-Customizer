@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.4.2
+// @version      1.4.3
 // @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/*
@@ -159,11 +159,13 @@
     }
 
     /**
-     * Loads an image URL or data: URL as a Blob with an image/* type (the API rejects anything else).
+     * Loads an image URL, data: URL or blob: URL as a Blob with an image/* type (the API rejects anything else).
      * @param {string} src
      * @returns {Promise<Blob>}
      */
     async function loadImage(src) {
+        // The Customizer shows its saved images through blob: URLs
+        if (src.startsWith('blob:')) return (await fetch(src)).blob();
         if (src.startsWith('data:')) {
             // Decode by hand: the site's security policy blocks fetch() of data: URLs
             const [meta, data] = src.split(',', 2);

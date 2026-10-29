@@ -351,7 +351,7 @@ async function renderAllCardsInDiv() {
     // Show loading animation
     showLoadingAnimation(cardContainer);
     
-    if (!window.db) await openDatabase();
+    if (!db) await openDatabase();
 
     const tx = db.transaction('Characters', 'readonly');
     const store = tx.objectStore('Characters');
@@ -359,6 +359,7 @@ async function renderAllCardsInDiv() {
 
     request.onsuccess = async function (event) {
         try {
+            await resolveRecordImages(event.target.result);
             /** @type {CharacterRecord[]} */
             let records = await mergeNewChatLeftovers(event.target.result.filter(r => r.CHAR_ID !== 'Universal'));
             console.log('Raw records from DB:', records.length);

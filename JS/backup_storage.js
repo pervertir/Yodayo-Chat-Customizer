@@ -15,8 +15,11 @@
 // Size limit: Tampermonkey sends a script's whole GM storage into the page on every
 // injection. Large values (embedded images can be several MB each) push that past
 // Chrome's message limit, and then NO userscript runs on the page at all. So backups
-// only hold settings: string fields longer than BACKUP_MAX_FIELD_CHARS (data: URL images)
-// are left out and listed in _backup_omitted. Use JSON export for a full backup.
+// only hold settings. Images live in the image store (image_store.js) and records only
+// refer to them, so backups keep those references, and the sweep keeps every image a
+// snapshot refers to. Images are still lost if site data is cleared: use JSON export
+// for a full backup. String fields longer than BACKUP_MAX_FIELD_CHARS (images embedded
+// by older versions) are left out and listed in _backup_omitted.
 
 const MIRROR_PREFIX = 'ycc_rec:';
 const SNAPSHOT_PREFIX = 'ycc_snapshot:';

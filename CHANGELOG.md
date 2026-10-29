@@ -9,6 +9,16 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+### Changed
+- Images (uploads, cut-outs, saved backgrounds) are now stored as image files in their own place in the browser's site data instead of as text inside each setting. They take about a quarter less space, an image used by several chats or characters is stored once, and settings load faster. Existing images are moved over automatically the first time the new version runs; other open tabs of the site need a reload for that to happen.
+- The automatic Tampermonkey backups and snapshots now keep which image each chat uses, so **Recover** brings a chat's images back too (as long as the site data wasn't cleared).
+- JSON exports include every image once, in a separate `images` list. Older exports, with images inside the records, still import.
+- Images no chat, character or snapshot uses any more are deleted on startup.
+
+### Fixed
+- The Card Viewer reopened the database every time it was shown.
+- The right-click **Remove background** script can use the Customizer's saved images (right-click script 1.4.3).
+
 ## [1.15.0] - 2026-10-29
 
 ### Added

@@ -599,6 +599,9 @@ function normalizeImageData(imageData) {
         throw new Error('Invalid image data provided');
     }
 
+    // Reference to the image store (see image_store.js)
+    if (isImageRef(imageData)) return imageRefUrl(imageData);
+
     // Check if it's already a data URL
     if (imageData.startsWith('data:image')) {
         return imageData;
@@ -643,6 +646,6 @@ function isPureBase64(str) {
     if (!str || typeof str !== 'string') return false;
     
     // Not a URL and not a data URL, and is long enough to be base64
-    return !isImageUrl(str) && !isDataUrl(str) && str.length > 50;
+    return !isImageUrl(str) && !isDataUrl(str) && !isImageRef(str) && str.length > 50;
 }
 

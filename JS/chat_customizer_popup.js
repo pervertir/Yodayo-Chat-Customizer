@@ -1312,8 +1312,9 @@ function refreshBackupInfo() {
     }
     const lastExport = getLastFileExport();
     info.textContent = `Settings are backed up to Tampermonkey storage (${mirrorGetAllRecords().length} records) ` +
-        `and restored automatically if site data is cleared. Uploaded images are too large for it ` +
-        `and are only kept in JSON exports. Last JSON export: ` +
+        `and restored automatically if site data is cleared. Images are kept in the browser's site data ` +
+        `only (snapshots below bring them back too), so they are lost if site data is cleared: export JSON for a full backup. ` +
+        `Last JSON export: ` +
         (lastExport ? new Date(lastExport).toLocaleString() : 'never') + '.';
 
     select.innerHTML = '';

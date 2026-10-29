@@ -32,7 +32,8 @@ const GROUP_CHARACTER_COLORS = [
     ['character_message_color', 'character-chat-color-input', 'characterChat'],
     ['character_message_box_color', 'character-chat-bg-color-input', 'characterChatBg'],
 ];
-const GROUP_CHARACTER_FIELDS = ['character_alias', 'character_image', ...GROUP_CHARACTER_COLORS.map(([field]) => field)];
+const GROUP_CHARACTER_FIELDS = ['character_alias', 'character_image', NO_AUTO_CUTOUT_FIELD,
+    ...GROUP_CHARACTER_COLORS.map(([field]) => field)];
 const GROUP_IMAGES_ID = 'group-character-images';
 /** Dragged image offset, as fractions of the image area's width and height */
 const GROUP_POSITION_FIELD = 'character_position';
@@ -243,7 +244,7 @@ async function makeGroupCharacterCutouts() {
     const needed = characters.filter(c => {
         const settings = groupCharacterSettings[c.uuid] || {};
         return !c.image && c.background && !settings.character_image && !settings[GROUP_CUTOUT_FIELD] &&
-            !groupCutoutsInProgress.has(c.uuid);
+            !settings[NO_AUTO_CUTOUT_FIELD] && !groupCutoutsInProgress.has(c.uuid);
     });
     if (!needed.length) return;
     // Ask for the API key once here, not once per character
@@ -800,18 +801,29 @@ function initializeGroupCharacterTabs(form) {
             }
         });
 
+        // Removes the custom image and the cut-out; once saved, no new cut-out is made automatically
+        const resetImage = () => {
+            if (urlInput) urlInput.value = '';
+            if (fileInput) fileInput.value = '';
+            settings[GROUP_CUTOUT_FIELD] = '';
+            settings[NO_AUTO_CUTOUT_FIELD] = true;
+            return setGroupCharacterImage(character.uuid, '');
+        };
+        get('character-image-reset-button')?.addEventListener('click', () => {
+            resetImage();
+            showInjectionNotification(notification_resource_name, null, `${character.nickname}'s image reset. Press Save to keep it.`);
+        });
+
         get('character-settings-reset-button')?.addEventListener('click', () => {
             settings.character_alias = '';
             if (nameInput) nameInput.value = '';
-            if (urlInput) urlInput.value = '';
-            if (fileInput) fileInput.value = '';
             setGroupCharacterAlias(character.uuid, '');
             GROUP_CHARACTER_COLORS.forEach(([field, , defaultKey]) => {
                 settings[field] = '';
                 setGroupCharacterColor(character.uuid, field, '');
                 setPickrColor(`group_${field}_${i}`, sharedColor(field, defaultKey));
             });
-            setGroupCharacterImage(character.uuid, '');
+            resetImage();
             saveGroupCharacterPosition(character.uuid, { x: 0, y: 0 });
             showScale(100);
             setGroupCharacterScale(character.uuid, 1);
@@ -839,6 +851,10 @@ async function saveGroupCharacterSettings(saveAsCharacterTheme) {
         // Size belongs to this chat's layout, so it isn't saved to the character's theme
         const scale = groupCharacterSettings[character.uuid]?.[GROUP_SCALE_FIELD];
         if (scale) chatFields[groupFieldKey(GROUP_SCALE_FIELD, character.uuid)] = scale;
+        // A reset removes the saved cut-out (cut-outs themselves are saved as soon as they are made)
+        if (groupCharacterSettings[character.uuid]?.[GROUP_CUTOUT_FIELD] === '') {
+            chatFields[groupFieldKey(GROUP_CUTOUT_FIELD, character.uuid)] = '';
+        }
         if (saveAsCharacterTheme && Object.keys(fields).length) {
             saves.push(saveCharacterFieldsBatch(character.uuid, { ...fields, record_type: 'character' }));
         }

@@ -223,14 +223,7 @@ function resetCharacterSettings(formElements) {
         setCharacterAliasColor('#ffffff');
         temp_form_data.character_name_color = '#ffffff';
     }
-    if (formElements.char_image_url_input) {
-        formElements.char_image_url_input.value = '';
-        temp_form_data.character_image = '';
-    }
-    if (formElements.char_image_file_input) {
-        formElements.char_image_file_input.value = '';
-        temp_form_data.character_image = '';
-    }
+    resetCharacterImage(formElements, false);
     const scaleInput = document.querySelector('#character-scale-input');
     if (scaleInput) {
         scaleInput.value = 100;
@@ -239,13 +232,22 @@ function resetCharacterSettings(formElements) {
         setCharacterScale(1);
         temp_form_data.character_scale = 1;
     }
-    {
-        const customImageContainer = document.querySelector("#character-image-container");
-        if (customImageContainer) {
-            customImageContainer.remove();
-        }
-    }
     showInjectionNotification(notification_resource_name, null, 'Character settings reset to default!');
+}
+
+/**
+ * Removes the custom character image. Once saved, the character is also no longer cut out of
+ * its background automatically.
+ * @param {Object} formElements
+ * @param {boolean} [notify]
+ */
+function resetCharacterImage(formElements, notify = true) {
+    if (formElements.char_image_url_input) formElements.char_image_url_input.value = '';
+    if (formElements.char_image_file_input) formElements.char_image_file_input.value = '';
+    temp_form_data.character_image = ''; // '' so Save overwrites the stored value
+    temp_form_data[NO_AUTO_CUTOUT_FIELD] = true;
+    clearCharacterImage();
+    if (notify) showInjectionNotification(notification_resource_name, null, 'Character image reset. Press Save to keep it.');
 }
 
 // Reset background settings to default
@@ -450,6 +452,7 @@ function initializeCharacterSettingsEventHandlers(form) {
         deleteCurrentPageStyleButton: '#delete-current-page-style-button',
         deleteAllCharacterStylesButton: '#delete-all-character-styles-button',
         characterSettingsResetButton: '#character-settings-reset-button',
+        characterImageResetButton: '#character-image-reset-button',
         backgroundResetButton: '#background-reset-button',
         colorResetButton: '#color-reset-button'
     };
@@ -595,6 +598,10 @@ function initializeCharacterSettingsEventHandlers(form) {
     // Reset button event handlers
     formElements.characterSettingsResetButton?.addEventListener('click', function () {
         resetCharacterSettings(formElements);
+    });
+
+    formElements.characterImageResetButton?.addEventListener('click', function () {
+        resetCharacterImage(formElements);
     });
 
     formElements.backgroundResetButton?.addEventListener('click', function () {

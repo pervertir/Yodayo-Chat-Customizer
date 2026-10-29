@@ -1,7 +1,7 @@
 // background removal
 //
 // Cuts the character out of the current chat background with the ImageTools
-// background-removal API (submit > poll status > download a transparent PNG).
+// background-removal API (submit > poll status > download a transparent PNG, or an animated WebP for animated images).
 // The API key is never stored in the repo: it is asked for on first use and kept
 // in Tampermonkey storage. A rejected key (401) is cleared so the next run asks again.
 //
@@ -145,7 +145,7 @@ async function loadImageBlob(src) {
  * Removes the background of an image.
  * @param {Blob} image
  * @param {(text: string) => void} [onProgress]
- * @returns {Promise<Blob>} transparent PNG at the original size
+ * @returns {Promise<Blob>} transparent PNG (animated WebP for animated images) at the original size
  */
 async function removeImageBackground(image, onProgress = () => {}) {
     if (image.size > BG_REMOVAL_MAX_BYTES) throw new Error('Image is over the 10 MB limit.');
@@ -170,7 +170,7 @@ async function removeImageBackground(image, onProgress = () => {}) {
         if (status === 'completed') {
             const out = await bgRemovalApi(key, { method: 'GET', url: `${BG_REMOVAL_API}/result/${jobId}`, responseType: 'blob' }, onProgress);
             if (out.status !== 200) throw new Error('Download failed: ' + bgRemovalErrorDetail(out));
-            return new Blob([out.response], { type: 'image/png' });
+            return new Blob([out.response], { type: out.response.type || 'image/png' }) // WebP when animated;
         }
         onProgress(status === 'processing' ? 'Removing background…' : 'Waiting in queue…');
     }
@@ -178,6 +178,9 @@ async function removeImageBackground(image, onProgress = () => {}) {
 }
 
 // --- NEW CHATS ---
+
+/** Set (on a chat or character record) when the user resets the character image: no automatic cut-out then */
+const NO_AUTO_CUTOUT_FIELD = 'no_auto_cutout';
 
 /**
  * First visit to a chat (nothing saved for it yet) whose character has no full-body image, only a
@@ -195,6 +198,7 @@ async function setUpNewChat(characterId) {
     if (chatRecord) return; // set up or customized before
     const hasImage = !!characterRecord?.character_image;
     if (hasImage && characterRecord?.background_image) return;
+    if (!hasImage && characterRecord?.[NO_AUTO_CUTOUT_FIELD]) return; // the user reset its image
 
     let character;
     try {

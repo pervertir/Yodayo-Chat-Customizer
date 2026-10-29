@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yodayo: Remove background
 // @namespace    MOESCAPE
-// @version      1.4.1
+// @version      1.4.2
 // @description  Right-click an image (or the chat) > Tampermonkey > Remove background: shows the cut-out as the character image
 // @author       Pervertir
 // @match        https://yodayo.com/*
@@ -184,7 +184,7 @@
      * Sends the image through submit > poll status > download result.
      * @param {string} key
      * @param {Blob} image
-     * @returns {Promise<Blob>} transparent PNG
+     * @returns {Promise<Blob>} transparent PNG (animated WebP for animated images)
      */
     async function removeBackground(key, image) {
         if (image.size > 10 * 1024 * 1024) throw new Error('Image is over the 10 MB limit.');
@@ -205,7 +205,7 @@
             if (status === 'completed') {
                 const out = await api(key, { method: 'GET', url: `${API}/result/${jobId}`, responseType: 'blob' });
                 if (out.status !== 200) throw new Error('Download failed: ' + errorDetail(out));
-                return new Blob([out.response], { type: 'image/png' });
+                return new Blob([out.response], { type: out.response.type || 'image/png' }) // WebP when animated;
             }
             notify(status === 'processing' ? 'Removing background…' : 'Waiting in queue…', true);
         }

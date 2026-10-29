@@ -44,6 +44,41 @@ function waitForElement(selector, callback) {
  * @param {number} quality - Quality level (0-1, default from WEBP_CONFIG)
  * @returns {Promise<string>} Base64 string without data URL prefix
  */
+/**
+ * Whether an image is animated (GIF, animated WebP or APNG). Those are stored as they are,
+ * since re-encoding through a canvas keeps only the first frame.
+ * @param {Blob} blob
+ * @returns {Promise<boolean>}
+ */
+async function isAnimatedImage(blob) {
+    const bytes = new Uint8Array(await blob.slice(0, 65536).arrayBuffer());
+    const ascii = (start, length) => new TextDecoder('latin1').decode(bytes.subarray(start, start + length));
+    if (ascii(0, 3) === 'GIF') return true;
+    // WebP: VP8X chunk with the animation flag
+    if (ascii(0, 4) === 'RIFF' && ascii(8, 4) === 'WEBP') return ascii(12, 4) === 'VP8X' && (bytes[20] & 0x02) !== 0;
+    // PNG: an acTL chunk (before the image data) makes it an APNG
+    if (bytes[0] === 0x89 && ascii(1, 3) === 'PNG') {
+        const header = ascii(0, bytes.length);
+        const actl = header.indexOf('acTL');
+        return actl !== -1 && (header.indexOf('IDAT') === -1 || actl < header.indexOf('IDAT'));
+    }
+    return false;
+}
+
+/**
+ * Reads a Blob as base64 without the data URL prefix, unchanged.
+ * @param {Blob} blob
+ * @returns {Promise<string>}
+ */
+function blobToRawBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
 async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
     if (!url || typeof url !== 'string') {
         throw new Error('Invalid URL provided');
@@ -59,6 +94,7 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
                 if (response.status === 200) {
                     try {
                         const blob = response.response;
+                        if (await isAnimatedImage(blob)) return resolve(await blobToRawBase64(blob));
                         const reader = new FileReader();
                         reader.onload = async (e) => {
                             try {                                const img = new Image();
@@ -183,7 +219,8 @@ async function convertImageToWebP(img, quality = WEBP_CONFIG.quality) {
  * @param {number} quality - Quality level (0-1, default from WEBP_CONFIG)
  * @returns {Promise<string>} Base64 string without data URL prefix
  */
-function fileToBase64(file, quality = WEBP_CONFIG.quality) {
+async function fileToBase64(file, quality = WEBP_CONFIG.quality) {
+    if (await isAnimatedImage(file)) return blobToRawBase64(file);
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (e) => {

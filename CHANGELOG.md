@@ -9,6 +9,15 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-29
+
+### Added
+- **Reset** next to the character **Image** in Customize Chat (and in each group chat character's tab): removes the custom image or cut-out and brings back the site's own image. Once saved, that character is no longer cut out of its background automatically.
+
+### Fixed
+- Animated images (GIF, animated WebP, APNG) stay animated: character images, backgrounds and cut-outs are no longer flattened to their first frame when saved. Cut-outs of animated backgrounds come back animated from ImageTools (right-click "Remove background" 1.4.2 too).
+- Character Settings **Reset** now also restores the site's own full-body image after a custom one replaced it, and in group chats it removes an automatic cut-out too.
+
 ## [1.13.2] - 2026-10-26
 
 ### Fixed
@@ -271,7 +280,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.13.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.14.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.13.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/46b237f
 [1.13.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/ef21663
 [1.13.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/2954951
 [1.12.6]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main

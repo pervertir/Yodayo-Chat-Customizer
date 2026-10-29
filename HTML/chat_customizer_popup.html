@@ -126,8 +126,32 @@
                   </div>
                 </div>
                 <div></div>
-                <div class="flex items-center">
+                <div class="flex items-center justify-between">
                   <div class="pb-1 font-medium text-sm">Image</div>
+                  <button
+                    id="character-image-reset-button"
+                    type="button"
+                    title="Remove the custom image and stop cutting this character out automatically"
+                    class="flex items-center gap-1 pb-1 text-xs text-secondaryText hover:text-primaryBtn"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                      data-slot="icon"
+                      class="h-4 w-4"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                      ></path>
+                    </svg>
+                    <p>Reset</p>
+                  </button>
                 </div>
                 <div class="relative pb-3">
                   <input

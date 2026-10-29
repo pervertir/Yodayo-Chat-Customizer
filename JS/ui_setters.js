@@ -82,6 +82,10 @@ async function setCharacterImage(imageData) {
         const imageSrc = normalizeImageData(imageData);
 
         if (existingImage) {
+            // Remember the site's own image so a reset can bring it back
+            if (!existingImage.closest('#character-image-container') && !existingImage.dataset.yccOriginalSrc) {
+                existingImage.dataset.yccOriginalSrc = existingImage.src;
+            }
             existingImage.src = imageSrc;
             existingImage.style.height = imageHeight;
             console.log('Changed Character Image.');
@@ -99,6 +103,19 @@ async function setCharacterImage(imageData) {
         }
     } else {
         console.error('Character container not found');
+    }
+}
+
+/**
+ * Takes the custom character image away: the site's own image comes back, or none is shown.
+ * @returns {void}
+ */
+function clearCharacterImage() {
+    document.querySelector('#character-image-container')?.remove();
+    const siteImage = document.querySelector(`${character_image_area} img[data-ycc-original-src]`);
+    if (siteImage) {
+        siteImage.src = siteImage.dataset.yccOriginalSrc;
+        delete siteImage.dataset.yccOriginalSrc;
     }
 }
 

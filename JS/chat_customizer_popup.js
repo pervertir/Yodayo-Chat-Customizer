@@ -193,11 +193,14 @@ function setPickrColor(key, color) {
  * Destroys all Pickr instances (cleanup)
  */
 function destroyPickrInstances() {
+    // destroy() leaves each picker's panel in <body>; off chat pages the Pickr CSS is off,
+    // so those panels showed up unstyled until the next chat turned it back on
     Object.values(pickrInstances).forEach(pickr => {
-        if (pickr && pickr.destroy) {
-            pickr.destroy();
+        if (pickr && pickr.destroyAndRemove) {
+            pickr.destroyAndRemove();
         }
     });
+    document.querySelectorAll('body > .pcr-app').forEach(app => app.remove());
     pickrInstances = {};
 }
 

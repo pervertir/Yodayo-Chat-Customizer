@@ -108,6 +108,8 @@
             else if (el.media !== 'not all') el.media = 'not all';
         });
         if (!onChat) {
+            // Leaving with Customize Chat open would leave its colour pickers behind, unstyled
+            destroyPickrInstances();
             // Leftover "customizations loaded" toasts carry their own <style>
             let note;
             while ((note = document.getElementById('notification'))) {

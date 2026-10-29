@@ -87,6 +87,7 @@ function openDatabaseOnce() {
             db = event.target.result;
             // Another tab with a newer version wants to upgrade: let it (this tab reopens on next use)
             db.onversionchange = () => { db.close(); db = undefined; };
+            requestPersistentStorage();
             try {
                 await syncWithMirror();
             } catch (e) {

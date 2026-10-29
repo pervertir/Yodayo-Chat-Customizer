@@ -15,7 +15,13 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 - JSON exports include every image once, in a separate `images` list. Older exports, with images inside the records, still import.
 - Images no chat, character or snapshot uses any more are deleted on startup.
 
+- The customizer asks the browser to keep the site's data when disk space runs low (it may decline; clearing site data yourself still removes it).
+
+### Added
+- **Automatic Backups** shows how many images are stored, how much space they take, and how much of the browser's allowance the site uses.
+
 ### Fixed
+- When saving fails (for example because the browser's storage for the site is full), Customize Chat now says so, and your changes stay in the form so you can save again. Before, nothing happened.
 - The Card Viewer reopened the database every time it was shown.
 - The right-click **Remove background** script can use the Customizer's saved images (right-click script 1.4.3).
 

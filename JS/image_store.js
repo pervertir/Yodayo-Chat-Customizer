@@ -122,8 +122,8 @@ async function putImages(blobs) {
         // Put even if it exists: refreshes `stored`, so the sweep can't delete an image being reused
         blobs.forEach((blob, i) => objectStore.put({ hash: hashes[i], blob, type: blob.type, size: blob.size, stored: Date.now() }));
         transaction.oncomplete = () => resolve();
-        transaction.onerror = (e) => reject(e.target.error);
-        transaction.onabort = (e) => reject(transaction.error || e.target.error);
+        transaction.onerror = (e) => reject(describeStorageError(e.target.error));
+        transaction.onabort = (e) => reject(describeStorageError(transaction.error || e.target.error));
     });
     blobs.forEach((blob, i) => rememberImage(hashes[i], blob));
     return hashes.map(hash => IMAGE_REF_PREFIX + hash);
@@ -187,7 +187,7 @@ function getStoredImages(hashes) {
 }
 
 /**
- * @returns {Promise<{hash: string, stored: number}[]>} every stored image's key and store time
+ * @returns {Promise<{hash: string, stored: number, size: number}[]>} every stored image's key, store time and size
  */
 function listStoredImages() {
     return new Promise((resolve, reject) => {
@@ -197,7 +197,7 @@ function listStoredImages() {
         request.onsuccess = (e) => {
             const cursor = e.target.result;
             if (!cursor) return resolve(images);
-            images.push({ hash: cursor.value.hash, stored: cursor.value.stored });
+            images.push({ hash: cursor.value.hash, stored: cursor.value.stored, size: cursor.value.size || 0 });
             cursor.continue();
         };
         request.onerror = (e) => reject(e.target.error);
@@ -313,4 +313,61 @@ function blobToDataUrl(blob) {
         reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(blob);
     });
+}
+
+/**
+ * A full-storage error as one the user can act on; other errors unchanged.
+ * @param {*} error
+ * @returns {*}
+ */
+function describeStorageError(error) {
+    if (error && (error.name === 'QuotaExceededError' || /quota/i.test(error.message || ''))) {
+        return new Error('Browser storage for this site is full. Delete chat styles you no longer use, ' +
+            'or free up disk space, then try again.');
+    }
+    return error;
+}
+
+/**
+ * Asks the browser to keep this site's data when disk space runs low (it decides without asking
+ * the user). It does not stop the user or a privacy setting from clearing site data.
+ * @returns {Promise<void>}
+ */
+async function requestPersistentStorage() {
+    try {
+        if (!navigator.storage?.persist || await navigator.storage.persisted()) return;
+        console.log('Persistent storage ' + (await navigator.storage.persist() ? 'granted' : 'not granted'));
+    } catch (e) {
+        console.warn('Persistent storage request failed:', e);
+    }
+}
+
+/**
+ * @returns {Promise<{images: number, imageBytes: number, usage: number|null, quota: number|null, persisted: boolean|null}>}
+ */
+async function getStorageUsage() {
+    if (!db) await openDatabase();
+    const images = await listStoredImages();
+    let estimate = {}, persisted = null;
+    try {
+        estimate = await navigator.storage.estimate();
+        persisted = await navigator.storage.persisted();
+    } catch (e) { /* not available */ }
+    return {
+        images: images.length,
+        imageBytes: images.reduce((sum, image) => sum + image.size, 0),
+        usage: estimate.usage ?? null,
+        quota: estimate.quota ?? null,
+        persisted,
+    };
+}
+
+/**
+ * @param {number} bytes
+ * @returns {string}
+ */
+function formatBytes(bytes) {
+    if (bytes >= 1e9) return (bytes / 1e9).toFixed(1) + ' GB';
+    if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    return Math.round(bytes / 1e3) + ' KB';
 }

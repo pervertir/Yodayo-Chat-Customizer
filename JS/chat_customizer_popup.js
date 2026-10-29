@@ -531,39 +531,13 @@ function initializeCharacterSettingsEventHandlers(form) {
 
     // Button event handlers with null checks
     formElements.saveButton?.addEventListener('click', async function () {
-        if (isGroupChat()) {
-            // Shared settings belong to this chat; "Set as Character Theme" applies to each character's tab
-            await saveCharacterDetailsToDBFromTemp(CHAT_ID);
-            await saveGroupCharacterSettings(!!formElements.charThemeCheckbox?.checked);
-            if (formElements.applyToAllCheckbox?.checked) {
-                await saveCharacterDetailsToDBFromTemp('Universal');
-            }
-            showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
-            clearTempFormData();
-            return;
+        try {
+            await saveCustomizerForm(formElements);
+        } catch (e) {
+            // Unsaved changes stay in the form, so Save can be pressed again
+            console.error('Save failed:', e);
+            showInjectionNotification(notification_resource_name, null, 'Save failed: ' + e.message);
         }
-
-        let anchor = document.querySelector(char_id_selector);
-        let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
-
-        // Determine save target based on character theme checkbox
-        let saveTarget;
-        if (formElements.charThemeCheckbox?.checked) {
-            // Save as character theme (CHAR_ID)
-            saveTarget = CHAR_ID;
-        } else {
-            // Save as chat-specific (CHAT_ID)  
-            saveTarget = CHAT_ID;
-        }
-
-        await saveCharacterDetailsToDBFromTemp(saveTarget);
-
-        if (formElements.applyToAllCheckbox?.checked) {
-            await saveCharacterDetailsToDBFromTemp('Universal');
-        }
-
-        showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
-        clearTempFormData();
     });
 
     formElements.deleteCurrentPageStyleButton?.addEventListener('click', async function () {
@@ -1164,6 +1138,47 @@ function handleFormAdded(mutationsList, observer) {
 // --- SAVE OPERATIONS ---
 
 /**
+ * Saves Customize Chat's changes: to the chat, or to the character's theme, and to Universal.
+ * @param {Object<string, HTMLElement|null>} formElements
+ * @returns {Promise<void>}
+ */
+async function saveCustomizerForm(formElements) {
+    if (isGroupChat()) {
+        // Shared settings belong to this chat; "Set as Character Theme" applies to each character's tab
+        await saveCharacterDetailsToDBFromTemp(CHAT_ID);
+        await saveGroupCharacterSettings(!!formElements.charThemeCheckbox?.checked);
+        if (formElements.applyToAllCheckbox?.checked) {
+            await saveCharacterDetailsToDBFromTemp('Universal');
+        }
+        showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
+        clearTempFormData();
+        return;
+    }
+
+    let anchor = document.querySelector(char_id_selector);
+    let CHAR_ID = findCharacterID(anchor) || CHAT_ID;
+
+    // Determine save target based on character theme checkbox
+    let saveTarget;
+    if (formElements.charThemeCheckbox?.checked) {
+        // Save as character theme (CHAR_ID)
+        saveTarget = CHAR_ID;
+    } else {
+        // Save as chat-specific (CHAT_ID)  
+        saveTarget = CHAT_ID;
+    }
+
+    await saveCharacterDetailsToDBFromTemp(saveTarget);
+
+    if (formElements.applyToAllCheckbox?.checked) {
+        await saveCharacterDetailsToDBFromTemp('Universal');
+    }
+
+    showInjectionNotification(notification_resource_name, null, 'Settings saved successfully!');
+    clearTempFormData();
+}
+
+/**
  * Optimized save function using batch database operations
  * @param {string} [overrideCharId] Optional CHAR_ID to override (for Universal save)
  * @returns {Promise<void>}
@@ -1317,6 +1332,8 @@ function refreshBackupInfo() {
         `Last JSON export: ` +
         (lastExport ? new Date(lastExport).toLocaleString() : 'never') + '.';
 
+    refreshStorageUsage();
+
     select.innerHTML = '';
     listSnapshots().forEach(snapshot => {
         const option = document.createElement('option');
@@ -1325,6 +1342,27 @@ function refreshBackupInfo() {
         select.appendChild(option);
     });
     if (!select.options.length) select.innerHTML = '<option value="">No snapshots yet</option>';
+}
+
+/**
+ * Fills the storage usage line under Automatic Backups
+ * @returns {Promise<void>}
+ */
+async function refreshStorageUsage() {
+    /** @type {HTMLElement|null} */
+    const line = document.getElementById('storage-usage');
+    if (!line) return;
+    try {
+        const usage = await getStorageUsage();
+        let text = `Images: ${usage.images} (${formatBytes(usage.imageBytes)}).`;
+        if (usage.usage !== null && usage.quota) {
+            text += ` This site uses ${formatBytes(usage.usage)} of the ${formatBytes(usage.quota)} the browser allows it.`;
+        }
+        if (usage.persisted === false) text += ' The browser may clear it when disk space runs low.';
+        line.textContent = text;
+    } catch (e) {
+        console.error('Storage usage failed:', e);
+    }
 }
 
 /**

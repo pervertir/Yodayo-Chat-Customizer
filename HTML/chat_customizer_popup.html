@@ -179,10 +179,62 @@
                     Remove background &amp; use as character
                   </button>
                 </div>
-                <div class="flex items-center gap-4 pb-3">
-                  <div class="font-medium text-sm shrink-0">Size</div>
-                  <input id="character-scale-input" type="range" min="30" max="250" step="5" value="100" class="w-full cursor-pointer" />
-                  <span id="character-scale-value" class="w-12 shrink-0 text-right text-sm">100%</span>
+                <div id="character-adjust-section" class="mb-3 rounded-md border border-separator/10 p-3">
+                  <div class="flex items-center justify-between pb-2">
+                    <div class="font-medium text-sm">Placement</div>
+                    <button
+                      id="character-adjust-reset-button"
+                      type="button"
+                      title="Put the image back to its normal size, place and look"
+                      class="text-xs text-secondaryText hover:text-primaryBtn"
+                    >
+                      Reset placement
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-[4.5rem_1fr_3.5rem] items-center gap-x-3 gap-y-2 text-sm">
+                    <label for="character-scale-input">Size</label>
+                    <input id="character-scale-input" type="range" min="30" max="250" step="5" value="100" class="w-full cursor-pointer" />
+                    <span id="character-scale-value" class="text-right">100%</span>
+
+                    <label for="character-rotation-input">Rotation</label>
+                    <input id="character-rotation-input" type="range" min="-180" max="180" step="1" value="0" class="w-full cursor-pointer" />
+                    <span id="character-rotation-value" class="text-right">0°</span>
+
+                    <label for="character-opacity-input">Opacity</label>
+                    <input id="character-opacity-input" type="range" min="10" max="100" step="5" value="100" class="w-full cursor-pointer" />
+                    <span id="character-opacity-value" class="text-right">100%</span>
+
+                    <label for="character-offset-x-input">Left/right</label>
+                    <input id="character-offset-x-input" type="range" min="-100" max="100" step="1" value="0" class="w-full cursor-pointer" />
+                    <span id="character-offset-x-value" class="text-right">0%</span>
+
+                    <label for="character-offset-y-input">Up/down</label>
+                    <input id="character-offset-y-input" type="range" min="-100" max="100" step="1" value="0" class="w-full cursor-pointer" />
+                    <span id="character-offset-y-value" class="text-right">0%</span>
+                  </div>
+                  <div class="mt-3 flex gap-2">
+                    <button
+                      id="character-flip-x-button"
+                      type="button"
+                      aria-pressed="false"
+                      title="Mirror the image left to right"
+                      class="flex-1 rounded py-2 px-3 text-xs font-medium text-white bg-blue-400/40 hover:bg-blue-400/80"
+                    >
+                      ⇆ Flip horizontal
+                    </button>
+                    <button
+                      id="character-flip-y-button"
+                      type="button"
+                      aria-pressed="false"
+                      title="Turn the image upside down"
+                      class="flex-1 rounded py-2 px-3 text-xs font-medium text-white bg-blue-400/40 hover:bg-blue-400/80"
+                    >
+                      ⇅ Flip vertical
+                    </button>
+                  </div>
+                  <p class="pt-2 text-xs text-secondaryText">
+                    Tip: drag the image on the page to move it, double-click it to put it back.
+                  </p>
                 </div>
               </div>
 

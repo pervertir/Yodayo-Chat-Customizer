@@ -38,6 +38,28 @@
     addScopedStyle(`
         ${character_image_area} { margin-top: calc(-1 * var(--ycc-image-area-top, 0px)) !important; }
     `);
+    // In landscape the page column is centred, so the image area stops short of the window's left
+    // edge. Single chats widen it to that edge (the image stays where it was, its box is moved back
+    // by the same amount) so a dragged image can reach the left corner. Group chats widen it themselves.
+    const singleImageArea = `${character_image_area}:not(:has(> #group-character-images))`;
+    addScopedStyle(`
+        @media (orientation: landscape) {
+            ${singleImageArea} {
+                margin-left: calc(-1 * var(--ycc-image-area-left, 0px)) !important;
+                width: calc(50% + var(--ycc-image-area-left, 0px)) !important;
+            }
+            ${singleImageArea} > div {
+                left: var(--ycc-image-area-left, 0px) !important;
+                width: calc(100% - var(--ycc-image-area-left, 0px)) !important;
+            }
+        }
+    `);
+    // The site's unlayered button reset (background transparent) beats Tailwind v4's layered
+    // utilities, which left the customizer's blue buttons without a background
+    addScopedStyle(`
+        #chat-customizer-ui-popup button.bg-blue-400\\/40 { background-color: rgb(96 165 250 / 0.4); }
+        #chat-customizer-ui-popup button.bg-blue-400\\/40:hover:not(:disabled) { background-color: rgb(96 165 250 / 0.8); }
+    `);
     window.addEventListener('resize', updateCharacterAreaTop);
     let scriptLoaded = false;
     let urlCheckInterval = null;

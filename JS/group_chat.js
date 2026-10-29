@@ -9,7 +9,8 @@
 // (flat, so the backup still leaves out large images), and with "Set as Character Theme" also on
 // that character's own record, so they carry over to its other chats. Where each image was dragged
 // to is saved on the chat record only ("character_position@<character id>"), as soon as it is dropped;
-// each image's size ("character_scale@<character id>") is also kept for this chat only, on Save.
+// the rest of each image's placement (size, rotation, opacity, flips; CHARACTER_ADJUST_FIELDS) is also
+// kept for this chat only, on Save.
 //
 // Many characters have no full-body image, only a background showing them. For those the background
 // is sent to the background-removal API (all characters at once) and the cut-out is used instead.
@@ -37,8 +38,6 @@ const GROUP_CHARACTER_FIELDS = ['character_alias', 'character_image', NO_AUTO_CU
 const GROUP_IMAGES_ID = 'group-character-images';
 /** Dragged image offset, as fractions of the image area's width and height */
 const GROUP_POSITION_FIELD = 'character_position';
-/** Image size multiplier (1 = the size the row gives it) */
-const GROUP_SCALE_FIELD = 'character_scale';
 /** Character cut out of its background, for characters without a full-body image */
 const GROUP_CUTOUT_FIELD = 'character_cutout';
 /** Chat record field: character ids from front to back */
@@ -179,7 +178,7 @@ function mergeGroupCharacterSettings(chatRecord, characterRecords) {
             const value = chatRecord?.[groupFieldKey(field, c.uuid)] ?? characterRecords[i]?.[field];
             if (value !== undefined && value !== null) settings[c.uuid][field] = value;
         });
-        [GROUP_POSITION_FIELD, GROUP_SCALE_FIELD, GROUP_CUTOUT_FIELD].forEach(field => {
+        [...CHARACTER_ADJUST_FIELDS, GROUP_CUTOUT_FIELD].forEach(field => {
             const value = chatRecord?.[groupFieldKey(field, c.uuid)];
             if (value) settings[c.uuid][field] = value;
         });
@@ -459,40 +458,38 @@ function layoutGroupCharacterImages() {
     images.forEach((img, i) => {
         img.style.height = `${Math.floor(height)}px`;
         img.style.marginLeft = i ? `-${Math.round(GROUP_IMAGE_OVERLAP * Math.min(aspects[i], aspects[i - 1]) * height)}px` : '';
-        applyGroupImagePosition(img, groupCharacterSettings[img.dataset.characterId]?.[GROUP_POSITION_FIELD]);
+        applyGroupImagePosition(img);
     });
 }
 
 /**
- * Moves an image by a saved offset (fractions of the image area, so it scales with the window)
- * and sizes it by its character's scale (growing from the feet up).
+ * Places an image by its character's placement: offset (fractions of the image area, so it scales
+ * with the window), size (growing from the feet up), rotation, flips and opacity.
  * @param {HTMLImageElement} img
- * @param {{x: number, y: number}|undefined} position
+ * @param {{x: number, y: number}|null} [position] - offset to show instead of the saved one (while dragging)
  * @returns {void}
  */
 function applyGroupImagePosition(img, position) {
     const row = img.parentElement;
     if (!row) return;
-    const { x = 0, y = 0 } = position || {};
-    const scale = groupCharacterSettings[img.dataset.characterId]?.[GROUP_SCALE_FIELD] || 1;
-    const transforms = [];
-    if (x || y) transforms.push(`translate(${x * row.clientWidth}px, ${y * row.clientHeight}px)`);
-    if (scale !== 1) transforms.push(`scale(${scale})`);
+    const settings = groupCharacterSettings[img.dataset.characterId] || {};
+    const adjust = position === undefined ? settings : { ...settings, [GROUP_POSITION_FIELD]: position };
+    const opacity = settings.character_opacity ?? 1;
     img.style.transformOrigin = 'bottom center';
-    img.style.transform = transforms.join(' ');
+    img.style.transform = characterImageTransform(adjust, row.clientWidth, row.clientHeight);
+    img.style.opacity = opacity < 1 ? String(opacity) : '';
 }
 
 /**
- * Sets a character's image size (1 = default) and shows it.
+ * Sets a character's image placement and shows it.
  * @param {string} characterId
- * @param {number} scale
+ * @param {CharacterAdjustments} adjust
  * @returns {void}
  */
-function setGroupCharacterScale(characterId, scale) {
-    const settings = (groupCharacterSettings[characterId] ||= {});
-    settings[GROUP_SCALE_FIELD] = scale;
+function setGroupCharacterAdjustments(characterId, adjust) {
+    Object.assign((groupCharacterSettings[characterId] ||= {}), adjust);
     const img = document.querySelector(`#${GROUP_IMAGES_ID} img[data-character-id="${characterId}"]`);
-    if (img) applyGroupImagePosition(img, settings[GROUP_POSITION_FIELD]);
+    if (img) applyGroupImagePosition(img);
 }
 
 /**
@@ -546,8 +543,9 @@ function enableGroupImageDrag(img, characterId) {
  * @returns {Promise<void>}
  */
 async function saveGroupCharacterPosition(characterId, position) {
-    const rounded = { x: Math.round(position.x * 10000) / 10000, y: Math.round(position.y * 10000) / 10000 };
+    const rounded = roundCharacterPosition(position);
     (groupCharacterSettings[characterId] ||= {})[GROUP_POSITION_FIELD] = rounded;
+    document.dispatchEvent(new CustomEvent('ycc:group-position-changed', { detail: characterId }));
     try {
         await saveCharacterFieldsBatch(CHAT_ID, { [groupFieldKey(GROUP_POSITION_FIELD, characterId)]: rounded, record_type: 'chat' });
     } catch (e) {
@@ -663,8 +661,8 @@ function setupGroupCustomizerWindow(form) {
         tabBar.appendChild(button);
     });
 
-    // Layer buttons under the Size slider
-    const sizeRow = characterSection.querySelector('#character-scale-input')?.parentElement;
+    // Layer buttons under the Placement controls
+    const sizeRow = characterSection.querySelector('#character-adjust-section');
     if (sizeRow) {
         const layerRow = document.createElement('div');
         layerRow.className = 'flex items-center gap-2 pb-3';
@@ -721,13 +719,12 @@ function initializeGroupCharacterTabs(form) {
         const urlInput = get('character-image-url-input');
         const fileInput = get('character-image-file-input');
         const removeBgButton = get('character-remove-bg-button');
-        const scaleInput = get('character-scale-input');
-        const scaleValue = get('character-scale-value');
-        const showScale = percent => {
-            if (scaleInput) scaleInput.value = percent;
-            if (scaleValue) scaleValue.textContent = `${percent}%`;
-        };
-        showScale(Math.round((settings[GROUP_SCALE_FIELD] || 1) * 100));
+        const showAdjustments = bindCharacterAdjustControls(get,
+            settings, adjust => setGroupCharacterAdjustments(character.uuid, adjust));
+        // A drag on the page (or double-click) moves the image: keep the sliders in step
+        document.addEventListener('ycc:group-position-changed', event => {
+            if (event.detail === character.uuid && get('character-adjust-section')?.isConnected) showAdjustments(settings);
+        });
         const forwardButton = get('character-forward-button');
         const backwardButton = get('character-backward-button');
         const updateLayerButtons = () => {
@@ -745,10 +742,6 @@ function initializeGroupCharacterTabs(form) {
         backwardButton?.addEventListener('click', () => moveLayer(1));
         form.addEventListener('ycc:group-layers-changed', updateLayerButtons);
         updateLayerButtons();
-        scaleInput?.addEventListener('input', () => {
-            showScale(scaleInput.value);
-            setGroupCharacterScale(character.uuid, Number(scaleInput.value) / 100);
-        });
 
         if (nameInput) {
             nameInput.value = settings.character_alias || '';
@@ -824,9 +817,9 @@ function initializeGroupCharacterTabs(form) {
                 setPickrColor(`group_${field}_${i}`, sharedColor(field, defaultKey));
             });
             resetImage();
+            setGroupCharacterAdjustments(character.uuid, structuredClone(CHARACTER_ADJUST_DEFAULTS));
+            showAdjustments(CHARACTER_ADJUST_DEFAULTS);
             saveGroupCharacterPosition(character.uuid, { x: 0, y: 0 });
-            showScale(100);
-            setGroupCharacterScale(character.uuid, 1);
             showInjectionNotification(notification_resource_name, null, `${character.nickname} reset to default. Press Save to keep it.`);
         });
     });
@@ -848,9 +841,11 @@ async function saveGroupCharacterSettings(saveAsCharacterTheme) {
             if (value !== undefined && value !== null) fields[field] = value;
         });
         Object.entries(fields).forEach(([field, value]) => { chatFields[groupFieldKey(field, character.uuid)] = value; });
-        // Size belongs to this chat's layout, so it isn't saved to the character's theme
-        const scale = groupCharacterSettings[character.uuid]?.[GROUP_SCALE_FIELD];
-        if (scale) chatFields[groupFieldKey(GROUP_SCALE_FIELD, character.uuid)] = scale;
+        // Placement belongs to this chat's layout, so it isn't saved to the character's theme
+        CHARACTER_ADJUST_FIELDS.forEach(field => {
+            const value = groupCharacterSettings[character.uuid]?.[field];
+            if (value !== undefined && value !== null) chatFields[groupFieldKey(field, character.uuid)] = value;
+        });
         // A reset removes the saved cut-out (cut-outs themselves are saved as soon as they are made)
         if (groupCharacterSettings[character.uuid]?.[GROUP_CUTOUT_FIELD] === '') {
             chatFields[groupFieldKey(GROUP_CUTOUT_FIELD, character.uuid)] = '';

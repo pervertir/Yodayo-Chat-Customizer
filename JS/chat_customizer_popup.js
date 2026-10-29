@@ -5,6 +5,10 @@
 let default_background_image = null;
 let temp_form_data = {};
 let pickrInstances = {}; // Store Pickr instances
+/** @type {((adjust: CharacterAdjustments) => void)|null} shows a placement in the open customizer's controls */
+let showCharacterAdjustments = null;
+// A drag on the page moves the image while the customizer may be open: keep its sliders in step
+document.addEventListener('ycc:character-position-changed', () => showCharacterAdjustments?.(currentCharacterAdjustments));
 
 // =========================
 // UTILITY & HELPER FUNCTIONS
@@ -224,14 +228,9 @@ function resetCharacterSettings(formElements) {
         temp_form_data.character_name_color = '#ffffff';
     }
     resetCharacterImage(formElements, false);
-    const scaleInput = document.querySelector('#character-scale-input');
-    if (scaleInput) {
-        scaleInput.value = 100;
-        const label = document.querySelector('#character-scale-value');
-        if (label) label.textContent = '100%';
-        setCharacterScale(1);
-        temp_form_data.character_scale = 1;
-    }
+    setCharacterAdjustments(CHARACTER_ADJUST_DEFAULTS);
+    showCharacterAdjustments?.(CHARACTER_ADJUST_DEFAULTS);
+    Object.assign(temp_form_data, structuredClone(CHARACTER_ADJUST_DEFAULTS));
     showInjectionNotification(notification_resource_name, null, 'Character settings reset to default!');
 }
 
@@ -468,12 +467,6 @@ function initializeCharacterSettingsEventHandlers(form) {
             setCharacterAlias(value);
             updateTemp('character_alias', value);
         },
-        'character-scale-input': (value) => {
-            const label = form.querySelector('#character-scale-value');
-            if (label) label.textContent = `${value}%`;
-            setCharacterScale(Number(value) / 100);
-            updateTemp('character_scale', Number(value) / 100);
-        },
         'chat-name-input': (value) => {
             setChatName(value);
             updateTemp('chat_name', value);
@@ -612,6 +605,15 @@ function initializeCharacterSettingsEventHandlers(form) {
         resetColorSettings(formElements);
     });
 
+    // Placement: size, rotation, opacity, offset and flips (group chats wire each character's tab)
+    showCharacterAdjustments = isGroupChat() ? null : bindCharacterAdjustControls(
+        id => form.querySelector(`#${id}`),
+        currentCharacterAdjustments,
+        adjust => {
+            setCharacterAdjustments(adjust);
+            CHARACTER_ADJUST_FIELDS.forEach(field => updateTemp(field, adjust[field]));
+        });
+
     // Cut the character out of the current background and use it as the character image
     const removeBgButton = form.querySelector('#character-remove-bg-button');
     removeBgButton?.addEventListener('click', async function () {
@@ -719,7 +721,7 @@ async function loadCustomizedUI(CHAR_ID) {
  */
 function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
     const allFields = [
-        'character_alias', 'chat_name', 'character_image', 'character_scale', 'background_image', 'default_background_image',
+        'character_alias', 'chat_name', 'character_image', ...CHARACTER_ADJUST_FIELDS, 'background_image', 'default_background_image',
         'character_name_color', 'character_narration_color', 'character_message_color',
         'character_message_box_color', 'username_color', 'user_message_color', 'user_message_box_color',
         'no_universal_colors'
@@ -795,7 +797,7 @@ async function applySettingsToUI(settings) {
     // Always call these: an empty value clears one left over from a previous chat
     setCharacterAlias(settings.character_alias || '');
     setChatName(settings.chat_name || '');
-    setCharacterScale(settings.character_scale || 1);
+    setCharacterAdjustments(Object.fromEntries(CHARACTER_ADJUST_FIELDS.map(field => [field, settings[field]])));
 
     // Apply colors - use defaults if no_universal_colors is true and no explicit color is set
     const shouldUseDefaults = settings.no_universal_colors;
@@ -922,7 +924,6 @@ async function populateCustomizerPopup(form, CHAR_ID) {
     const formElements = {
         nameInput: form.querySelector('#name-input'),
         chatNameInput: form.querySelector('#chat-name-input'),
-        scaleInput: form.querySelector('#character-scale-input'),
         characterImageUrlInput: form.querySelector('#character-image-url-input'),
         bgUrlInput: form.querySelector('#bg-url-input'),
         noUniversalCheckbox: form.querySelector('#no-universal-checkbox')
@@ -1004,13 +1005,8 @@ async function populateCustomizerPopup(form, CHAR_ID) {
             }
         });
 
-        // Size slider (stored as a factor, shown in percent)
-        if (formElements.scaleInput) {
-            const percent = Math.round((formData.character_scale || 1) * 100);
-            formElements.scaleInput.value = percent;
-            const label = form.querySelector('#character-scale-value');
-            if (label) label.textContent = `${percent}%`;
-        }
+        // Placement controls show what the image shows
+        showCharacterAdjustments?.(currentCharacterAdjustments);
 
         // Handle no-universal checkbox
         if (formElements.noUniversalCheckbox) {
@@ -1205,6 +1201,7 @@ async function saveCharacterDetailsToDBFromTemp(overrideCharId) {
         if (isGroupChat()) {
             delete fieldsToSave.character_alias;
             delete fieldsToSave.character_image;
+            CHARACTER_ADJUST_FIELDS.forEach(field => delete fieldsToSave[field]);
         }
         // If saving to CHAT_ID (not character theme), set record_type to 'chat'
         if (CHAR_ID === CHAT_ID) {

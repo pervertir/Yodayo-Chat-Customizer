@@ -9,6 +9,15 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-10-29
+
+### Added
+- **Placement** controls for the character image in Customize Chat (and in each group chat character's tab): next to **Size** there are now **Rotation**, **Opacity**, **Left/right** and **Up/down** sliders, **Flip horizontal** and **Flip vertical** toggles, and **Reset placement**. Rotation and flips turn the image around its middle; size still grows from the feet up.
+- The character image can be dragged in single-character chats too, as in group chats. The new spot is saved for the chat when you let go; double-click the image to put it back. In wide windows the image can now be moved all the way to the window's left edge instead of being cut off at the chat column.
+
+### Fixed
+- Blue buttons in Customize Chat (Remove background, Bring forward, Send backward) had no background colour.
+
 ## [1.14.0] - 2026-10-29
 
 ### Added
@@ -280,7 +289,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.14.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.15.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.14.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/8316746
 [1.13.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/46b237f
 [1.13.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/ef21663
 [1.13.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/2954951

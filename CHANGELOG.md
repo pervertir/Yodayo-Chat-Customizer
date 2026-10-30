@@ -9,6 +9,11 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.17.2] - 2026-10-30
+
+### Fixed
+- Customize Chat now closes when you leave the chat it was opened in. Before, it stayed on screen on the next page, with its colour pickers showing unstyled outside chats.
+
 ## [1.17.1] - 2026-10-29
 
 ### Fixed
@@ -317,7 +322,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.17.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.17.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.17.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/4a48cf3
 [1.17.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/7b90e61
 [1.16.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/5981c18
 [1.15.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/fcb86fd

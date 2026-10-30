@@ -159,6 +159,11 @@
      * @returns {void}
      */
     function initializeScript() {
+        // Customize Chat belongs to the chat it was opened in: close it when the site moves to
+        // another page, or it stays on screen there (unstyled off chat pages)
+        if (!isTargetUrl() || getChatIdFromUrl() !== loadedChatId) {
+            document.querySelector(`#${chat_customizer_body_id} #close-button`)?.click();
+        }
         applyStyleScope();
         if (isTargetUrl()) {
             const chatId = getChatIdFromUrl();

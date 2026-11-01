@@ -305,9 +305,18 @@ async function addMenuItem(targetElement, itemId, resourceName) {
     // The site's menu scrolls inside an inner .overflow-y-auto box (max-height = viewport) while the
     // outer box clips. Items added to the outer box made the menu taller than the screen and the
     // bottom was cut off, so add them inside the scrolling box when there is one.
+    // That box hides its scrollbar and the site's menu is taller than most windows, so items at the
+    // bottom can't be seen without knowing to scroll: they go at the top, above a divider.
     const scrollBox = targetElement.querySelector(':scope > .overflow-y-auto');
     return renderHTMLFromFile(resourceName).then(item => {
-        (scrollBox || targetElement).appendChild(item);
+        const list = scrollBox || targetElement;
+        let divider = list.querySelector(':scope > [data-ycc-divider]');
+        if (!divider) {
+            divider = list.querySelector(':scope > hr')?.cloneNode() || document.createElement('hr');
+            divider.setAttribute('data-ycc-divider', '');
+            list.prepend(divider);
+        }
+        list.insertBefore(item, divider);
         yccLog.debug(item, `menu item added.`);
         return item;
     });

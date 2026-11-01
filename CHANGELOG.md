@@ -9,6 +9,11 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-10-31
+
+### Fixed
+- **Customize Chat** and **Card Viewer** are now at the top of the chat menu. They were added at the bottom, and the site's menu has grown taller than most windows and hides its scrollbar, so they looked missing unless you scrolled down.
+
 ## [1.18.0] - 2026-10-31
 
 ### Added
@@ -332,7 +337,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.18.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.18.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.18.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/56336b9
 [1.17.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/6319777
 [1.17.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/4a48cf3
 [1.17.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/7b90e61

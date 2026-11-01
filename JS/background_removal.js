@@ -159,6 +159,7 @@ async function removeImageBackground(image, onProgress = () => {}) {
     const form = new FormData();
     form.append('file', image, `background.${ext}`);
 
+    yccLog.info(`Background removal started (${image.type}, ${image.size} bytes)`);
     onProgress('Uploading…');
     const submit = await bgRemovalApi(key, { method: 'POST', url: `${BG_REMOVAL_API}/process`, data: form, responseType: 'json' }, onProgress);
     if (submit.status !== 200) throw new Error('Submit failed: ' + bgRemovalErrorDetail(submit));
@@ -171,6 +172,7 @@ async function removeImageBackground(image, onProgress = () => {}) {
         const { status, error_message } = res.response || JSON.parse(res.responseText);
         if (status === 'failed') throw new Error(error_message || 'Background removal failed');
         if (status === 'completed') {
+            yccLog.info(`Background removal finished after ${i + 1} status checks`);
             const out = await bgRemovalApi(key, { method: 'GET', url: `${BG_REMOVAL_API}/result/${jobId}`, responseType: 'blob' }, onProgress);
             if (out.status !== 200) throw new Error('Download failed: ' + bgRemovalErrorDetail(out));
             return new Blob([out.response], { type: out.response.type || 'image/png' }) // WebP when animated;
@@ -208,7 +210,7 @@ async function setUpNewChat(characterId) {
         const characters = await fetchChatCharacters(chatId);
         character = characters.find(c => c.uuid === characterId) || characters[0];
     } catch (e) {
-        console.warn('New chat setup: could not load the character:', e);
+        yccLog.warn('New chat setup: could not load the character:', e);
         return;
     }
     // A full-body image is already shown; a background-only character needs its background
@@ -228,7 +230,7 @@ async function setUpNewChat(characterId) {
             setCharacterImage(imageBase64);
             temp_form_data.character_image = imageBase64;
         } catch (e) {
-            console.error('New chat setup: cutting out the character failed:', e);
+            yccLog.error('New chat setup: cutting out the character failed:', e);
             showInjectionNotification(notification_resource_name, null, `Could not cut out ${character.nickname}: ${e.message}`);
             return;
         }
@@ -267,7 +269,7 @@ document.addEventListener(SET_CHARACTER_IMAGE_EVENT, (e) => {
         temp_form_data.character_image = imageBase64;
         const urlInput = document.querySelector('#character-image-url-input');
         if (urlInput) urlInput.value = '';
-    })().catch(err => console.error('Setting the character image failed:', err));
+    })().catch(err => yccLog.error('Setting the character image failed:', err));
 });
 
 /** @param {string} dataUrl @returns {Blob} */

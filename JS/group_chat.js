@@ -87,7 +87,7 @@ async function fetchChatCharacters(chatId) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         data = await response.json();
     } catch (e) {
-        console.warn('Chat details fetch failed, retrying through the userscript manager:', e);
+        yccLog.warn('Chat details fetch failed, retrying through the userscript manager:', e);
         data = await new Promise((resolve, reject) => GM_xmlhttpRequest({
             method: 'GET',
             url,
@@ -138,9 +138,9 @@ async function detectGroupChat(chatId) {
         if (getChatIdFromUrl() !== chatId) return false; // the user moved on meanwhile
         groupChatCharacters = characters.length > 1 ? characters : [];
     } catch (e) {
-        console.error('Could not load the group chat characters:', e);
+        yccLog.error('Could not load the group chat characters:', e);
     }
-    console.log('Group chat characters:', groupChatCharacters);
+    yccLog.info(`Group chat with ${groupChatCharacters.length} characters:`, groupChatCharacters.map(c => c.uuid));
     return isGroupChat();
 }
 
@@ -228,7 +228,7 @@ async function loadGroupCustomizedUI() {
             const shown = characters === groupChatCharacters && characters.some(c =>
                 groupCharacterSettings[c.uuid]?.character_image || groupCharacterSettings[c.uuid]?.[GROUP_CUTOUT_FIELD]);
             if (shown) return applyRandomChatBackground();
-        }).catch(e => console.error('Random background failed:', e));
+        }).catch(e => yccLog.error('Random background failed:', e));
     }
 }
 
@@ -248,7 +248,7 @@ async function makeGroupCharacterCutouts() {
     if (!needed.length) return;
     // Ask for the API key once here, not once per character
     if (!getBackgroundRemovalApiKey()) {
-        console.warn('No background-removal API key: characters without a full-body image are not shown.');
+        yccLog.warn('No background-removal API key: characters without a full-body image are not shown.');
         return;
     }
     showInjectionNotification(notification_resource_name, null,
@@ -267,7 +267,7 @@ async function makeGroupCharacterCutouts() {
         }
     }));
     const failed = results.map((r, i) => r.status === 'rejected' ? [needed[i], r.reason] : null).filter(Boolean);
-    failed.forEach(([character, error]) => console.error(`Cut-out of ${character.nickname} failed:`, error));
+    failed.forEach(([character, error]) => yccLog.error(`Cut-out of ${character.nickname} failed:`, error));
     if (failed.length) {
         showInjectionNotification(notification_resource_name, null,
             `Could not cut out ${failed.map(([c]) => c.nickname).join(', ')}: ${failed[0][1].message}`);
@@ -298,7 +298,7 @@ async function getGroupCharacterImageSrc(character) {
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 30000)),
             ])));
         } catch (e) {
-            console.error('Failed to load character image from URL:', e);
+            yccLog.error('Failed to load character image from URL:', e);
             return custom;
         }
     }
@@ -417,7 +417,7 @@ async function moveGroupCharacterLayer(characterId, step) {
     try {
         await saveCharacterFieldsBatch(CHAT_ID, { [GROUP_LAYER_FIELD]: order, record_type: 'chat' });
     } catch (e) {
-        console.error('Saving the layer order failed:', e);
+        yccLog.error('Saving the layer order failed:', e);
     }
 }
 
@@ -549,7 +549,7 @@ async function saveGroupCharacterPosition(characterId, position) {
     try {
         await saveCharacterFieldsBatch(CHAT_ID, { [groupFieldKey(GROUP_POSITION_FIELD, characterId)]: rounded, record_type: 'chat' });
     } catch (e) {
-        console.error('Saving the character position failed:', e);
+        yccLog.error('Saving the character position failed:', e);
     }
 }
 
@@ -614,7 +614,7 @@ function setupGroupCustomizerWindow(form) {
     const title = body?.querySelector('h3');
     const characterSection = form.querySelector('#character-settings-reset-button')?.closest('.mt-8');
     if (!title || !characterSection) {
-        console.error('Group customizer: form layout not recognised');
+        yccLog.error('Group customizer: form layout not recognised');
         return;
     }
     title.textContent = 'Group Chat Customization';
@@ -786,7 +786,7 @@ function initializeGroupCharacterTabs(form) {
                 if (urlInput) urlInput.value = '';
                 showInjectionNotification(notification_resource_name, null, `Image set for ${character.nickname}. Press Save to keep it.`);
             } catch (e) {
-                console.error('Background removal failed:', e);
+                yccLog.error('Background removal failed:', e);
                 alert('Remove background failed: ' + e.message);
             } finally {
                 removeBgButton.textContent = label;

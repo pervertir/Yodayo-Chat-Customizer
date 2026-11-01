@@ -8,7 +8,7 @@ function captureOriginalBackgroundImage(default_background_image, temp_form_data
         let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
         if (divElements.length > 0) {
             default_background_image = divElements[0].style.backgroundImage || '';
-            console.log('Captured original background image:', default_background_image);
+            yccLog.debug('Captured original background image:', default_background_image);
             const urlMatch = default_background_image.match(/url\(['"]?([^'"]+)['"]?\)/);
             if (urlMatch && urlMatch[1]) {
                 temp_form_data.default_background_image = urlMatch[1];
@@ -21,11 +21,11 @@ function captureOriginalBackgroundImage(default_background_image, temp_form_data
 
 
 function waitForElement(selector, callback) {
-    console.log("Waiting for:", selector);
+    yccLog.debug("Waiting for:", selector);
     let element_observer = new MutationObserver((mutations, element_observer) => {
         let element = document.querySelector(selector);
         if (element) {
-            console.log(element);
+            yccLog.debug(element);
             element_observer.disconnect();
             return callback(element);
         }
@@ -103,17 +103,17 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
                                         const base64 = await convertImageToWebP(img, quality);
                                         resolve(base64);
                                     } catch (error) {
-                                        console.error('WebP conversion error:', error);
+                                        yccLog.error('WebP conversion error:', error);
                                         // Fallback to PNG
                                         resolve(e.target.result.split(',')[1]);
                                     }
                                 };
                                 img.onerror = () => {
-                                    console.warn('Failed to load image from URL, returning raw base64');                                    resolve(e.target.result.split(',')[1]);
+                                    yccLog.warn('Failed to load image from URL, returning raw base64');                                    resolve(e.target.result.split(',')[1]);
                                 };
                                 img.src = e.target.result;
                             } catch (error) {
-                                console.error('Error in URL image conversion:', error);
+                                yccLog.error('Error in URL image conversion:', error);
                                 reject(error);
                             }
                         };
@@ -127,7 +127,7 @@ async function urlToBase64(url, quality = WEBP_CONFIG.quality) {
                 }
             },
             onerror: function (error) {
-                console.error('Error fetching image:', error);
+                yccLog.error('Error fetching image:', error);
                 reject(new Error('Network error while fetching image'));
             },
             ontimeout: function() {
@@ -195,19 +195,19 @@ async function convertImageToWebP(img, quality = WEBP_CONFIG.quality) {
                 // Check if conversion actually worked (some browsers may not support it)
                 if (webpDataUrl && webpDataUrl.indexOf('image/webp') > -1) {
                     const base64 = webpDataUrl.split(',')[1];
-                    console.log(`Converted image to WebP (quality: ${quality}). Size reduction estimate: ~25-40%`);
+                    yccLog.debug(`Converted image to WebP (quality: ${quality}). Size reduction estimate: ~25-40%`);
                     resolve(base64);
                     return;
                 }
             }
             
             // Fallback to PNG if WebP not supported or conversion failed
-            console.log('WebP not supported or conversion failed, falling back to PNG');
+            yccLog.debug('WebP not supported or conversion failed, falling back to PNG');
             const pngDataUrl = canvas.toDataURL('image/png');
             const base64 = pngDataUrl.split(',')[1];
             resolve(base64);
         } catch (error) {
-            console.error('Error converting image:', error);
+            yccLog.error('Error converting image:', error);
             reject(error);
         }
     });
@@ -231,19 +231,19 @@ async function fileToBase64(file, quality = WEBP_CONFIG.quality) {
                         const base64 = await convertImageToWebP(img, quality);
                         resolve(base64);
                     } catch (error) {
-                        console.error('WebP conversion error:', error);
+                        yccLog.error('WebP conversion error:', error);
                         // Fallback: return original base64 data
                         resolve(e.target.result.split(',')[1]);
                     }
                 };
                 img.onerror = () => {
-                    console.warn('Failed to load image from file, returning raw base64');
+                    yccLog.warn('Failed to load image from file, returning raw base64');
                     // Return raw base64 if image loading fails
                     resolve(e.target.result.split(',')[1]);
                 };
                 img.src = e.target.result;
             } catch (error) {
-                console.error('Error in fileToBase64:', error);
+                yccLog.error('Error in fileToBase64:', error);
                 // Last resort fallback
                 resolve(e.target.result.split(',')[1]);
             }
@@ -265,15 +265,15 @@ function fetchResource(resource) {
             url: htmlUrl,
             onload: function (response) {
                 if (response.status === 200) {
-                    console.log(`Successfully fetched resource: ${resource}`);
+                    yccLog.debug(`Successfully fetched resource: ${resource}`);
                     resolve(response.responseText);
                 } else {
-                    console.error(`Error fetching resource: ${resource} - Status: ${response.status}`);
+                    yccLog.error(`Error fetching resource: ${resource} - Status: ${response.status}`);
                     reject(new Error(`Failed to fetch resource. Status: ${response.status}`));
                 }
             },
             onerror: function (error) {
-                console.error('Error getting HTML:', error);
+                yccLog.error('Error getting HTML:', error);
                 reject(new Error('Network error while fetching resource.'));
             }
         });
@@ -285,10 +285,10 @@ async function renderHTMLFromFile(resource) {
         let html = await fetchResource(resource);
         let element = document.createElement('div');
         element.innerHTML = html;
-        console.log('Element Generated.', element);
+        yccLog.debug('Rendered', resource);
         return element;
     } catch (error) {
-        console.error('Failed to render HTML from file:', error);
+        yccLog.error('Failed to render HTML from file:', error);
         throw error;
     }
 }
@@ -298,7 +298,7 @@ async function addMenuItem(targetElement, itemId, resourceName) {
     let element = document.getElementById(itemId);
     
     if (element) {
-        console.log(itemId,'already found.');
+        yccLog.debug(itemId,'already found.');
         return Promise.resolve(null);
     }
 
@@ -308,14 +308,14 @@ async function addMenuItem(targetElement, itemId, resourceName) {
     const scrollBox = targetElement.querySelector(':scope > .overflow-y-auto');
     return renderHTMLFromFile(resourceName).then(item => {
         (scrollBox || targetElement).appendChild(item);
-        console.log(item, `menu item added.`);
+        yccLog.debug(item, `menu item added.`);
         return item;
     });
 }
 
 
 function addCustomizeChatForm(itemId, resourceName) {
-    console.log("Adding chat customizer form.");
+    yccLog.debug("Adding chat customizer form.");
     if (document.getElementById(itemId)) {
         let portalRoot = document.querySelector('#headlessui-portal-root');
         let main = document.querySelector('body > main');
@@ -371,7 +371,7 @@ function addImageViewer(itemId, resourceName) {
             // Portal root doesn't exist, create new image viewer
             renderHTMLFromFile(resourceName).then(imageViewerBody => {
                 document.body.appendChild(imageViewerBody);
-                console.log('Image Viewer inserted:', imageViewerBody);
+                yccLog.debug('Image Viewer inserted:', imageViewerBody);
             });
         }
 
@@ -380,7 +380,7 @@ function addImageViewer(itemId, resourceName) {
 
     renderHTMLFromFile(resourceName).then(imageViewerBody => {
         document.body.appendChild(imageViewerBody);
-        console.log('Image Viewer inserted:', imageViewerBody);
+        yccLog.debug('Image Viewer inserted:', imageViewerBody);
     });
 }
 
@@ -405,7 +405,7 @@ function showInjectionNotification(resourceName, CHAR_ID, message="") {
         setTimeout(() => {
             noti.classList.remove('show');
         }, 5000); // Hide the notification after 5 seconds
-        console.log('Notification generated.', notification);
+        yccLog.debug('Notification generated.', notification);
     });
 }
 
@@ -462,7 +462,7 @@ function normalizeColorForInput(color) {
                     result = `#${r}${g}${b}`;
                 }
             } catch (e) {
-                console.warn('Failed to normalize color:', color, e);
+                yccLog.warn('Failed to normalize color:', color, e);
                 result = color; // Return original if conversion fails
             }
         }
@@ -515,13 +515,11 @@ function handleMutations(mutationsList) {
             mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     if (node.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
                         node.classList.add('username');
                     }
                 }
                 node.querySelectorAll && node.querySelectorAll('p.text-xs.font-medium.opacity-50, p.space-x-1 > span').forEach((child) => {
                     if (child.matches('p.text-xs.font-medium.opacity-50')) {
-                        console.log(node);
                         child.classList.add('username');
                     }
                 });
@@ -580,7 +578,7 @@ function applyDynamicStyle(selector, styles) {
         try {
             rule = sheet.cssRules[sheet.insertRule(`${selector} {}`, sheet.cssRules.length)];
         } catch (e) {
-            console.warn('Failed to insert CSS rule for selector:', selector, e);
+            yccLog.warn('Failed to insert CSS rule for selector:', selector, e);
             return;
         }
         dynamicStyleRules.set(selector, rule);

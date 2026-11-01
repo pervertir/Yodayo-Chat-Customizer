@@ -492,6 +492,41 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Troubleshooting -->
+                <div class="mb-4">
+                  <span class="text-sm font-medium text-primaryText">Troubleshooting</span>
+                  <p class="text-xs text-secondaryText mt-1">
+                    Something not working? Use Report Issue before reloading the page, since logs are only kept until then.
+                    Reports are public. Logs leave out images and API keys but can include chat IDs and character names, so read them before you submit.
+                  </p>
+                  <label class="flex items-center justify-between gap-2 mt-2 text-xs text-primaryText">
+                    Console Log Level
+                    <select id="log-level-select" class="text-xs bg-tertiaryBg text-primaryText rounded p-2">
+                      <option value="error">Errors only</option>
+                      <option value="warn">Warnings (default)</option>
+                      <option value="info">Info</option>
+                      <option value="debug">Debug (everything)</option>
+                    </select>
+                  </label>
+                  <div class="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      id="copy-debug-logs-btn"
+                      class="flex-1 border border-blue-600 hover:border-blue-700 text-white font-medium py-2 px-3 rounded text-xs transition-colors"
+                    >
+                      Copy Debug Logs
+                    </button>
+                    <button
+                      type="button"
+                      id="report-issue-btn"
+                      class="flex-1 border border-blue-600 hover:border-blue-700 text-white font-medium py-2 px-3 rounded text-xs transition-colors"
+                    >
+                      Report Issue
+                    </button>
+                  </div>
+                  <p id="debug-log-status" class="text-xs text-secondaryText mt-2"></p>
+                </div>
               </div>
 
               <hr class="my-6 border-t border-separator/10" />

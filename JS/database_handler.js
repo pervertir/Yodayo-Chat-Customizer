@@ -11,7 +11,7 @@ function getChatIdFromUrl() {
 // whenever a chat page is entered (see initializeScript).
 let CHAT_ID = getChatIdFromUrl();
 
-console.log('Chat ID: ', CHAT_ID);
+yccLog.debug('Chat ID: ', CHAT_ID);
 /**
  * @typedef {Object} CharacterRecord
  * @property {string} CHAR_ID
@@ -77,11 +77,11 @@ function openDatabaseOnce() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
         request.onerror = (event) => {
-            console.error('Failed to open database:', event.target.error);
+            yccLog.error('Failed to open database:', event.target.error);
             reject(event.target.error);
         };
 
-        request.onblocked = () => console.warn('Database upgrade is waiting for other tabs of this site to reload or close');
+        request.onblocked = () => yccLog.warn('Database upgrade is waiting for other tabs of this site to reload or close');
 
         request.onsuccess = async (event) => {
             db = event.target.result;
@@ -91,7 +91,7 @@ function openDatabaseOnce() {
             try {
                 await syncWithMirror();
             } catch (e) {
-                console.error('Backup sync failed:', e);
+                yccLog.error('Backup sync failed:', e);
             }
             resolve(db);
         };
@@ -127,7 +127,7 @@ async function syncWithMirror() {
     if (records.length === 0 && mirrored.length > 0) {
         // Images were wiped with the site data: references to them are dropped below
         await writeRecords(restoreOmittedFields(mirrored, []), false);
-        console.warn(`IndexedDB was empty: restored ${mirrored.length} records from Tampermonkey backup`);
+        yccLog.warn(`IndexedDB was empty: restored ${mirrored.length} records from Tampermonkey backup`);
         takeSnapshotIfDue(mirrored);
         records = await readAllRecords();
     }
@@ -213,7 +213,7 @@ function createInitialSchema() {
     objectStore.createIndex('record_type', 'record_type', { unique: false });
     objectStore.createIndex('timestamp', 'timestamp', { unique: false });
 
-    console.log('Initial schema (v1) created');
+    yccLog.info('Initial schema (v1) created');
 }
 
 
@@ -424,7 +424,7 @@ async function runImport(importData, clearExisting) {
     try {
         takeSnapshotIfDue(await readAllRecords(), true);
     } catch (e) {
-        console.error('Pre-import snapshot failed:', e);
+        yccLog.error('Pre-import snapshot failed:', e);
     }
 
     return new Promise((resolve, reject) => {
@@ -472,7 +472,7 @@ async function runImport(importData, clearExisting) {
                             mirrorReplaceAll(records);
                             takeSnapshotIfDue(records, true);
                         })
-                        .catch(e => console.error('Mirror refresh failed:', e))
+                        .catch(e => yccLog.error('Mirror refresh failed:', e))
                         .finally(() => resolve({ imported, errors }));
                 };
                 

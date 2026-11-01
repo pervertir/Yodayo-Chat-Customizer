@@ -110,7 +110,7 @@ async function pickRandomCollectionBackground() {
         try {
             items = await fetchBackgroundCollection();
         } catch (e) {
-            console.warn('Background collection unavailable, using the default background:', e);
+            yccLog.warn('Background collection unavailable, using the default background:', e);
             items = getCachedBackgroundCollection();
         }
     }
@@ -376,7 +376,7 @@ async function openBackgroundBrowser() {
             if (removed) parts.push(`${removed} removed`);
             status.textContent = !before.size ? '' : parts.length ? parts.join(', ') : 'Up to date';
         } catch (e) {
-            console.error('Background collection failed to load:', e);
+            yccLog.error('Background collection failed to load:', e);
             status.textContent = `Update failed (${e.message})`;
             if (!items.length) {
                 grid.innerHTML = `<p class="col-span-full text-center text-secondaryText">Couldn't load the collection (${e.message}). Try again in a minute.</p>`;

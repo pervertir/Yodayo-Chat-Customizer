@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Yodayo/ Moescape Customizer
-// @version      1.17.2
+// @version      1.18.0
 
 // @namespace    MOESCAPE
 
@@ -39,6 +39,7 @@
 // Tailwind is pinned to the unminified file, which ends with a newline and no comment, so it is safe last.
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr@1.9.1/dist/pickr.min.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/constants.js
+// @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/logger.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/backup_storage.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/database_handler.js
 // @require      https://github.com/pervertir/Yodayo-Chat-Customizer/raw/refs/heads/main/JS/image_store.js

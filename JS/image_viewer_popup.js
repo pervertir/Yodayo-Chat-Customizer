@@ -88,7 +88,7 @@ function closeImageViewerModal() {
         initializeImageViewerObserver();
 
     } catch (error) {
-        console.error('Error closing image viewer modal:', error);
+        yccLog.error('Error closing image viewer modal:', error);
     }
 }
 
@@ -114,7 +114,7 @@ function initializeImageViewerCloseButtonEventHandler(imageViewer) {
     /** @type {HTMLElement|null} */
     const closeButton = imageViewer.querySelector('#close-button');
     if (!closeButton) {
-        console.error('Close button not found in image viewer');
+        yccLog.error('Close button not found in image viewer');
         return;
     }
 
@@ -139,7 +139,7 @@ function handleImageViewerAdded(mutationsList, observer) {
             /** @type {HTMLElement|null} */
             const imageViewer = document.querySelector('#image-viewer-ui-popup');
             if (imageViewer && !ImageViewerCache.isInitialized) {
-                console.log('Image Viewer found.');
+                yccLog.debug('Image Viewer found.');
                 ImageViewerCache.isInitialized = true;
 
                 // Inject custom CSS for card animations
@@ -272,14 +272,6 @@ function getTimestampMs(timestamp) {
  * @returns {CharacterRecord[]}
  */
 function sortRecords(records) {
-    console.log('sortRecords called with', records.length, 'records');
-    console.log('Current sort mode:', CardDisplayState.sortBy);
-    console.log('Records before sort:', records.map(r => ({
-        name: r.character_alias || r.character_name,
-        timestamp: r.timestamp,
-        timestampMs: getTimestampMs(r.timestamp)
-    })));
-    
     const sorted = [...records]; // Create a copy to avoid mutating original
     
     switch (CardDisplayState.sortBy) {
@@ -289,7 +281,6 @@ function sortRecords(records) {
                 const timeA = getTimestampMs(a.timestamp);
                 const timeB = getTimestampMs(b.timestamp);
                 const result = timeB - timeA;
-                console.log('Comparing', a.character_alias || a.character_name, 'vs', b.character_alias || b.character_name, ':', timeB - timeA);
                 return result;
             });
             break;
@@ -326,12 +317,6 @@ function sortRecords(records) {
             });
     }
     
-    console.log('Records after sort:', sorted.map(r => ({
-        name: r.character_alias || r.character_name,
-        timestamp: r.timestamp,
-        timestampMs: getTimestampMs(r.timestamp)
-    })));
-    
     return sorted;
 }
 
@@ -344,7 +329,7 @@ async function renderAllCardsInDiv() {
     /** @type {HTMLElement|null} */
     const cardContainer = document.getElementById('cards');
     if (!cardContainer) {
-        console.error('No element with id #cards found.');
+        yccLog.error('No element with id #cards found.');
         return;
     }
     
@@ -362,22 +347,15 @@ async function renderAllCardsInDiv() {
             await resolveRecordImages(event.target.result);
             /** @type {CharacterRecord[]} */
             let records = await mergeNewChatLeftovers(event.target.result.filter(r => r.CHAR_ID !== 'Universal'));
-            console.log('Raw records from DB:', records.length);
-            console.log('First record full details:', records[0]);
-            console.log('All records timestamps:', records.map(r => ({
-                charId: r.CHAR_ID,
-                name: r.character_alias || r.character_name,
-                timestamp: r.timestamp,
-                allFields: Object.keys(r)
-            })));
+            yccLog.debug('Raw records from DB:', records.length);
             
             // Apply search filter
             records = filterRecordsBySearch(records);
-            console.log('Records after search filter:', records.length);
+            yccLog.debug('Records after search filter:', records.length);
             
             // Apply sorting
             records = sortRecords(records);
-            console.log('Records after sorting:', records.length);
+            yccLog.debug('Records after sorting:', records.length);
             
             // Create document fragment for batch DOM manipulation
             const fragment = document.createDocumentFragment();
@@ -412,13 +390,13 @@ async function renderAllCardsInDiv() {
             cardContainer.appendChild(fragment);
             observeCardImages(cardContainer);
         } catch (error) {
-            console.error('Error loading cards:', error);
+            yccLog.error('Error loading cards:', error);
             showErrorMessage(cardContainer, 'Failed to load character cards');
         }
     };
 
     request.onerror = function (e) {
-        console.error('Failed to load character records:', e.target.error);
+        yccLog.error('Failed to load character records:', e.target.error);
         showErrorMessage(cardContainer, 'Database error occurred');
     };
 }
@@ -448,7 +426,7 @@ async function mergeNewChatLeftovers(records) {
             character.background_image = chat.background_image;
             merged.add(chat.CHAR_ID);
         } catch (e) {
-            console.error(`Could not merge chat ${chat.CHAR_ID} into its character:`, e);
+            yccLog.error(`Could not merge chat ${chat.CHAR_ID} into its character:`, e);
         }
     }));
     return merged.size ? records.filter(r => !merged.has(r.CHAR_ID)) : records;
@@ -533,7 +511,7 @@ function getCardSiteInfo(record) {
                 if (/\b404\b/.test(e?.message || '')) {
                     return { name: record.record_type === 'chat' ? 'Deleted chat' : 'Deleted character', characters: [] };
                 }
-                console.warn(`Card ${record.CHAR_ID}: site details unavailable`, e);
+                yccLog.warn(`Card ${record.CHAR_ID}: site details unavailable`, e);
                 return null;
             }
         })());
@@ -689,7 +667,7 @@ async function processCardData(record, cardElement, recordsById = new Map()) {
                 cardFront.firstElementChild?.prepend(note);
             }
         }).catch(e => {
-            console.error('Card images failed:', e);
+            yccLog.error('Card images failed:', e);
             cardElement.querySelector('.card-front')?.classList.remove('card-loading');
         });
 
@@ -729,7 +707,7 @@ async function processCardData(record, cardElement, recordsById = new Map()) {
                         }
                     }, 250);
                 } catch (error) {
-                    console.error('Error deleting character:', error);
+                    yccLog.error('Error deleting character:', error);
                     alert('Delete failed: ' + error.message);
                 }
             });
@@ -749,14 +727,14 @@ async function processCardData(record, cardElement, recordsById = new Map()) {
                     }
                     window.open(url, '_blank');
                 } catch (error) {
-                    console.error('Error opening chat/character:', error);
+                    yccLog.error('Error opening chat/character:', error);
                 }
             });
         }
 
         return cardElement;
     } catch (error) {
-        console.error('Error processing card data:', error);
+        yccLog.error('Error processing card data:', error);
         return null;
     }
 }
@@ -874,7 +852,7 @@ function addCardFlipHandlers(cardElement) {
     const backButton = cardElement.querySelector('#card-back-button');
 
     if (!cardInner || !cardFront || !backButton) {
-        console.error('Required card elements not found for flip animation');
+        yccLog.error('Required card elements not found for flip animation');
         return;
     }
 

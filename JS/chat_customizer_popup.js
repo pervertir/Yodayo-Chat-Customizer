@@ -24,7 +24,7 @@ document.addEventListener('ycc:character-position-changed', () => showCharacterA
 function createPickrInstance(elementId, defaultColor, onChange) {
     const element = document.querySelector(`#${elementId}`);
     if (!element) {
-        console.warn(`Element with ID ${elementId} not found`);
+        yccLog.warn(`Element with ID ${elementId} not found`);
         return null;
     }
 
@@ -184,7 +184,7 @@ function setPickrColor(key, color) {
             // Set color silently without triggering events
             pickrInstances[key].setColor(color, false);
         } catch (error) {
-            console.warn(`Failed to set Pickr color for ${key}:`, error);
+            yccLog.warn(`Failed to set Pickr color for ${key}:`, error);
         }
     }
 }
@@ -308,7 +308,7 @@ function validateNoUniversalColorsFunction() {
         results.errors.push('mergeSettingsHierarchically missing no_universal_colors logic');
     }
 
-    console.log('no_universal_colors validation results:', results);
+    yccLog.debug('no_universal_colors validation results:', results);
     return results;
 }
 
@@ -382,7 +382,6 @@ function resetColorSettings(formElements, updateTempData = true) {
  * @returns {void}
  */
 function initializeCloseButtonEventHandler(form, formBody) {
-    console.log(formBody);
     const closeModal = () => {
         // Clean up Pickr instances before closing
         destroyPickrInstances();
@@ -536,9 +535,10 @@ function initializeCharacterSettingsEventHandlers(form) {
     formElements.saveButton?.addEventListener('click', async function () {
         try {
             await saveCustomizerForm(formElements);
+            yccLog.info('Settings saved');
         } catch (e) {
             // Unsaved changes stay in the form, so Save can be pressed again
-            console.error('Save failed:', e);
+            yccLog.error('Save failed:', e);
             showInjectionNotification(notification_resource_name, null, 'Save failed: ' + e.message);
         }
     });
@@ -608,7 +608,7 @@ function initializeCharacterSettingsEventHandlers(form) {
             if (formElements.char_image_url_input) formElements.char_image_url_input.value = '';
             showInjectionNotification(notification_resource_name, null, 'Character image set. Press Save to keep it.');
         } catch (e) {
-            console.error('Background removal failed:', e);
+            yccLog.error('Background removal failed:', e);
             alert('Remove background failed: ' + e.message);
         } finally {
             removeBgButton.textContent = label;
@@ -663,6 +663,7 @@ function initializeCharacterSettingsEventHandlers(form) {
     // Import/Export event handlers
     setupImportExportHandlers();
     setupBackupHandlers();
+    setupTroubleshootingHandlers();
 }
 
 /**
@@ -734,7 +735,7 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
             // If no_universal_colors is true, exclude universal color settings
             if (noUniversalColors && colorFields.includes(field)) {
                 // Skip universal color settings when no_universal_colors is enabled
-                console.log(`Skipping universal color setting for ${field} due to no_universal_colors flag`);
+                yccLog.debug(`Skipping universal color setting for ${field} due to no_universal_colors flag`);
             } else {
                 mergedSettings[field] = universalRecord[field];
                 valueSet = true;
@@ -755,7 +756,7 @@ function mergeSettingsHierarchically(chatRecord, charRecord, universalRecord) {
 async function applySettingsToUI(settings) {
     // Check if settings object exists
     if (!settings || typeof settings !== 'object') {
-        console.warn('applySettingsToUI: Invalid or missing settings object');
+        yccLog.warn('applySettingsToUI: Invalid or missing settings object');
         return;
     }
 
@@ -822,12 +823,12 @@ async function applySettingsToUI(settings) {
 async function applyImageSetting(imageData, type) {
     // Validate inputs
     if (!imageData || typeof imageData !== 'string') {
-        console.warn(`applyImageSetting: Invalid imageData for ${type}`);
+        yccLog.warn(`applyImageSetting: Invalid imageData for ${type}`);
         return;
     }
 
     if (!type || (type !== 'character' && type !== 'background')) {
-        console.warn(`applyImageSetting: Invalid type "${type}"`);
+        yccLog.warn(`applyImageSetting: Invalid type "${type}"`);
         return;
     }
 
@@ -846,7 +847,7 @@ async function applyImageSetting(imageData, type) {
                 setBackgroundImage(imageBase64);
             }
         } catch (error) {
-            console.error(`Failed to load ${type} image from URL:`, error);
+            yccLog.error(`Failed to load ${type} image from URL:`, error);
             // Fallback: set the URL directly
             if (type === 'character') {
                 setCharacterImage(imageData);
@@ -938,7 +939,7 @@ async function populateCustomizerPopup(form, CHAR_ID) {
         colorDefaults.forEach(([key, defaultValue]) => {
             if (!formData[key]) {
                 formData[key] = defaultValue;
-                console.log(`Using default color for ${key}: ${defaultValue} (no_universal_colors is enabled)`);
+                yccLog.debug(`Using default color for ${key}: ${defaultValue} (no_universal_colors is enabled)`);
             }
         });
     }
@@ -1102,7 +1103,7 @@ function handleFormAdded(mutationsList, observer) {
     for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
             if (form) {
-                console.log('Form Found.');
+                yccLog.debug('Customize Chat opened');
 
                 // Capture original background image before any modifications
                 captureOriginalBackgroundImage();
@@ -1267,11 +1268,12 @@ function setupImportExportHandlers() {
                 const filename = `YCC-export-${timestamp}.json`;
                 downloadBlob(new Blob([dbData], { type: 'application/json' }), filename);
                 markFileExported();
+                yccLog.info('Database exported');
                 refreshBackupInfo();
                 showImportExportStatus('Database exported successfully!', 'success');
                 setTimeout(clearImportExportStatus, 3000);
             } catch (error) {
-                console.error('Export failed:', error);
+                yccLog.error('Export failed:', error);
                 showImportExportStatus('Export failed: ' + error.message, 'error');
             }
         });
@@ -1290,6 +1292,7 @@ function setupImportExportHandlers() {
                 if (file.type === 'application/json' || file.name.endsWith('.json')) {
                     const jsonData = await file.text();
                     const result = await importDatabase(jsonData, clearExisting);
+                    yccLog.info(`Imported ${result.imported} records, ${result.errors.length} errors`, result.errors);
                     
                     let message = `Import successful! ${result.imported} records imported.`;
                     if (result.errors.length > 0) {
@@ -1306,7 +1309,7 @@ function setupImportExportHandlers() {
                 }
                 
             } catch (error) {
-                console.error('Import failed:', error);
+                yccLog.error('Import failed:', error);
                 showImportExportStatus('Import failed: ' + error.message, 'error');
             }
         });
@@ -1364,7 +1367,7 @@ async function refreshStorageUsage() {
         if (usage.persisted === false) text += ' The browser may clear it when disk space runs low.';
         line.textContent = text;
     } catch (e) {
-        console.error('Storage usage failed:', e);
+        yccLog.error('Storage usage failed:', e);
     }
 }
 
@@ -1385,12 +1388,59 @@ function setupBackupHandlers() {
         if (!confirm('Replace all current settings with this snapshot? (Current data is snapshotted first.)')) return;
         try {
             const count = await restoreSnapshot(select.value);
+            yccLog.info(`Restored ${count} records from a snapshot`);
             showImportExportStatus(`Restored ${count} records. Reloading...`, 'success');
             setTimeout(() => location.reload(), 1500);
         } catch (error) {
-            console.error('Restore failed:', error);
+            yccLog.error('Restore failed:', error);
             showImportExportStatus('Restore failed: ' + error.message, 'error');
         }
+    });
+}
+
+/**
+ * Puts the debug report on the clipboard, or downloads it if the browser refuses.
+ * @returns {Promise<string>} what happened, to show the user
+ */
+async function copyDebugReport() {
+    const report = await buildDebugReport();
+    try {
+        await navigator.clipboard.writeText(report);
+        return 'Logs copied to the clipboard.';
+    } catch (e) {
+        yccLog.warn('Copying the logs failed, downloading them instead:', e);
+        downloadBlob(new Blob([report], { type: 'text/plain' }), 'YCC-debug-logs.txt');
+        return 'Could not use the clipboard, so the logs were downloaded as YCC-debug-logs.txt.';
+    }
+}
+
+/**
+ * Sets up the log level picker and the debug log buttons
+ * @returns {void}
+ */
+function setupTroubleshootingHandlers() {
+    /** @type {HTMLSelectElement|null} */
+    const levelSelect = document.getElementById('log-level-select');
+    /** @type {HTMLElement|null} */
+    const status = document.getElementById('debug-log-status');
+    if (levelSelect) {
+        levelSelect.value = getLogLevel();
+        levelSelect.addEventListener('change', () => {
+            setLogLevel(levelSelect.value);
+            yccLog.info('Log level changed to', levelSelect.value);
+        });
+    }
+    const setStatus = text => { if (status) status.textContent = text; };
+
+    document.getElementById('copy-debug-logs-btn')?.addEventListener('click', async () => {
+        setStatus(await copyDebugReport());
+    });
+    document.getElementById('report-issue-btn')?.addEventListener('click', async () => {
+        const copied = await copyDebugReport();
+        const opened = window.open(await buildIssueUrl(), '_blank');
+        setStatus(opened
+            ? `${copied} Paste them into the Logs box of the new issue.`
+            : `${copied} The browser blocked the new tab: allow pop-ups for this site and try again.`);
     });
 }
 

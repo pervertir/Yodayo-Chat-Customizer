@@ -14,7 +14,7 @@
 (async function () {
     'use strict';
 
-    console.log('Chat Customizer script initialized.');
+    yccLog.info(`Chat Customizer ${typeof GM_info === 'object' ? GM_info.script?.version : ''} started on ${location.host}`);
 
     // Our <style> elements. Kept only on tavern chat pages, so other pages look stock.
     const YCC_STYLE_IDS = ['card-flip-styles', 'chat-customizer-dynamic-styles', 'dynamic-styles'];
@@ -173,12 +173,12 @@
                 loadedChatId = chatId;
                 CHAT_ID = chatId;
                 // Place your script's main logic here
-                console.log('Moescape Chat Customizer script is running');
+                yccLog.info('Chat opened:', chatId);
                 waitForElement(char_id_selector, onLoad);
 
             }
         } else if (!isTargetUrl() && scriptLoaded) {
-            console.log('Exited chat page, hiding menu items.');
+            yccLog.info('Left the chat page');
             scriptLoaded = false; // Reset scriptLoaded flag
             loadedChatId = null;
             menuItemsAdded = false; // Reset menu items flag so they are re-added on next chat
@@ -238,7 +238,7 @@
                 }
             })
             .catch(error => {
-                console.error('Error adding menu items:', error);
+                yccLog.error('Error adding menu items:', error);
             });
     }
 
@@ -250,10 +250,10 @@
     async function onLoad(element) {
         // The user may have left the chat before its elements appeared
         if (!isTargetUrl() || getChatIdFromUrl() !== loadedChatId) return;
-        console.log('Page loaded');
+        yccLog.debug('Chat elements loaded');
 
         let CHAR_ID = findCharacterID(element);
-        console.log('Char ID: ', CHAR_ID);
+        yccLog.info('Character:', CHAR_ID);
         let anchor = document.querySelector(char_id_selector);
         if (!CHAR_ID) CHAR_ID = CHAT_ID;
         const chatId = loadedChatId;
@@ -263,7 +263,7 @@
         } else {
             if (getChatIdFromUrl() !== chatId) return;
             await loadCustomizedUI(CHAR_ID);
-            setUpNewChat(CHAR_ID).catch(e => console.error('New chat setup failed:', e));
+            setUpNewChat(CHAR_ID).catch(e => yccLog.error('New chat setup failed:', e));
         }
         showInjectionNotification(notification_resource_name, CHAR_ID);
         if (onceSetupDone) {

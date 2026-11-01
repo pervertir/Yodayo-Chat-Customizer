@@ -93,7 +93,7 @@ function compactBackupStorage() {
                 }
             }
         } catch (e) {
-            console.error('Backup compaction failed for', key, e);
+            yccLog.error('Backup compaction failed for', key, e);
         }
     });
 }
@@ -113,7 +113,7 @@ function mirrorSaveRecord(record) {
     try {
         GM_setValue(MIRROR_PREFIX + record.CHAR_ID, toBackupRecord(record));
     } catch (e) {
-        console.error('Mirror save failed:', e);
+        yccLog.error('Mirror save failed:', e);
     }
 }
 
@@ -125,7 +125,7 @@ function mirrorDeleteRecord(CHAR_ID) {
     try {
         GM_deleteValue(MIRROR_PREFIX + CHAR_ID);
     } catch (e) {
-        console.error('Mirror delete failed:', e);
+        yccLog.error('Mirror delete failed:', e);
     }
 }
 
@@ -187,11 +187,11 @@ function takeSnapshotIfDue(records, force = false) {
     try {
         GM_setValue(SNAPSHOT_PREFIX + timestamp, { version: DB_VERSION, timestamp, records });
     } catch (e) {
-        console.error('Snapshot failed:', e);
+        yccLog.error('Snapshot failed:', e);
         return;
     }
     snapshots.slice(SNAPSHOT_KEEP - 1).forEach(s => GM_deleteValue(s.key));
-    console.log(`Backup snapshot taken (${records.length} records)`);
+    yccLog.info(`Backup snapshot taken (${records.length} records)`);
 }
 
 /**

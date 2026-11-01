@@ -34,7 +34,7 @@ function isImageRef(value) {
  */
 function imageRefUrl(ref) {
     const image = loadedImages.get(ref.slice(IMAGE_REF_PREFIX.length));
-    if (!image) console.warn('Image not loaded:', ref);
+    if (!image) yccLog.warn('Image not loaded:', ref);
     return image ? image.url : '';
 }
 
@@ -229,14 +229,14 @@ async function migrateRecordImages(records) {
         if (dangling.length) {
             updated = { ...updated };
             dangling.forEach(key => delete updated[key]);
-            console.warn(`Dropped missing images from ${record.CHAR_ID}:`, dangling);
+            yccLog.warn(`Dropped missing images from ${record.CHAR_ID}:`, dangling);
         }
         if (updated !== record) changed.push(updated);
         result.push(updated);
     }
     if (changed.length) {
         await writeRecords(changed, false);
-        console.log(`Moved images of ${changed.length} records to the image store`);
+        yccLog.info(`Moved images of ${changed.length} records to the image store`);
     }
     return result;
 }
@@ -266,7 +266,7 @@ async function sweepOrphanImages(records) {
         if (image) URL.revokeObjectURL(image.url);
         loadedImages.delete(hash);
     });
-    console.log(`Deleted ${orphans.length} unused images`);
+    yccLog.info(`Deleted ${orphans.length} unused images`);
     return orphans.length;
 }
 
@@ -336,9 +336,9 @@ function describeStorageError(error) {
 async function requestPersistentStorage() {
     try {
         if (!navigator.storage?.persist || await navigator.storage.persisted()) return;
-        console.log('Persistent storage ' + (await navigator.storage.persist() ? 'granted' : 'not granted'));
+        yccLog.info('Persistent storage ' + (await navigator.storage.persist() ? 'granted' : 'not granted'));
     } catch (e) {
-        console.warn('Persistent storage request failed:', e);
+        yccLog.warn('Persistent storage request failed:', e);
     }
 }
 

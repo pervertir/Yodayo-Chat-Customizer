@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in the customizer doesn't work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The easiest way to get here is **Customize Chat > Troubleshooting > Report Issue**, which fills in the setup details and copies your logs.
+        Issues are public. Logs leave out images and API keys but can include chat IDs and character names, so read them before submitting and remove anything you don't want to share.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a group chat
+        2. Open Customize Chat
+        3. ...
+  - type: textarea
+    id: environment
+    attributes:
+      label: Setup
+      description: Filled in by Report Issue. Otherwise give your customizer version, userscript manager and browser.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Filled in with your clipboard contents after Report Issue, or from Copy Debug Logs.
+      render: text

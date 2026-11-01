@@ -8,21 +8,20 @@
 async function setBackgroundImage(imageData) {
     // Validate input
     if (!imageData || typeof imageData !== 'string') {
-        console.error('setBackgroundImage: Invalid imageData provided');
+        yccLog.error('setBackgroundImage: Invalid imageData provided');
         return;
     }
 
     /** @type {NodeListOf<HTMLDivElement>} */
     let targetDivs = document.querySelectorAll(bg_img);
     if (!targetDivs.length) {
-        console.error('Background divs not found.');
+        yccLog.error('Background divs not found.');
         return;
     }
     /** @type {HTMLDivElement[]} */
     let divElements = Array.from(targetDivs).filter((element) => element.tagName === 'DIV');
 
-    console.log('Setting new background image');
-    console.log(targetDivs);
+    yccLog.debug('Setting new background image');
 
     // Use standardized image data handling (same as image viewer)
     const backgroundImageUrl = `url('${normalizeImageData(imageData)}')`;
@@ -219,7 +218,7 @@ async function saveCharacterPosition(position) {
     try {
         await saveCharacterFieldsBatch(CHAT_ID, { character_position: rounded, record_type: 'chat' });
     } catch (e) {
-        console.error('Saving the character position failed:', e);
+        yccLog.error('Saving the character position failed:', e);
     }
 }
 
@@ -295,7 +294,7 @@ function bindCharacterAdjustControls(get, initial, onChange) {
 async function setCharacterImage(imageData) {
     // Validate input
     if (!imageData || typeof imageData !== 'string') {
-        console.error('setCharacterImage: Invalid imageData provided');
+        yccLog.error('setCharacterImage: Invalid imageData provided');
         return;
     }
 
@@ -316,7 +315,7 @@ async function setCharacterImage(imageData) {
             }
             existingImage.src = imageSrc;
             existingImage.style.height = imageHeight;
-            console.log('Changed Character Image.');
+            yccLog.debug('Changed Character Image.');
         } else {
             let innerDiv = characterContainer.querySelector('div > div');
             if (!innerDiv) {
@@ -330,7 +329,7 @@ async function setCharacterImage(imageData) {
             }
         }
     } else {
-        console.error('Character container not found');
+        yccLog.error('Character container not found');
     }
 }
 
@@ -511,7 +510,7 @@ function setCharacterAliasColor(color) {
                 }
             }
         } catch (e) {
-            console.warn('Cannot access stylesheet: ', styleSheet.href);
+            yccLog.debug('Cannot access stylesheet:', styleSheet.href);
             continue;
         }
     }
@@ -536,7 +535,7 @@ function setCharacterNarrationColor(color) {
                 }
             }
         } catch (e) {
-            console.warn('Cannot access stylesheet: ', styleSheet.href);
+            yccLog.debug('Cannot access stylesheet:', styleSheet.href);
             continue;
         }
     }
@@ -564,7 +563,7 @@ function setCharacterDialogueColor(color, regex) {
                 }
             });
         } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
+            yccLog.debug('Cannot access stylesheet:', styleSheet.href);
         }
     });
 }
@@ -590,7 +589,7 @@ function setUserChatColor(color, regex) {
                 }
             });
         } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
+            yccLog.debug('Cannot access stylesheet:', styleSheet.href);
         }
     });
 }
@@ -617,8 +616,7 @@ function setCharacterChatBgColor(color, regex) {
                 }
             });
         } catch (e) {
-            console.warn('Cannot access stylesheet:', styleSheet.href);
-            console.warn(e);
+            yccLog.debug('Cannot access stylesheet:', styleSheet.href);
         }
     });
 }

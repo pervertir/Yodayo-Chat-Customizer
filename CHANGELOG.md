@@ -9,6 +9,16 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-10-31
+
+### Added
+- **Troubleshooting** section in Customize Chat. **Report Issue** copies your logs and opens a new GitHub issue with your setup filled in; **Copy Debug Logs** just copies them. Logs are kept in memory until the page reloads, leave out images, API keys and link parameters, and are only shared if you submit them.
+- **Console Log Level** setting (errors, warnings, info or debug), so the browser console stays quiet unless you ask for more. It defaults to warnings.
+- Bug report template on GitHub.
+
+### Changed
+- The customizer no longer fills the browser console with routine messages. Those now show at the debug level, and full character records are no longer logged at all.
+
 ## [1.17.2] - 2026-10-30
 
 ### Fixed
@@ -322,7 +332,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.17.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.18.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.17.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/6319777
 [1.17.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/4a48cf3
 [1.17.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/7b90e61
 [1.16.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/5981c18

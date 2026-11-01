@@ -158,7 +158,7 @@ A: Yes, as long as your browser supports userscript managers like Tampermonkey o
 A: Major performance improvements, better error handling, real-time preview functionality, enhanced image support (URLs + files), optimized database operations, and improved user experience with temporary data management.
 
 **Q: How do I report issues or suggest features?**  
-A: Please open an issue on the GitHub repository with detailed information about the problem or suggestion. Include browser version, userscript manager, and steps to reproduce any issues.
+A: In Customize Chat, open **Troubleshooting** and click **Report Issue**. It copies your logs and opens a GitHub issue with your setup filled in. For a suggestion, or if you can't open Customize Chat, [open an issue](https://github.com/pervertir/Yodayo-Chat-Customizer/issues/new/choose) directly.
 
 ## Contributing
 Contributions are welcome! The codebase has been recently refactored for better maintainability and includes comprehensive documentation. Please open an issue or submit a pull request if you have suggestions or improvements.

@@ -251,6 +251,9 @@
         // The user may have left the chat before its elements appeared
         if (!isTargetUrl() || getChatIdFromUrl() !== loadedChatId) return;
         yccLog.debug('Chat elements loaded');
+        // Before anything that waits on storage or the network: a menu opened during that wait,
+        // or a failure in it, must not leave the chat without our menu items
+        watchChatMenu();
 
         let CHAR_ID = findCharacterID(element);
         yccLog.info('Character:', CHAR_ID);
@@ -289,31 +292,41 @@
             }
         });
         }
-        if (!menuItemsAdded){ 
-            if (observer) observer.disconnect();
-            observer = new MutationObserver((mutations) => {
-                if (isTargetUrl()) {
-                    for (const mutation of mutations) {
-                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            mutation.addedNodes.forEach(node => {
-                                if (node.id && node.id.startsWith('headlessui-menu-items')) {
-                                    addCustomizeMenuItems(node);
-                                    menuItemsAdded = true;
-
-                                }
-                            });
-                        }
-                    }
-                }
-            });
-            const config = { childList: true, subtree: true };
-            observer.observe(document.body, config);
-        }
-
         if (menuItemsAdded) {
             showElementsById(chat_customizer_html_element_id, db_explorer_html_element_id);
-        }  
-  
+        }
+
+    }
+
+    /**
+     * Adds our menu items to every chat menu the site opens from now on, and to one already open.
+     * @returns {void}
+     */
+    function watchChatMenu() {
+        if (menuItemsAdded) return;
+        if (observer) observer.disconnect();
+        observer = new MutationObserver((mutations) => {
+            if (isTargetUrl()) {
+                for (const mutation of mutations) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.id && node.id.startsWith('headlessui-menu-items')) {
+                                addCustomizeMenuItems(node);
+                                menuItemsAdded = true;
+
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        const config = { childList: true, subtree: true };
+        observer.observe(document.body, config);
+        const openMenu = document.querySelector('[id^="headlessui-menu-items"]');
+        if (openMenu) {
+            addCustomizeMenuItems(openMenu);
+            menuItemsAdded = true;
+        }
     }
 
     // Clean up event listeners and intervals when the script is unloaded

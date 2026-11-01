@@ -9,6 +9,11 @@ Versions are the `@version` of `MoescapeCustomUI.user.js`; the right-click scrip
 
 ## [Unreleased]
 
+## [1.18.2] - 2026-10-31
+
+### Fixed
+- **Customize Chat** and **Card Viewer** no longer go missing from the chat menu if you open it while a chat's customizations are still loading, or if loading them fails.
+
 ## [1.18.1] - 2026-10-31
 
 ### Fixed
@@ -337,7 +342,8 @@ Development versions Alpha-v9 to Alpha-v36.
 - Support for moescape.ai and yodayo.com.
 
 [Unreleased]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
-[1.18.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.18.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commits/main
+[1.18.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/ee367cf
 [1.18.0]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/56336b9
 [1.17.2]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/6319777
 [1.17.1]: https://github.com/pervertir/Yodayo-Chat-Customizer/commit/4a48cf3
